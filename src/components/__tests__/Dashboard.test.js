@@ -5,7 +5,7 @@ import Dashboard from '../Dashboard';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Mock Firebase
-jest.mock('../../firebase', () => ({
+jest.mock('../../firebase/firebase', () => ({
   db: {},
   storage: {}
 }));

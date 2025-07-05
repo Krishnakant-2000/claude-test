@@ -1,11 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import LanguageSelector from '../common/LanguageSelector';
+import ThemeToggle from '../common/ThemeToggle';
 import './LandingPage.css';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { guestLogin } = useAuth();
+  const { t } = useLanguage();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGuestLogin = async () => {
+    try {
+      setIsLoading(true);
+      await guestLogin();
+      navigate('/home');
+    } catch (error) {
+      console.error('Guest login failed:', error);
+      alert('Failed to login as guest. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const legendaryQuotes = [
+    {
+      quote: "Enjoy the game and chase your dreams. Dreams do come true. But more than anything else, it is about enjoying your cricket and being true to yourself.",
+      author: "Sachin Tendulkar",
+      sport: "Cricket",
+      image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=400&h=300&fit=crop"
+    },
+    {
+      quote: "Hockey is a game where you need to have complete control over the ball, your mind, and your emotions. The moment you lose any of these, you lose the game.",
+      author: "Dhyan Chand",
+      sport: "Hockey",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop"
+    },
+    {
+      quote: "I believe that if you work hard and stay dedicated, anything is possible. The javelin taught me that dreams can fly as far as you dare to throw them.",
+      author: "Neeraj Chopra",
+      sport: "Athletics",
+      image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop"
+    },
     {
       quote: "The way a team plays as a whole determines its success. You may have the greatest bunch of individual stars in the world, but if they don't play together, the club won't be worth a dime.",
       author: "Babe Ruth",
@@ -54,8 +92,8 @@ export default function LandingPage() {
       caption: "Athletic Excellence"
     },
     {
-      url: "https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&w=600&h=400&fit=crop&auto=format",
-      caption: "Victory Moment"
+      url: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?ixlib=rb-4.0.3&w=600&h=400&fit=crop&auto=format",
+      caption: "Victory Celebration"
     },
     {
       url: "https://images.unsplash.com/photo-1530549387789-4c1017266635?ixlib=rb-4.0.3&w=600&h=400&fit=crop&auto=format",
@@ -67,28 +105,9 @@ export default function LandingPage() {
     <div className="landing-page">
       {/* Hero Section */}
       <section className="hero">
-        <div className="hero-overlay">
-          <div className="hero-content">
-            <h1 className="hero-title">AmaPlayer</h1>
-            <p className="hero-subtitle">Where Champions Share Their Journey</p>
-            <p className="hero-description">
-              Connect with athletes, share your victories, and get inspired by legendary sports moments
-            </p>
-            <div className="hero-buttons">
-              <button 
-                className="cta-button primary"
-                onClick={() => navigate('/login')}
-              >
-                Join the Champions
-              </button>
-              <button 
-                className="cta-button secondary"
-                onClick={() => navigate('/login')}
-              >
-                Continue as Guest
-              </button>
-            </div>
-          </div>
+        <div className="hero-controls">
+          <LanguageSelector />
+          <ThemeToggle />
         </div>
         <div className="hero-background">
           <img 
@@ -98,6 +117,29 @@ export default function LandingPage() {
               e.target.src = "https://via.placeholder.com/1920x1080/0f1419/00ff88?text=AmaPlayer+Olympic+Spirit";
             }}
           />
+        </div>
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+          <h1 className="hero-title">{t('hero_title')}</h1>
+          <p className="hero-subtitle">{t('hero_subtitle')}</p>
+          <p className="hero-description">
+            {t('hero_description')}
+          </p>
+          <div className="hero-buttons">
+            <button 
+              className="cta-button primary"
+              onClick={() => navigate('/login')}
+            >
+              {t('join_champions')}
+            </button>
+            <button 
+              className="cta-button secondary"
+              onClick={handleGuestLogin}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Logging in...' : t('continue_guest')}
+            </button>
+          </div>
         </div>
       </section>
 

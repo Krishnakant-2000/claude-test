@@ -1,0 +1,50 @@
+// Cloud Firestore Security Rules for AmaPlayer
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read/write their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Posts collection rules
+    match /posts/{postId} {
+      // Anyone can read posts
+      allow read: if true;
+      
+      // Only authenticated users can create posts
+      allow create: if request.auth != null 
+        && request.auth.uid == resource.data.userId
+        && validatePostData();
+      
+      // Users can update/delete their own posts
+      allow update, delete: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    // Comments subcollection
+    match /posts/{postId}/comments/{commentId} {
+      allow read: if true;
+      allow create: if request.auth != null && validateCommentData();
+      allow update, delete: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    // Helper functions
+    function validatePostData() {
+      return request.resource.data.keys().hasAll(['caption', 'userId', 'userDisplayName', 'timestamp'])
+        && request.resource.data.caption is string
+        && request.resource.data.caption.size() <= 1000
+        && request.resource.data.userId is string
+        && request.resource.data.userDisplayName is string;
+    }
+    
+    function validateCommentData() {
+      return request.resource.data.keys().hasAll(['text', 'userId', 'userDisplayName', 'timestamp'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.userId is string
+        && request.resource.data.userDisplayName is string;
+    }
+  }
+}

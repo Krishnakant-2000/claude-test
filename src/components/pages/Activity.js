@@ -1,5 +1,5 @@
 import React from 'react';
-import FooterNav from './FooterNav';
+import FooterNav from '../layout/FooterNav';
 import './Activity.css';
 
 export default function Activity() {

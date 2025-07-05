@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Home, Search, Plus, Heart, User } from 'lucide-react';
 import './FooterNav.css';
 
 export default function FooterNav() {
@@ -9,31 +10,31 @@ export default function FooterNav() {
   const navItems = [
     {
       id: 'home',
-      icon: '🏠',
+      icon: Home,
       label: 'Home',
       path: '/home'
     },
     {
       id: 'search',
-      icon: '🔍',
+      icon: Search,
       label: 'Search',
       path: '/search'
     },
     {
       id: 'add',
-      icon: '➕',
+      icon: Plus,
       label: 'Add',
       path: '/add-post'
     },
     {
       id: 'activity',
-      icon: '❤️',
+      icon: Heart,
       label: 'Activity',
       path: '/activity'
     },
     {
       id: 'profile',
-      icon: '👤',
+      icon: User,
       label: 'Profile',
       path: '/profile'
     }
@@ -52,7 +53,9 @@ export default function FooterNav() {
             className={`footer-nav-item ${location.pathname === item.path ? 'active' : ''}`}
             onClick={() => handleNavClick(item.path)}
           >
-            <span className="footer-nav-icon">{item.icon}</span>
+            <span className="footer-nav-icon">
+              <item.icon size={24} />
+            </span>
             <span className="footer-nav-label">{item.label}</span>
           </button>
         ))}

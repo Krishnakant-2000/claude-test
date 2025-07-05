@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { db, storage } from '../firebase';
+import { db, storage } from '../../firebase/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import FooterNav from './FooterNav';
+import FooterNav from '../layout/FooterNav';
 import './AddPost.css';
 
 export default function AddPost() {

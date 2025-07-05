@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import FooterNav from './FooterNav';
+import FooterNav from '../layout/FooterNav';
 import './Search.css';
 
 export default function Search() {

@@ -1,24 +1,29 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import LandingPage from './components/LandingPage';
-import Login from './components/Login';
-import Signup from './components/Signup';
-import Home from './components/Home';
-import Profile from './components/Profile';
-import Search from './components/Search';
-import AddPost from './components/AddPost';
-import Activity from './components/Activity';
-import PrivateRoute from './components/PrivateRoute';
-import CustomCursor from './components/CustomCursor';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { LanguageProvider } from './contexts/LanguageContext';
+import LandingPage from './components/pages/LandingPage';
+import Login from './components/auth/Login';
+import Signup from './components/auth/Signup';
+import Home from './components/pages/Home';
+import Profile from './components/pages/Profile';
+import Search from './components/pages/Search';
+import AddPost from './components/pages/AddPost';
+import Activity from './components/pages/Activity';
+import PrivateRoute from './components/auth/PrivateRoute';
+import CustomCursor from './components/common/CustomCursor';
 import './App.css';
+import './styles/themes.css';
 
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <div className="App">
-          <CustomCursor />
-          <Routes>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <div className="App">
+              <CustomCursor />
+              <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
@@ -49,9 +54,11 @@ function App() {
               </PrivateRoute>
             } />
             <Route path="/dashboard" element={<Navigate to="/home" />} />
-          </Routes>
-        </div>
-      </AuthProvider>
+            </Routes>
+            </div>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </Router>
   );
 }
