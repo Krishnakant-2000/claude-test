@@ -2,9 +2,10 @@
 .landing-page {
   font-family: 'Arial', sans-serif;
   line-height: 1.6;
-  color: #ffffff;
-  background: linear-gradient(135deg, #000000 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #000000 100%);
+  color: var(--landing-text);
+  background: var(--landing-bg);
   background-attachment: fixed;
+  transition: all 0.3s ease;
 }
 
 /* Hero Section */
@@ -48,8 +49,9 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(15, 20, 25, 0.8), rgba(26, 35, 50, 0.7), rgba(45, 55, 72, 0.8));
+  background: var(--landing-overlay);
   z-index: 2;
+  transition: all 0.3s ease;
 }
 
 .hero-content {
@@ -193,9 +195,10 @@
   text-align: center;
   font-size: 2.5rem;
   margin-bottom: 3rem;
-  color: #ffffff;
+  color: var(--landing-text);
   position: relative;
   font-weight: 700;
+  transition: all 0.3s ease;
 }
 
 .section-title::after {
@@ -229,10 +232,11 @@
   border-radius: 15px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.1s ease;
+  background: var(--landing-card-bg);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 255, 136, 0.2);
+  border: 1px solid var(--landing-border);
+  cursor: none;
 }
 
 .gallery-item:hover {
@@ -274,13 +278,14 @@
 }
 
 .quote-card {
-  background: linear-gradient(135deg, rgba(26, 26, 26, 0.4), rgba(0, 0, 0, 0.3));
+  background: var(--landing-card-bg);
   border-radius: 20px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0, 255, 136, 0.3);
+  transition: all 0.1s ease;
+  border: 1px solid var(--landing-border);
   backdrop-filter: blur(15px);
+  cursor: none;
 }
 
 .quote-card:hover {
@@ -299,7 +304,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.1s ease;
 }
 
 .quote-card:hover .quote-image img {
@@ -315,9 +320,10 @@
   font-style: italic;
   line-height: 1.6;
   margin-bottom: 1.5rem;
-  color: #e2e8f0;
-  border-left: 4px solid #00ff88;
+  color: var(--landing-text-secondary);
+  border-left: 4px solid var(--accent-primary);
   padding-left: 1rem;
+  transition: all 0.3s ease;
 }
 
 .quote-author strong {
@@ -399,14 +405,16 @@
 .final-cta h2 {
   font-size: 2.5rem;
   margin-bottom: 1rem;
-  color: #ffffff;
+  color: var(--landing-text);
   font-weight: 700;
+  transition: all 0.3s ease;
 }
 
 .final-cta p {
   font-size: 1.2rem;
-  color: #d1d5db;
+  color: var(--landing-text-secondary);
   margin-bottom: 2rem;
+  transition: all 0.3s ease;
 }
 
 /* Footer */

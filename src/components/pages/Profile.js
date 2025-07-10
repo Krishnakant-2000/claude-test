@@ -11,7 +11,7 @@ import LanguageSelector from '../common/LanguageSelector';
 import './Profile.css';
 
 export default function Profile() {
-  const { currentUser } = useAuth();
+  const { currentUser, isGuest } = useAuth();
   const { t } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -44,7 +44,8 @@ export default function Profile() {
         setCertificates(profileData.certificates || []);
         setAchievements(profileData.achievements || []);
       } else {
-        setProfile({
+        // Create default profile data
+        const defaultProfile = {
           displayName: currentUser.displayName || 'User',
           email: currentUser.email,
           bio: '',
@@ -59,7 +60,16 @@ export default function Profile() {
           role: 'athlete',
           certificates: [],
           achievements: []
-        });
+        };
+        
+        setProfile(defaultProfile);
+        
+        // Save default profile to Firestore so user is searchable
+        try {
+          await setDoc(docRef, defaultProfile, { merge: true });
+        } catch (error) {
+          console.error('Error creating default profile:', error);
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -85,6 +95,11 @@ export default function Profile() {
   };
 
   const handleImageUpload = async (e) => {
+    if (isGuest()) {
+      alert('Please sign up or log in to upload profile photos. Guest accounts have read-only access.');
+      return;
+    }
+
     const file = e.target.files[0];
     if (!file) return;
 
@@ -105,6 +120,10 @@ export default function Profile() {
   };
 
   const handleEditProfile = () => {
+    if (isGuest()) {
+      alert('Please sign up or log in to edit your profile. Guest accounts have read-only access.');
+      return;
+    }
     setIsEditing(true);
     setEditedProfile({ ...profile });
   };
@@ -157,6 +176,69 @@ export default function Profile() {
     return <div className="loading">Loading profile...</div>;
   }
 
+  // Guest profile view - minimal display with only guest ID
+  if (isGuest()) {
+    return (
+      <div className="profile">
+        <nav className="nav-bar">
+          <div className="nav-content">
+            <h1>{t('profile')}</h1>
+            <div className="nav-controls">
+              <LanguageSelector />
+              <ThemeToggle />
+            </div>
+          </div>
+        </nav>
+
+        <div className="main-content profile-container">
+          <div className="guest-profile">
+            <div className="guest-profile-header">
+              <div className="guest-avatar">
+                <img
+                  src="https://via.placeholder.com/120/f39c12/ffffff?text=GUEST"
+                  alt="Guest Profile"
+                  className="profile-image"
+                />
+              </div>
+              <div className="guest-info">
+                <h1>Guest User</h1>
+                <p className="guest-id">Guest ID: {currentUser.uid}</p>
+                <div className="guest-limitation">
+                  <p>🔒 Guest Account - Read Only Access</p>
+                  <p>Sign up to unlock full features!</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="guest-features">
+              <div className="feature-card">
+                <h3>What you can do as a guest:</h3>
+                <ul>
+                  <li>✅ View all posts</li>
+                  <li>✅ Like posts</li>
+                  <li>✅ View comments</li>
+                </ul>
+              </div>
+              
+              <div className="feature-card">
+                <h3>Sign up to unlock:</h3>
+                <ul>
+                  <li>📝 Create posts</li>
+                  <li>💬 Comment on posts</li>
+                  <li>👤 Edit profile</li>
+                  <li>🏆 Add achievements</li>
+                  <li>📜 Add certificates</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <FooterNav />
+      </div>
+    );
+  }
+
   return (
     <div className="profile">
       <nav className="nav-bar">
@@ -177,28 +259,34 @@ export default function Profile() {
               alt={t('profile')}
               className="profile-image"
             />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="image-upload"
-              id="profile-image-upload"
-            />
-            <label htmlFor="profile-image-upload" className="upload-label">
-              <Camera size={20} />
-              {uploading ? 'Uploading...' : t('upload_photo')}
-            </label>
+            {!isGuest() && (
+              <>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="image-upload"
+                  id="profile-image-upload"
+                />
+                <label htmlFor="profile-image-upload" className="upload-label">
+                  <Camera size={20} />
+                  {uploading ? 'Uploading...' : t('upload_photo')}
+                </label>
+              </>
+            )}
           </div>
           <div className="profile-info">
             <div className="profile-title-section">
               <h1>{profile?.displayName}</h1>
-              <button 
-                className="edit-profile-btn" 
-                onClick={isEditing ? handleSaveProfile : handleEditProfile}
-              >
-                {isEditing ? <Save size={20} /> : <Edit2 size={20} />}
-                {isEditing ? t('save_profile') : t('edit_profile')}
-              </button>
+              {!isGuest() && (
+                <button 
+                  className="edit-profile-btn" 
+                  onClick={isEditing ? handleSaveProfile : handleEditProfile}
+                >
+                  {isEditing ? <Save size={20} /> : <Edit2 size={20} />}
+                  {isEditing ? t('save_profile') : t('edit_profile')}
+                </button>
+              )}
             </div>
             <div className="profile-stats">
               <span><strong>{posts.length}</strong> posts</span>
@@ -314,8 +402,8 @@ export default function Profile() {
           </div>
           
           {showCertificateForm && (
-            <div className="form-overlay">
-              <div className="form-modal">
+            <div className="form-overlay active" onClick={() => setShowCertificateForm(false)}>
+              <div className="form-modal active" onClick={(e) => e.stopPropagation()}>
                 <div className="form-header">
                   <h3>{t('add_certificate')}</h3>
                   <button onClick={() => setShowCertificateForm(false)}>
@@ -388,8 +476,8 @@ export default function Profile() {
           </div>
           
           {showAchievementForm && (
-            <div className="form-overlay">
-              <div className="form-modal">
+            <div className="form-overlay active" onClick={() => setShowAchievementForm(false)}>
+              <div className="form-modal active" onClick={(e) => e.stopPropagation()}>
                 <div className="form-header">
                   <h3>{t('add_achievement')}</h3>
                   <button onClick={() => setShowAchievementForm(false)}>

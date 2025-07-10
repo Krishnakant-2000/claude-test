@@ -56,9 +56,23 @@
   --border-secondary: rgba(255, 255, 255, 0.2);
 }
 
-/* Landing Page - Keep Original Styling */
-.landing-page {
-  --bg-primary: linear-gradient(135deg, #0f1419 0%, #1a2332 25%, #2d3748 50%, #1a2332 75%, #0f1419 100%);
+/* Landing Page Theme Variables */
+[data-theme="dark"] .landing-page {
+  --landing-bg: linear-gradient(135deg, #000000 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #000000 100%);
+  --landing-text: #ffffff;
+  --landing-text-secondary: #d1d5db;
+  --landing-overlay: linear-gradient(135deg, rgba(15, 20, 25, 0.8), rgba(26, 35, 50, 0.7), rgba(45, 55, 72, 0.8));
+  --landing-card-bg: linear-gradient(135deg, rgba(26, 26, 26, 0.4), rgba(0, 0, 0, 0.3));
+  --landing-border: rgba(0, 255, 136, 0.3);
+}
+
+[data-theme="light"] .landing-page {
+  --landing-bg: linear-gradient(135deg, #f7fafc 0%, #edf2f7 25%, #e2e8f0 50%, #edf2f7 75%, #f7fafc 100%);
+  --landing-text: #1a202c;
+  --landing-text-secondary: #4a5568;
+  --landing-overlay: linear-gradient(135deg, rgba(247, 250, 252, 0.8), rgba(237, 242, 247, 0.7), rgba(226, 232, 240, 0.8));
+  --landing-card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(247, 250, 252, 0.6));
+  --landing-border: rgba(102, 126, 234, 0.3);
 }
 
 /* Smooth transitions for theme changes */

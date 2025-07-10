@@ -11,7 +11,7 @@ export default function Signup() {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
+  const { signup, googleLogin } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
@@ -28,6 +28,19 @@ export default function Signup() {
       navigate('/home');
     } catch (error) {
       setError('Failed to create an account');
+    }
+    setLoading(false);
+  }
+
+  async function handleGoogleSignup() {
+    try {
+      setError('');
+      setLoading(true);
+      await googleLogin();
+      navigate('/home');
+    } catch (error) {
+      setError('Failed to sign up with Google');
+      console.error('Google signup error:', error);
     }
     setLoading(false);
   }
@@ -81,6 +94,15 @@ export default function Signup() {
             Sign Up
           </button>
         </form>
+        <div className="social-login">
+          <button 
+            disabled={loading} 
+            className="auth-btn google-btn"
+            onClick={handleGoogleSignup}
+          >
+            Sign up with Google
+          </button>
+        </div>
         <p>
           Already have an account? <Link to="/login">Log in</Link>
         </p>

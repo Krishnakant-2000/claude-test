@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { storage, db } from '../../firebase/firebase';
 import { ref, uploadBytes, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
 import { collection, addDoc } from 'firebase/firestore';
-import { uploadVideoFile, validateVideoFile, generateVideoMetadata } from '../../firebase/videoService';
+import { validateVideoFile, generateVideoMetadata } from '../../firebase/videoService';
 
 export default function UploadDebugger() {
   const { currentUser } = useAuth();
@@ -189,7 +189,7 @@ export default function UploadDebugger() {
 
       // Test network connectivity
       addDebugInfo('🌍 Testing network connectivity...');
-      const response = await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
+      await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
       addDebugInfo('✅ Network connectivity: OK');
 
       // Test Firebase Auth status

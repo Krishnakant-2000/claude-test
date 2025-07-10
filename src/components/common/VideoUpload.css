@@ -107,19 +107,26 @@
 
 .video-controls {
   position: absolute;
-  bottom: 15px;
-  left: 15px;
-  display: flex;
-  gap: 10px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+  padding: 20px 15px 15px;
+  backdrop-filter: blur(10px);
 }
 
-.play-pause-btn {
-  background: rgba(0, 0, 0, 0.7);
-  border: 2px solid var(--accent-primary);
-  color: var(--accent-primary);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.control-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 6px;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -128,11 +135,107 @@
   backdrop-filter: blur(5px);
 }
 
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  transform: translateY(-1px);
+}
+
+.play-pause-btn {
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid var(--accent-primary);
+  color: var(--accent-primary);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
 .play-pause-btn:hover {
   background: var(--accent-primary);
   color: var(--bg-primary);
   transform: scale(1.1);
   box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+}
+
+.progress-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: 3px;
+  transition: width 0.1s ease;
+}
+
+.time-display {
+  display: flex;
+  gap: 4px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 80px;
+  justify-content: center;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.volume-btn {
+  padding: 6px;
+  width: 32px;
+  height: 32px;
+}
+
+.volume-slider {
+  width: 60px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.fullscreen-btn {
+  padding: 6px;
+  width: 32px;
+  height: 32px;
 }
 
 .video-info {
@@ -215,6 +318,27 @@
   .video-details {
     text-align: center;
   }
+  
+  .video-controls {
+    padding: 12px 8px 8px;
+  }
+  
+  .controls-row {
+    gap: 6px;
+  }
+  
+  .volume-control {
+    gap: 4px;
+  }
+  
+  .volume-slider {
+    width: 40px;
+  }
+  
+  .time-display {
+    font-size: 10px;
+    min-width: 60px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -236,12 +360,63 @@
   }
   
   .video-controls {
-    bottom: 10px;
-    left: 10px;
+    padding: 15px 10px 10px;
+  }
+  
+  .controls-row {
+    gap: 8px;
   }
   
   .play-pause-btn {
-    width: 45px;
-    height: 45px;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .control-btn {
+    padding: 6px;
+  }
+  
+  .volume-btn,
+  .fullscreen-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .volume-slider {
+    width: 50px;
+  }
+  
+  .time-display {
+    font-size: 11px;
+    min-width: 70px;
+  }
+  
+  .progress-bar {
+    height: 5px;
+  }
+  
+  /* Hide volume control on very small screens */
+  .volume-control {
+    display: none;
+  }
+  
+  /* Make controls more touch-friendly */
+  .control-btn {
+    min-width: 32px;
+    min-height: 32px;
+  }
+  
+  .play-pause-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    border-radius: 4px;
+  }
+  
+  .progress-fill {
+    border-radius: 4px;
   }
 }

@@ -4,6 +4,8 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signInAnonymously,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut, 
   onAuthStateChanged,
   updateProfile
@@ -34,6 +36,11 @@ export function AuthProvider({ children }) {
     return signInAnonymously(auth);
   }
 
+  function googleLogin() {
+    const provider = new GoogleAuthProvider();
+    return signInWithPopup(auth, provider);
+  }
+
   function logout() {
     return signOut(auth);
   }
@@ -47,11 +54,18 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
+  // Helper function to check if current user is a guest
+  function isGuest() {
+    return currentUser && currentUser.isAnonymous;
+  }
+
   const value = {
     currentUser,
+    isGuest,
     signup,
     login,
     guestLogin,
+    googleLogin,
     logout
   };
 

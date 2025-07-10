@@ -48,7 +48,7 @@ export default function APITester() {
       // Test 3: Firestore API
       addResult('\n💾 Testing Firestore API...');
       try {
-        const { collection, getDocs, addDoc, doc, setDoc } = await import('firebase/firestore');
+        const { collection, getDocs, addDoc } = await import('firebase/firestore');
         
         // Test read permissions
         const postsRef = collection(db, 'posts');

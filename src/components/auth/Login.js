@@ -11,7 +11,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, guestLogin } = useAuth();
+  const { login, guestLogin, googleLogin } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -37,6 +37,19 @@ export default function Login() {
       navigate('/home');
     } catch (error) {
       setError('Failed to log in as guest');
+    }
+    setLoading(false);
+  }
+
+  async function handleGoogleLogin() {
+    try {
+      setError('');
+      setLoading(true);
+      await googleLogin();
+      navigate('/home');
+    } catch (error) {
+      setError('Failed to log in with Google');
+      console.error('Google login error:', error);
     }
     setLoading(false);
   }
@@ -73,6 +86,15 @@ export default function Login() {
             {t('login')}
           </button>
         </form>
+        <div className="social-login">
+          <button 
+            disabled={loading} 
+            className="auth-btn google-btn"
+            onClick={handleGoogleLogin}
+          >
+            Sign in with Google
+          </button>
+        </div>
         <div className="guest-login">
           <button 
             disabled={loading} 

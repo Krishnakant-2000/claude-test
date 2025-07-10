@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Search, Plus, Heart, User } from 'lucide-react';
+import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
 import './FooterNav.css';
 
 export default function FooterNav() {
@@ -27,10 +27,10 @@ export default function FooterNav() {
       path: '/add-post'
     },
     {
-      id: 'activity',
-      icon: Heart,
-      label: 'Activity',
-      path: '/activity'
+      id: 'messages',
+      icon: MessageCircle,
+      label: 'Messages',
+      path: '/messages'
     },
     {
       id: 'profile',

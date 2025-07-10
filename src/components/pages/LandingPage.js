@@ -36,13 +36,13 @@ export default function LandingPage() {
       quote: "Hockey is a game where you need to have complete control over the ball, your mind, and your emotions. The moment you lose any of these, you lose the game.",
       author: "Dhyan Chand",
       sport: "Hockey",
-      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop"
+      image: "https://i3.wp.com/www.thetalentedindian.com/wp-content/uploads/2024/08/TTI-Website-Images-2024-08-28T210925.609.jpg"
     },
     {
       quote: "I believe that if you work hard and stay dedicated, anything is possible. The javelin taught me that dreams can fly as far as you dare to throw them.",
       author: "Neeraj Chopra",
       sport: "Athletics",
-      image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop"
+      image: "https://thebridge.in/h-upload/2024/09/15/57670-neeraj-chopra.webp"
     },
     {
       quote: "The way a team plays as a whole determines its success. You may have the greatest bunch of individual stars in the world, but if they don't play together, the club won't be worth a dime.",
@@ -88,16 +88,12 @@ export default function LandingPage() {
       caption: "Olympic Rings - Symbol of Unity"
     },
     {
-      url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&w=600&h=400&fit=crop&auto=format",
-      caption: "Athletic Excellence"
+      url: "https://images.unsplash.com/photo-1530549387789-4c1017266635?ixlib=rb-4.0.3&w=600&h=400&fit=crop&auto=format",
+      caption: "Swimming Championships"
     },
     {
       url: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?ixlib=rb-4.0.3&w=600&h=400&fit=crop&auto=format",
       caption: "Victory Celebration"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1530549387789-4c1017266635?ixlib=rb-4.0.3&w=600&h=400&fit=crop&auto=format",
-      caption: "Swimming Championships"
     }
   ];
 

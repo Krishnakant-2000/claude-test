@@ -9,7 +9,7 @@ import Home from './components/pages/Home';
 import Profile from './components/pages/Profile';
 import Search from './components/pages/Search';
 import AddPost from './components/pages/AddPost';
-import Activity from './components/pages/Activity';
+import Messages from './components/pages/Messages';
 import PrivateRoute from './components/auth/PrivateRoute';
 import CustomCursor from './components/common/CustomCursor';
 import './App.css';
@@ -43,9 +43,9 @@ function App() {
                 <AddPost />
               </PrivateRoute>
             } />
-            <Route path="/activity" element={
+            <Route path="/messages" element={
               <PrivateRoute>
-                <Activity />
+                <Messages />
               </PrivateRoute>
             } />
             <Route path="/profile" element={
