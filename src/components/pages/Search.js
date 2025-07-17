@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../firebase/firebase';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
-import { Search as SearchIcon, UserPlus, Check, X } from 'lucide-react';
+import { Search as SearchIcon, UserPlus, Check, X, Filter, MapPin, User, Award, Target } from 'lucide-react';
 import FooterNav from '../layout/FooterNav';
 import ThemeToggle from '../common/ThemeToggle';
 import LanguageSelector from '../common/LanguageSelector';
@@ -18,6 +18,16 @@ export default function Search() {
   const [sentRequests, setSentRequests] = useState([]);
   const [friendships, setFriendships] = useState([]);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    location: '',
+    role: '',
+    skill: '',
+    sport: '',
+    name: '',
+    achievement: '',
+    sex: ''
+  });
 
   useEffect(() => {
     if (currentUser && !isGuest()) {
@@ -33,8 +43,17 @@ export default function Search() {
       clearTimeout(searchDebounceTimer);
     }
 
-    // Don't search if less than 2 characters or if guest
-    if (searchTerm.trim().length < 2 || isGuest()) {
+    // Don't search if no criteria and if guest
+    if (isGuest()) {
+      setSearchResults([]);
+      return;
+    }
+
+    // Search if there's a search term or any filter applied
+    const hasSearchCriteria = searchTerm.trim().length >= 2 || 
+                            Object.values(filters).some(filter => filter.trim().length > 0);
+
+    if (!hasSearchCriteria) {
       setSearchResults([]);
       return;
     }
@@ -52,7 +71,7 @@ export default function Search() {
         clearTimeout(timer);
       }
     };
-  }, [searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchTerm, filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchSentRequests = () => {
     const q = query(
@@ -86,7 +105,7 @@ export default function Search() {
   };
 
   const handleSearch = async () => {
-    if (!searchTerm.trim() || isGuest()) {
+    if (isGuest()) {
       return;
     }
     
@@ -103,16 +122,67 @@ export default function Search() {
         
         // Don't include current user in results
         if (doc.id !== currentUser.uid) {
-          const displayName = (userData.displayName || '').toLowerCase().trim();
-          const email = (userData.email || '').toLowerCase().trim();
-          const name = (userData.name || '').toLowerCase().trim();
+          let matches = true;
           
-          // Try multiple matching strategies
-          const exactMatch = displayName === searchTermLower || email === searchTermLower || name === searchTermLower;
-          const includesMatch = displayName.includes(searchTermLower) || email.includes(searchTermLower) || name.includes(searchTermLower);
-          const startsWithMatch = displayName.startsWith(searchTermLower) || email.startsWith(searchTermLower) || name.startsWith(searchTermLower);
+          // Text search (if provided)
+          if (searchTermLower) {
+            const displayName = (userData.displayName || '').toLowerCase().trim();
+            const email = (userData.email || '').toLowerCase().trim();
+            const name = (userData.name || '').toLowerCase().trim();
+            
+            const textMatch = displayName.includes(searchTermLower) || 
+                            email.includes(searchTermLower) || 
+                            name.includes(searchTermLower);
+            
+            if (!textMatch) matches = false;
+          }
           
-          if (exactMatch || includesMatch || startsWithMatch) {
+          // Apply filters
+          if (matches && filters.location && userData.location) {
+            if (!userData.location.toLowerCase().includes(filters.location.toLowerCase())) {
+              matches = false;
+            }
+          }
+          
+          if (matches && filters.role && userData.role) {
+            if (userData.role !== filters.role) {
+              matches = false;
+            }
+          }
+          
+          if (matches && filters.skill && userData.skills) {
+            const skillMatch = userData.skills.some(skill => 
+              skill.toLowerCase().includes(filters.skill.toLowerCase())
+            );
+            if (!skillMatch) matches = false;
+          }
+          
+          if (matches && filters.sport && userData.sport) {
+            if (!userData.sport.toLowerCase().includes(filters.sport.toLowerCase())) {
+              matches = false;
+            }
+          }
+          
+          if (matches && filters.name && userData.name) {
+            if (!userData.name.toLowerCase().includes(filters.name.toLowerCase())) {
+              matches = false;
+            }
+          }
+          
+          if (matches && filters.achievement && userData.achievements) {
+            const achievementMatch = userData.achievements.some(achievement => 
+              achievement.title.toLowerCase().includes(filters.achievement.toLowerCase())
+            );
+            if (!achievementMatch) matches = false;
+          }
+          
+          if (matches && filters.sex && userData.sex) {
+            if (userData.sex !== filters.sex) {
+              matches = false;
+            }
+          }
+          
+          if (matches) {
             results.push(userData);
           }
         }
@@ -178,6 +248,29 @@ export default function Search() {
     );
   };
 
+  const handleFilterChange = (filterName, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName]: value
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      location: '',
+      role: '',
+      skill: '',
+      sport: '',
+      name: '',
+      achievement: '',
+      sex: ''
+    });
+    setSearchTerm('');
+    setSearchResults([]);
+  };
+
+  const hasActiveFilters = Object.values(filters).some(filter => filter.trim().length > 0) || searchTerm.trim().length > 0;
+
   // Guest view
   if (isGuest()) {
     return (
@@ -232,7 +325,7 @@ export default function Search() {
             <SearchIcon size={20} />
             <input
               type="text"
-              placeholder="Start typing to search users... (min 2 characters)"
+              placeholder="Search users by name, email, or display name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => {
@@ -241,11 +334,110 @@ export default function Search() {
                 }
               }}
             />
+            <button 
+              className="filter-toggle-btn"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter size={16} />
+              Filters
+            </button>
             <button onClick={handleSearch} disabled={loading}>
               {loading ? 'Searching...' : 'Search'}
             </button>
           </div>
         </div>
+
+        {showFilters && (
+          <div className="search-filters">
+            <div className="filters-header">
+              <h3><Filter size={20} />Advanced Filters</h3>
+              {hasActiveFilters && (
+                <button className="clear-filters-btn" onClick={clearFilters}>
+                  <X size={16} />
+                  Clear All
+                </button>
+              )}
+            </div>
+            
+            <div className="filters-grid">
+              <div className="filter-group">
+                <label><MapPin size={16} />Location</label>
+                <input
+                  type="text"
+                  placeholder="City, State, Country"
+                  value={filters.location}
+                  onChange={(e) => handleFilterChange('location', e.target.value)}
+                />
+              </div>
+              
+              <div className="filter-group">
+                <label><User size={16} />Role</label>
+                <select
+                  value={filters.role}
+                  onChange={(e) => handleFilterChange('role', e.target.value)}
+                >
+                  <option value="">All Roles</option>
+                  <option value="athlete">Athlete</option>
+                  <option value="coach">Coach</option>
+                  <option value="organisation">Organization</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label><Target size={16} />Skill</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Swimming, Running"
+                  value={filters.skill}
+                  onChange={(e) => handleFilterChange('skill', e.target.value)}
+                />
+              </div>
+              
+              <div className="filter-group">
+                <label><Target size={16} />Sport</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Football, Basketball"
+                  value={filters.sport}
+                  onChange={(e) => handleFilterChange('sport', e.target.value)}
+                />
+              </div>
+              
+              <div className="filter-group">
+                <label><User size={16} />Name</label>
+                <input
+                  type="text"
+                  placeholder="Full name"
+                  value={filters.name}
+                  onChange={(e) => handleFilterChange('name', e.target.value)}
+                />
+              </div>
+              
+              <div className="filter-group">
+                <label><Award size={16} />Achievement</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Gold Medal, Champion"
+                  value={filters.achievement}
+                  onChange={(e) => handleFilterChange('achievement', e.target.value)}
+                />
+              </div>
+              
+              <div className="filter-group">
+                <label><User size={16} />Gender</label>
+                <select
+                  value={filters.sex}
+                  onChange={(e) => handleFilterChange('sex', e.target.value)}
+                >
+                  <option value="">All Genders</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="search-results">
           {searchTerm && searchTerm.trim().length > 0 && searchTerm.trim().length < 2 && (
@@ -287,6 +479,12 @@ export default function Search() {
                 <div className="user-info" onClick={() => navigate(`/profile/${user.id}`)}>
                   <strong>{user.displayName || 'Anonymous User'}</strong>
                   <p>{user.bio || 'No bio available'}</p>
+                  <div className="user-details">
+                    {user.role && <span className="user-role">{user.role}</span>}
+                    {user.location && <span className="user-location"><MapPin size={12} />{user.location}</span>}
+                    {user.sport && <span className="user-sport"><Target size={12} />{user.sport}</span>}
+                    {user.sex && <span className="user-sex">{user.sex}</span>}
+                  </div>
                   {user.email && <span className="user-email">{user.email}</span>}
                 </div>
                 <div className="user-actions">
