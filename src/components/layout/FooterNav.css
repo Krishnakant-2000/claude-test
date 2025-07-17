@@ -8,7 +8,13 @@
   z-index: 1000;
   padding: 10px 0;
   box-shadow: var(--shadow-secondary);
-  backdrop-filter: blur(15px);
+}
+
+/* Only use backdrop filter on desktop for better performance */
+@media (hover: hover) and (pointer: fine) {
+  .footer-nav {
+    backdrop-filter: blur(15px);
+  }
 }
 
 .footer-nav-container {
@@ -26,12 +32,18 @@
   align-items: center;
   background: none;
   border: none;
-  cursor: none;
   padding: 12px;
   border-radius: 12px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   min-width: 60px;
   color: var(--text-secondary);
+}
+
+/* Only hide cursor on desktop */
+@media (hover: hover) and (pointer: fine) {
+  .footer-nav-item {
+    cursor: none;
+  }
 }
 
 .footer-nav-item:hover {

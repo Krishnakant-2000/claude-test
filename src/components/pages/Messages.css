@@ -54,7 +54,10 @@
   max-width: 600px;
   margin: 80px auto 0;
   padding: 20px;
-  padding-bottom: 100px;
+  padding-bottom: 150px; /* Account for fixed input + footer nav */
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 80px);
 }
 
 /* Tab Navigation */
@@ -151,6 +154,26 @@
   color: var(--text-secondary);
   margin: 8px 0;
   font-weight: 500;
+}
+
+.guest-restriction-content .sign-up-btn {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.guest-restriction-content .sign-up-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
 }
 
 /* Empty States */
@@ -491,11 +514,15 @@
 /* Chat Interface */
 .chat-interface {
   background: var(--bg-card);
-  border-radius: 15px;
+  border-radius: 15px 15px 0 0;
   border: 1px solid var(--border-primary);
+  border-bottom: none;
   box-shadow: var(--shadow-primary);
-  margin-bottom: 20px;
+  margin-bottom: 0;
   overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-header {
@@ -544,11 +571,12 @@
 }
 
 .chat-messages {
-  max-height: 400px;
+  flex: 1;
   overflow-y: auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
+  max-height: calc(100vh - 280px); /* Adjust based on header + input + footer */
   gap: 15px;
 }
 
@@ -586,12 +614,40 @@
   display: block;
 }
 
+/* Fixed Message Input */
+.fixed-message-input {
+  position: fixed;
+  bottom: 80px; /* Height of footer nav (10px padding + ~50px content + 10px padding) */
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 10px;
+  padding: 15px 20px;
+  background: var(--bg-navbar);
+  border-top: 1px solid var(--border-primary);
+  backdrop-filter: blur(15px);
+  z-index: 999;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
 .message-input {
   display: flex;
   gap: 10px;
   padding: 15px 20px;
   border-top: 1px solid var(--border-primary);
   background: var(--bg-secondary);
+}
+
+.fixed-message-input input {
+  flex: 1;
+  padding: 12px 15px;
+  border: 2px solid var(--border-secondary);
+  border-radius: 25px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
 }
 
 .message-input input {
@@ -606,9 +662,27 @@
   transition: all 0.3s ease;
 }
 
+.fixed-message-input input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
 .message-input input:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.fixed-message-input button {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  border: none;
+  padding: 12px 15px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .message-input button {
@@ -624,9 +698,20 @@
   justify-content: center;
 }
 
+.fixed-message-input button:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
+}
+
 .message-input button:hover:not(:disabled) {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
+}
+
+.fixed-message-input button:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
 }
 
 .message-input button:disabled {
@@ -650,7 +735,7 @@
 /* Mobile Responsive for Chat */
 @media (max-width: 768px) {
   .chat-messages {
-    max-height: 300px;
+    max-height: calc(100vh - 320px);
     padding: 15px;
   }
   
@@ -661,6 +746,16 @@
   
   .chat-header {
     padding: 12px 15px;
+  }
+  
+  .fixed-message-input {
+    padding: 12px 15px;
+    bottom: 70px; /* Adjust for smaller footer on mobile */
+  }
+  
+  .fixed-message-input input {
+    padding: 10px 12px;
+    font-size: 16px; /* Prevent zoom on iOS */
   }
   
   .message-input {
@@ -685,12 +780,296 @@
   }
   
   .chat-messages {
-    max-height: 250px;
+    max-height: calc(100vh - 360px);
     padding: 12px;
   }
   
   .message {
     max-width: 90%;
     padding: 8px 10px;
+  }
+}
+
+/* Follow Button Styles */
+.friend-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.follow-btn {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 80px;
+}
+
+.follow-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
+}
+
+.follow-btn.following {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+
+.follow-btn.following:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.follow-btn:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Update friend-item to accommodate actions */
+.friend-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-primary);
+  cursor: default; /* Remove pointer cursor since we have specific click areas */
+  transition: all 0.3s ease;
+}
+
+.friend-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-secondary);
+  border-color: var(--accent-primary);
+}
+
+.friend-avatar, .friend-info {
+  cursor: pointer;
+}
+
+.friend-avatar:hover, .friend-info:hover {
+  opacity: 0.8;
+}
+
+/* Message Options and Editing */
+.message {
+  position: relative;
+  user-select: none;
+  transition: all 0.1s ease;
+}
+
+/* Only hide cursor on desktop */
+@media (hover: hover) and (pointer: fine) {
+  .message {
+    cursor: pointer;
+  }
+}
+
+/* Better touch performance */
+@media (hover: none) {
+  .message {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+.message-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.message.message-selected {
+  background: rgba(0, 255, 136, 0.1);
+  border-radius: 8px;
+  transform: scale(1.02);
+}
+
+.options-menu {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  box-shadow: var(--shadow-secondary);
+  min-width: 150px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 14px;
+}
+
+.option-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.edit-option:hover {
+  background: rgba(0, 255, 136, 0.1);
+  color: var(--accent-primary);
+}
+
+.delete-option:hover {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.delete-everyone-option:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: var(--accent-danger);
+}
+
+/* Edit Input */
+.edit-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 8px;
+  border: 2px solid var(--accent-primary);
+}
+
+.edit-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  padding: 4px;
+}
+
+.edit-input::placeholder {
+  color: var(--text-muted);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.save-btn {
+  background: var(--accent-primary);
+  border: none;
+  border-radius: 4px;
+  padding: 6px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-btn:hover {
+  background: var(--accent-secondary);
+  transform: scale(1.05);
+}
+
+.cancel-btn {
+  background: var(--text-muted);
+  border: none;
+  border-radius: 4px;
+  padding: 6px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: var(--accent-danger);
+  transform: scale(1.05);
+}
+
+.edited-indicator {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+/* Long press visual feedback - lighter on mobile */
+.message:active {
+  background: rgba(0, 255, 136, 0.03);
+}
+
+/* Optimize for touch devices */
+@media (hover: none) {
+  .message:active {
+    background: rgba(0, 255, 136, 0.05);
+    transform: none; /* Remove transforms on mobile for better performance */
+  }
+  
+  .message.message-selected {
+    background: rgba(0, 255, 136, 0.08);
+    transform: none; /* Remove scale on mobile */
+  }
+}
+
+/* Message selection on touch devices */
+@media (hover: none) {
+  .message {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Mobile responsiveness for message options */
+@media (max-width: 768px) {
+  .options-menu {
+    min-width: 130px;
+    right: -5px;
+    top: -15px;
+  }
+  
+  .option-item {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+  
+  .edit-input-container {
+    padding: 6px;
+  }
+  
+  .edit-input {
+    font-size: 13px;
+  }
+  
+  .message.message-selected {
+    transform: scale(1.01);
   }
 }

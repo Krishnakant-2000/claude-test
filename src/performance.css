@@ -1,0 +1,64 @@
+/* Performance optimizations for touch devices */
+
+/* Disable custom cursor and heavy effects on touch devices */
+@media (hover: none) {
+  * {
+    cursor: auto !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Reduce backdrop filters on mobile */
+  .nav-bar,
+  .footer-nav,
+  .fixed-message-input {
+    backdrop-filter: none !important;
+    background: var(--bg-navbar) !important;
+  }
+  
+  /* Simplify animations on mobile */
+  .post:hover,
+  .message:hover,
+  .friend-item:hover {
+    transform: none !important;
+  }
+  
+  /* Better touch responsiveness */
+  button,
+  input,
+  textarea,
+  .message,
+  .post-actions button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Reduce box shadows on mobile */
+  .post,
+  .chat-interface,
+  .options-menu {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Disable transitions that cause lag */
+  .post,
+  .message,
+  .friend-item {
+    transition: background 0.1s ease !important;
+  }
+}
+
+/* Hardware acceleration for better performance */
+.custom-cursor,
+.message,
+.post,
+.fixed-message-input {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Optimize scrolling */
+.chat-messages,
+.posts-feed {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}

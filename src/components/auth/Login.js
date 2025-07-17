@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../common/ThemeToggle';
 import LanguageSelector from '../common/LanguageSelector';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -11,7 +11,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, guestLogin, googleLogin } = useAuth();
+  const { login, guestLogin, googleLogin, appleLogin } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -54,11 +54,39 @@ export default function Login() {
     setLoading(false);
   }
 
+  async function handleAppleLogin() {
+    try {
+      setError('');
+      setLoading(true);
+      await appleLogin();
+      navigate('/home');
+    } catch (error) {
+      console.error('Apple login error:', error);
+      if (error.code === 'auth/operation-not-allowed') {
+        setError('Apple Sign-in is not enabled. Please contact support.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        setError('Sign-in was cancelled');
+      } else {
+        setError('Failed to log in with Apple');
+      }
+    }
+    setLoading(false);
+  }
+
   return (
     <div className="auth-container auth-page">
       <div className="auth-header">
-        <LanguageSelector />
-        <ThemeToggle />
+        <button 
+          className="homepage-btn"
+          onClick={() => navigate('/')}
+          title="Go to Homepage"
+        >
+          🏠 <span>Home</span>
+        </button>
+        <div className="auth-controls">
+          <LanguageSelector />
+          <ThemeToggle />
+        </div>
       </div>
       <div className="auth-card">
         <h1>{t('amaplayer')}</h1>
@@ -94,6 +122,13 @@ export default function Login() {
           >
             Sign in with Google
           </button>
+          <button 
+            disabled={loading} 
+            className="auth-btn apple-btn"
+            onClick={handleAppleLogin}
+          >
+            Sign in with Apple
+          </button>
         </div>
         <div className="guest-login">
           <button 
@@ -104,9 +139,15 @@ export default function Login() {
             {t('continue_guest')}
           </button>
         </div>
-        <p>
-          {t('no_account')} <Link to="/signup">{t('signup')}</Link>
-        </p>
+        <div className="auth-link-section">
+          <p>{t('no_account')}</p>
+          <button 
+            className="auth-link-btn"
+            onClick={() => navigate('/signup')}
+          >
+            {t('signup')}
+          </button>
+        </div>
       </div>
     </div>
   );

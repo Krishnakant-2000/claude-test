@@ -90,7 +90,7 @@
 }
 
 .hero-title::before {
-  content: '🏆';
+  content: '';
   position: absolute;
   left: -60px;
   top: 50%;
@@ -100,7 +100,7 @@
 }
 
 .hero-title::after {
-  content: '⚡';
+  content: '';
   position: absolute;
   right: -60px;
   top: 50%;

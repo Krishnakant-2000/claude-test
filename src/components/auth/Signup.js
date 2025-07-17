@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../common/ThemeToggle';
 import './Auth.css';
 
@@ -11,7 +11,7 @@ export default function Signup() {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup, googleLogin } = useAuth();
+  const { signup, googleLogin, appleLogin } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
@@ -45,10 +45,38 @@ export default function Signup() {
     setLoading(false);
   }
 
+  async function handleAppleSignup() {
+    try {
+      setError('');
+      setLoading(true);
+      await appleLogin();
+      navigate('/home');
+    } catch (error) {
+      console.error('Apple signup error:', error);
+      if (error.code === 'auth/operation-not-allowed') {
+        setError('Apple Sign-in is not enabled. Please contact support.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        setError('Sign-in was cancelled');
+      } else {
+        setError('Failed to sign up with Apple');
+      }
+    }
+    setLoading(false);
+  }
+
   return (
     <div className="auth-container auth-page">
       <div className="auth-header">
-        <ThemeToggle />
+        <button 
+          className="homepage-btn"
+          onClick={() => navigate('/')}
+          title="Go to Homepage"
+        >
+          🏠 <span>Home</span>
+        </button>
+        <div className="auth-controls">
+          <ThemeToggle />
+        </div>
       </div>
       <div className="auth-card">
         <h1>AmaPlayer</h1>
@@ -102,10 +130,23 @@ export default function Signup() {
           >
             Sign up with Google
           </button>
+          <button 
+            disabled={loading} 
+            className="auth-btn apple-btn"
+            onClick={handleAppleSignup}
+          >
+            Sign up with Apple
+          </button>
         </div>
-        <p>
-          Already have an account? <Link to="/login">Log in</Link>
-        </p>
+        <div className="auth-link-section">
+          <p>Already have an account?</p>
+          <button 
+            className="auth-link-btn"
+            onClick={() => navigate('/login')}
+          >
+            Log in
+          </button>
+        </div>
       </div>
     </div>
   );

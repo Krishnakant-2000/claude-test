@@ -57,9 +57,10 @@ export const validateVideoFile = (file) => {
  * @param {string} userId - User ID for folder organization
  * @param {string} category - Video category (posts, highlights, training, competitions)
  * @param {Function} onProgress - Progress callback function
+ * @param {Function} onTaskCreated - Callback to receive upload task for cancellation
  * @returns {Promise<string>} - Download URL of uploaded video
  */
-export const uploadVideoFile = async (file, userId, category = VIDEO_PATHS.POSTS, onProgress = null) => {
+export const uploadVideoFile = async (file, userId, category = VIDEO_PATHS.POSTS, onProgress = null, onTaskCreated = null) => {
   console.log('uploadVideoFile called with:', { 
     fileName: file.name, 
     fileSize: file.size, 
@@ -91,6 +92,11 @@ export const uploadVideoFile = async (file, userId, category = VIDEO_PATHS.POSTS
       console.log('Starting resumable upload with progress tracking...');
       // Upload with progress tracking
       const uploadTask = uploadBytesResumable(storageRef, file);
+      
+      // Pass the upload task to the caller for cancellation
+      if (onTaskCreated) {
+        onTaskCreated(uploadTask);
+      }
       
       return new Promise((resolve, reject) => {
         uploadTask.on(

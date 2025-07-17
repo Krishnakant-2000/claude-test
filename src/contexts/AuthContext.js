@@ -6,6 +6,7 @@ import {
   signInAnonymously,
   signInWithPopup,
   GoogleAuthProvider,
+  OAuthProvider,
   signOut, 
   onAuthStateChanged,
   updateProfile
@@ -41,6 +42,14 @@ export function AuthProvider({ children }) {
     return signInWithPopup(auth, provider);
   }
 
+  function appleLogin() {
+    const provider = new OAuthProvider('apple.com');
+    // Request additional scopes if needed
+    provider.addScope('email');
+    provider.addScope('name');
+    return signInWithPopup(auth, provider);
+  }
+
   function logout() {
     return signOut(auth);
   }
@@ -66,6 +75,7 @@ export function AuthProvider({ children }) {
     login,
     guestLogin,
     googleLogin,
+    appleLogin,
     logout
   };
 

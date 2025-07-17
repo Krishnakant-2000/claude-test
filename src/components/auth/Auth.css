@@ -12,11 +12,40 @@
 .auth-header {
   position: absolute;
   top: 20px;
+  left: 20px;
   right: 20px;
   z-index: 10;
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.auth-controls {
+  display: flex;
   gap: 12px;
   align-items: center;
+}
+
+.homepage-btn {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.homepage-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
 }
 
 .auth-card {
@@ -151,6 +180,31 @@
   transform: none !important;
 }
 
+.apple-btn {
+  background: #000000 !important;
+  color: white !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.apple-btn:hover:not(:disabled) {
+  background: #1d1d1f !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.apple-btn:disabled {
+  background: #cccccc !important;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
 .guest-login {
   margin: 20px 0;
   text-align: center;
@@ -172,6 +226,39 @@
   margin-top: 20px;
   color: var(--text-secondary);
   text-align: center;
+}
+
+.auth-link-section {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.auth-link-section p {
+  margin: 0 0 10px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.auth-link-btn {
+  background: transparent;
+  border: 2px solid var(--accent-primary);
+  color: var(--accent-primary);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  min-width: 120px;
+}
+
+.auth-link-btn:hover {
+  background: var(--accent-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
 }
 
 .auth-card a {
@@ -219,4 +306,51 @@
 [data-theme="dark"] .auth-page .form-group input:focus {
   border-color: #00ff88;
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .auth-header {
+    top: 15px;
+    left: 15px;
+    right: 15px;
+  }
+  
+  .homepage-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .auth-controls {
+    gap: 8px;
+  }
+  
+  .auth-link-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-header {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+  }
+  
+  .homepage-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  
+  .homepage-btn span {
+    display: none; /* Hide "Home" text on very small screens */
+  }
+  
+  .auth-link-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    min-width: 80px;
+  }
 }

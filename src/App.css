@@ -2,7 +2,13 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  cursor: none;
+}
+
+/* Only hide cursor on desktop with mouse */
+@media (hover: hover) and (pointer: fine) {
+  * {
+    cursor: none;
+  }
 }
 
 .App {
@@ -11,50 +17,57 @@
   color: var(--text-primary);
 }
 
-/* Enhanced Green Glowing Mouse Cursor */
-.custom-cursor {
-  position: fixed;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #00ff88 15%, rgba(0, 255, 136, 0.6) 40%, rgba(0, 255, 136, 0.3) 70%, transparent 100%);
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
-  transition: all 0.05s ease-out;
-  box-shadow: 
-    0 0 15px rgba(0, 255, 136, 0.8),
-    0 0 30px rgba(0, 255, 136, 0.6),
-    0 0 45px rgba(0, 255, 136, 0.4),
-    0 0 60px rgba(0, 255, 136, 0.2);
-  filter: blur(1px);
+/* Enhanced Green Glowing Mouse Cursor - Only on desktop */
+@media (hover: hover) and (pointer: fine) {
+  .custom-cursor {
+    position: fixed;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #00ff88 15%, rgba(0, 255, 136, 0.6) 40%, rgba(0, 255, 136, 0.3) 70%, transparent 100%);
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: all 0.05s ease-out;
+    box-shadow: 
+      0 0 15px rgba(0, 255, 136, 0.8),
+      0 0 30px rgba(0, 255, 136, 0.6),
+      0 0 45px rgba(0, 255, 136, 0.4),
+      0 0 60px rgba(0, 255, 136, 0.2);
+    filter: blur(1px);
+    will-change: transform;
+  }
 }
 
-.custom-cursor::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 8px;
-  height: 8px;
-  background: #00ff88;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 
-    0 0 10px #00ff88,
-    0 0 20px rgba(0, 255, 136, 0.8);
-  filter: blur(0.5px);
+@media (hover: hover) and (pointer: fine) {
+  .custom-cursor::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: #00ff88;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 
+      0 0 10px #00ff88,
+      0 0 20px rgba(0, 255, 136, 0.8);
+    filter: blur(0.5px);
+  }
 }
 
-.custom-cursor-hover {
-  transform: translate(-50%, -50%) scale(1.8);
-  background: radial-gradient(circle, #00ff88 20%, rgba(0, 255, 136, 0.7) 50%, rgba(0, 255, 136, 0.4) 80%, transparent 100%);
-  box-shadow: 
-    0 0 20px rgba(0, 255, 136, 0.9),
-    0 0 40px rgba(0, 255, 136, 0.7),
-    0 0 60px rgba(0, 255, 136, 0.5),
-    0 0 80px rgba(0, 255, 136, 0.3);
-  filter: blur(1.5px);
+@media (hover: hover) and (pointer: fine) {
+  .custom-cursor-hover {
+    transform: translate(-50%, -50%) scale(1.8);
+    background: radial-gradient(circle, #00ff88 20%, rgba(0, 255, 136, 0.7) 50%, rgba(0, 255, 136, 0.4) 80%, transparent 100%);
+    box-shadow: 
+      0 0 20px rgba(0, 255, 136, 0.9),
+      0 0 40px rgba(0, 255, 136, 0.7),
+      0 0 60px rgba(0, 255, 136, 0.5),
+      0 0 80px rgba(0, 255, 136, 0.3);
+    filter: blur(1.5px);
+  }
 }
 
 body {
@@ -72,20 +85,32 @@ body {
 
 button {
   font-family: inherit;
-  cursor: none;
 }
 
 input, textarea {
   font-family: inherit;
-  cursor: none;
 }
 
 a {
   color: inherit;
   text-decoration: none;
-  cursor: none;
 }
 
-button:hover, a:hover, input:hover, textarea:hover, [role="button"]:hover {
-  cursor: none;
+/* Only hide cursor on desktop with mouse */
+@media (hover: hover) and (pointer: fine) {
+  button {
+    cursor: none;
+  }
+
+  input, textarea {
+    cursor: none;
+  }
+
+  a {
+    cursor: none;
+  }
+
+  button:hover, a:hover, input:hover, textarea:hover, [role="button"]:hover {
+    cursor: none;
+  }
 }

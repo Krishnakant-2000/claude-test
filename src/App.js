@@ -13,6 +13,7 @@ import Messages from './components/pages/Messages';
 import PrivateRoute from './components/auth/PrivateRoute';
 import CustomCursor from './components/common/CustomCursor';
 import './App.css';
+import './performance.css';
 import './styles/themes.css';
 
 function App() {
@@ -49,6 +50,11 @@ function App() {
               </PrivateRoute>
             } />
             <Route path="/profile" element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            } />
+            <Route path="/profile/:userId" element={
               <PrivateRoute>
                 <Profile />
               </PrivateRoute>

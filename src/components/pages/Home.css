@@ -194,6 +194,29 @@
   transform: translateY(-2px);
 }
 
+.post-actions button.liked:hover {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.post-actions button.liked .heart-liked {
+  filter: drop-shadow(0 0 10px #e74c3c);
+}
+
+.post-actions button.liked:hover .heart-liked {
+  filter: drop-shadow(0 0 15px #e74c3c);
+  animation: heartPulse 1s ease-in-out infinite;
+}
+
+@keyframes heartPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
 .post-actions button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -201,7 +224,28 @@
 }
 
 .post-actions button.liked {
-  color: var(--accent-danger);
+  color: #e74c3c;
+}
+
+.heart-liked {
+  animation: heartGlow 0.6s ease-in-out;
+  filter: drop-shadow(0 0 8px #e74c3c);
+  transform-origin: center;
+}
+
+@keyframes heartGlow {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px #e74c3c);
+  }
+  50% {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 12px #e74c3c);
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px #e74c3c);
+  }
 }
 
 .post-actions button.active {
@@ -332,6 +376,8 @@
   border-radius: 25px;
   border: 2px solid var(--border-secondary);
   transition: all 0.3s ease;
+  cursor: text;
+  min-height: 48px;
 }
 
 .comment-input-container .comment-avatar img {
@@ -340,6 +386,11 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--border-secondary);
+}
+
+.comment-input-container:hover {
+  border-color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .comment-input-container:focus-within {
@@ -355,7 +406,9 @@
   color: var(--text-primary);
   font-size: 14px;
   outline: none;
-  padding: 0;
+  padding: 8px 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .comment-input::placeholder {

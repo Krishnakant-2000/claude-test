@@ -464,3 +464,29 @@
   display: block;
   font-size: 16px;
 }
+
+.sign-in-link {
+  background: none;
+  border: none;
+  color: var(--accent-primary);
+  font-weight: 700;
+  font-size: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 4px;
+  transition: all 0.2s ease;
+}
+
+.sign-in-link:hover {
+  color: var(--accent-secondary);
+  text-decoration: none;
+  transform: scale(1.05);
+}
+
+/* Only hide cursor on desktop */
+@media (hover: hover) and (pointer: fine) {
+  .sign-in-link {
+    cursor: none;
+  }
+}

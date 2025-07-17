@@ -106,7 +106,9 @@ export default function AddPost() {
 
     // Prevent guests from creating posts
     if (isGuest()) {
-      alert('Please sign up or log in to create posts. Guest accounts have read-only access.');
+      if (window.confirm('Please sign up or log in to create posts. Guest accounts have read-only access.\n\nWould you like to go to the login page?')) {
+        navigate('/login');
+      }
       return;
     }
 
@@ -306,7 +308,16 @@ export default function AddPost() {
       <div className="main-content add-post-content">
         {isGuest() && (
           <div className="guest-post-restriction">
-            <span>🔒 Guest accounts have read-only access. Sign in to create posts.</span>
+            <span>
+              🔒 Guest accounts have read-only access. 
+              <button 
+                className="sign-in-link"
+                onClick={() => navigate('/login')}
+              >
+                Sign in
+              </button> 
+              to create posts.
+            </span>
           </div>
         )}
         <div className="create-post">

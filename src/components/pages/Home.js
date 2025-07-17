@@ -22,8 +22,6 @@ import {
 import './Home.css';
 import FooterNav from '../layout/FooterNav';
 import { samplePosts } from '../../data/samplePosts';
-import UploadDebugger from '../common/UploadDebugger';
-import APITester from '../common/APITester';
 
 export default function Home() {
   const { currentUser, logout, isGuest } = useAuth();
@@ -31,6 +29,7 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [showComments, setShowComments] = useState({});
   const [newComment, setNewComment] = useState({});
+  const [samplePostLikes, setSamplePostLikes] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,7 +57,31 @@ export default function Home() {
     }
   };
 
-  const handleLike = async (postId, currentLikes) => {
+  const handleLike = async (postId, currentLikes, isSamplePost = false) => {
+    if (!currentUser) return;
+
+    // Handle sample posts differently
+    if (isSamplePost) {
+      setSamplePostLikes(prev => {
+        const currentSampleLikes = prev[postId] || [];
+        const userLiked = currentSampleLikes.includes(currentUser.uid);
+        
+        if (userLiked) {
+          return {
+            ...prev,
+            [postId]: currentSampleLikes.filter(uid => uid !== currentUser.uid)
+          };
+        } else {
+          return {
+            ...prev,
+            [postId]: [...currentSampleLikes, currentUser.uid]
+          };
+        }
+      });
+      return;
+    }
+
+    // Handle real posts
     const postRef = doc(db, 'posts', postId);
     const userLiked = currentLikes.includes(currentUser.uid);
 
@@ -92,7 +115,9 @@ export default function Home() {
 
     // Prevent guests from commenting
     if (isGuest()) {
-      alert('Please sign up or log in to comment on posts');
+      if (window.confirm('Please sign up or log in to comment on posts.\n\nWould you like to go to the login page?')) {
+        navigate('/login');
+      }
       return;
     }
 
@@ -169,7 +194,14 @@ export default function Home() {
       <div className="main-content home-content">
 
         <div className="posts-feed">
-          {posts.map((post) => (
+          {posts.map((post) => {
+            const isSamplePost = post.id && post.id.startsWith('sample');
+            const effectiveLikes = isSamplePost ? 
+              [...(post.likes || []), ...(samplePostLikes[post.id] || [])].filter((value, index, self) => self.indexOf(value) === index) :
+              (post.likes || []);
+            const userLiked = effectiveLikes.includes(currentUser?.uid);
+            
+            return (
             <div key={post.id} className="post">
               <div className="post-header">
                 <h3>{post.userDisplayName}</h3>
@@ -205,12 +237,17 @@ export default function Home() {
               
               <div className="post-actions">
                 <button 
-                  onClick={() => handleLike(post.id, post.likes || [])}
-                  className={post.likes?.includes(currentUser.uid) ? 'liked' : ''}
-                  disabled={!post.id} // Only disable for sample posts
+                  onClick={() => handleLike(post.id, post.likes || [], isSamplePost)}
+                  className={userLiked ? 'liked' : ''}
+                  disabled={!currentUser}
                 >
-                  <Heart size={20} fill={post.likes?.includes(currentUser.uid) ? '#e74c3c' : 'none'} />
-                  <span>{post.likes?.length || 0}</span>
+                  <Heart 
+                    size={20} 
+                    fill={userLiked ? '#e74c3c' : 'none'}
+                    color={userLiked ? '#e74c3c' : 'currentColor'}
+                    className={userLiked ? 'heart-liked' : ''}
+                  />
+                  <span>{effectiveLikes.length}</span>
                 </button>
                 <button 
                   onClick={() => toggleComments(post.id)}
@@ -286,7 +323,13 @@ export default function Home() {
                       className="comment-form"
                       onSubmit={(e) => handleCommentSubmit(post.id, e)}
                     >
-                      <div className="comment-input-container">
+                      <div 
+                        className="comment-input-container"
+                        onClick={() => {
+                          const input = document.querySelector(`input[data-post-id="${post.id}"]`);
+                          if (input) input.focus();
+                        }}
+                      >
                         <img 
                           src={currentUser.photoURL || 'https://via.placeholder.com/32/2d3748/00ff88?text=👤'} 
                           alt="Your avatar"
@@ -301,6 +344,7 @@ export default function Home() {
                             [post.id]: e.target.value
                           }))}
                           className="comment-input"
+                          data-post-id={post.id}
                         />
                         <button 
                           type="submit"
@@ -319,13 +363,12 @@ export default function Home() {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       
       <FooterNav />
-      <UploadDebugger />
-      <APITester />
     </div>
   );
 }
