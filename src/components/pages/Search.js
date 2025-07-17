@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../firebase/firebase';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
-import { Search as SearchIcon, UserPlus, Check, X, Filter, MapPin, User, Award, Target } from 'lucide-react';
+import { Search as SearchIcon, UserPlus, Check, X, Filter, MapPin, User, Award, Target, Calendar } from 'lucide-react';
 import FooterNav from '../layout/FooterNav';
 import ThemeToggle from '../common/ThemeToggle';
 import LanguageSelector from '../common/LanguageSelector';
@@ -26,7 +26,10 @@ export default function Search() {
     sport: '',
     name: '',
     achievement: '',
-    sex: ''
+    sex: '',
+    age: '',
+    minAge: '',
+    maxAge: ''
   });
 
   useEffect(() => {
@@ -182,6 +185,32 @@ export default function Search() {
             }
           }
           
+          // Age filtering
+          if (matches && userData.age) {
+            const userAge = parseInt(userData.age);
+            
+            // Exact age filter
+            if (filters.age) {
+              const exactAge = parseInt(filters.age);
+              if (userAge !== exactAge) {
+                matches = false;
+              }
+            }
+            
+            // Age range filter
+            if (matches && (filters.minAge || filters.maxAge)) {
+              const minAge = filters.minAge ? parseInt(filters.minAge) : 0;
+              const maxAge = filters.maxAge ? parseInt(filters.maxAge) : 150;
+              
+              if (userAge < minAge || userAge > maxAge) {
+                matches = false;
+              }
+            }
+          } else if (filters.age || filters.minAge || filters.maxAge) {
+            // If age filters are applied but user has no age data, exclude them
+            matches = false;
+          }
+          
           if (matches) {
             results.push(userData);
           }
@@ -263,7 +292,10 @@ export default function Search() {
       sport: '',
       name: '',
       achievement: '',
-      sex: ''
+      sex: '',
+      age: '',
+      minAge: '',
+      maxAge: ''
     });
     setSearchTerm('');
     setSearchResults([]);
@@ -435,6 +467,41 @@ export default function Search() {
                   <option value="other">Other</option>
                 </select>
               </div>
+              
+              <div className="filter-group">
+                <label><Calendar size={16} />Exact Age</label>
+                <input
+                  type="number"
+                  placeholder="e.g., 25"
+                  min="13"
+                  max="100"
+                  value={filters.age}
+                  onChange={(e) => handleFilterChange('age', e.target.value)}
+                />
+              </div>
+              
+              <div className="filter-group age-range-group">
+                <label><Calendar size={16} />Age Range</label>
+                <div className="age-range-inputs">
+                  <input
+                    type="number"
+                    placeholder="Min age"
+                    min="13"
+                    max="100"
+                    value={filters.minAge}
+                    onChange={(e) => handleFilterChange('minAge', e.target.value)}
+                  />
+                  <span className="age-range-separator">to</span>
+                  <input
+                    type="number"
+                    placeholder="Max age"
+                    min="13"
+                    max="100"
+                    value={filters.maxAge}
+                    onChange={(e) => handleFilterChange('maxAge', e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -484,6 +551,7 @@ export default function Search() {
                     {user.location && <span className="user-location"><MapPin size={12} />{user.location}</span>}
                     {user.sport && <span className="user-sport"><Target size={12} />{user.sport}</span>}
                     {user.sex && <span className="user-sex">{user.sex}</span>}
+                    {user.age && <span className="user-age"><Calendar size={12} />{user.age} years</span>}
                   </div>
                   {user.email && <span className="user-email">{user.email}</span>}
                 </div>

@@ -567,6 +567,35 @@
   color: #e74c3c !important;
 }
 
+.user-age {
+  background: rgba(52, 152, 219, 0.1);
+  color: #3498db !important;
+}
+
+/* Age Range Filter Styling */
+.age-range-group {
+  position: relative;
+}
+
+.age-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.age-range-inputs input {
+  flex: 1;
+  min-width: 0;
+}
+
+.age-range-separator {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 14px;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
 /* Mobile Responsive for Filters */
 @media (max-width: 768px) {
   .search-filters {
@@ -638,5 +667,13 @@
   .user-details span {
     font-size: 9px;
     padding: 1px 4px;
+  }
+  
+  .age-range-inputs {
+    gap: 6px;
+  }
+  
+  .age-range-separator {
+    font-size: 12px;
   }
 }
