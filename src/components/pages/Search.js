@@ -29,7 +29,9 @@ export default function Search() {
     sex: '',
     age: '',
     minAge: '',
-    maxAge: ''
+    maxAge: '',
+    customAgeOperator: '<',
+    customAgeValue: ''
   });
 
   useEffect(() => {
@@ -206,7 +208,21 @@ export default function Search() {
                 matches = false;
               }
             }
-          } else if (filters.age || filters.minAge || filters.maxAge) {
+            
+            // Custom age operator filter
+            if (matches && filters.customAgeValue) {
+              const customAge = parseInt(filters.customAgeValue);
+              if (filters.customAgeOperator === '<') {
+                if (userAge >= customAge) {
+                  matches = false;
+                }
+              } else if (filters.customAgeOperator === '>') {
+                if (userAge <= customAge) {
+                  matches = false;
+                }
+              }
+            }
+          } else if (filters.age || filters.minAge || filters.maxAge || filters.customAgeValue) {
             // If age filters are applied but user has no age data, exclude them
             matches = false;
           }
@@ -295,10 +311,19 @@ export default function Search() {
       sex: '',
       age: '',
       minAge: '',
-      maxAge: ''
+      maxAge: '',
+      customAgeOperator: '<',
+      customAgeValue: ''
     });
     setSearchTerm('');
     setSearchResults([]);
+  };
+
+  const toggleAgeOperator = () => {
+    setFilters(prev => ({
+      ...prev,
+      customAgeOperator: prev.customAgeOperator === '<' ? '>' : '<'
+    }));
   };
 
   const hasActiveFilters = Object.values(filters).some(filter => filter.trim().length > 0) || searchTerm.trim().length > 0;
@@ -499,6 +524,28 @@ export default function Search() {
                     max="100"
                     value={filters.maxAge}
                     onChange={(e) => handleFilterChange('maxAge', e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="filter-group custom-age-group">
+                <label><Calendar size={16} />Custom Age Filter</label>
+                <div className="custom-age-inputs">
+                  <button
+                    type="button"
+                    className="age-operator-btn"
+                    onClick={toggleAgeOperator}
+                    title={filters.customAgeOperator === '<' ? 'Less than' : 'Greater than'}
+                  >
+                    {filters.customAgeOperator}
+                  </button>
+                  <input
+                    type="number"
+                    placeholder="Age"
+                    min="13"
+                    max="100"
+                    value={filters.customAgeValue}
+                    onChange={(e) => handleFilterChange('customAgeValue', e.target.value)}
                   />
                 </div>
               </div>

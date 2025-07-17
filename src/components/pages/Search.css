@@ -596,6 +596,48 @@
   padding: 0 4px;
 }
 
+/* Custom Age Filter Styling */
+.custom-age-group {
+  position: relative;
+}
+
+.custom-age-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.custom-age-inputs input {
+  flex: 1;
+  min-width: 0;
+}
+
+.age-operator-btn {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.age-operator-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
+}
+
+.age-operator-btn:active {
+  transform: translateY(0);
+}
+
 /* Mobile Responsive for Filters */
 @media (max-width: 768px) {
   .search-filters {
@@ -675,5 +717,15 @@
   
   .age-range-separator {
     font-size: 12px;
+  }
+  
+  .custom-age-inputs {
+    gap: 6px;
+  }
+  
+  .age-operator-btn {
+    width: 35px;
+    height: 40px;
+    font-size: 16px;
   }
 }
