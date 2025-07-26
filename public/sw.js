@@ -1,9 +1,9 @@
 // Service Worker for AmaPlayer
 // Provides offline functionality and caching
 
-const CACHE_NAME = 'amaplayer-v1.2.0';
-const STATIC_CACHE_NAME = 'amaplayer-static-v1.2.0';
-const DYNAMIC_CACHE_NAME = 'amaplayer-dynamic-v1.2.0';
+const CACHE_NAME = 'amaplayer-v1.3.0';
+const STATIC_CACHE_NAME = 'amaplayer-static-v1.3.0';
+const DYNAMIC_CACHE_NAME = 'amaplayer-dynamic-v1.3.0';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
@@ -118,9 +118,15 @@ function isImageRequest(request) {
          /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(request.url);
 }
 
-// Handle static assets - cache first strategy
+// Handle static assets - network first strategy (to avoid caching issues)
 async function handleStaticAsset(request) {
   try {
+    // For JS files, always fetch from network to avoid stale cache
+    if (request.url.includes('.js') || request.url.includes('.chunk.js')) {
+      const response = await fetch(request);
+      return response;
+    }
+    
     const cache = await caches.open(STATIC_CACHE_NAME);
     const cached = await cache.match(request);
     

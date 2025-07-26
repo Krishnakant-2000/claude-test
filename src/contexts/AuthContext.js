@@ -46,11 +46,15 @@ export function AuthProvider({ children }) {
       // First try popup method
       return await signInWithPopup(auth, provider);
     } catch (error) {
-      // If popup fails due to CORS or popup blocked, fallback to redirect
+      console.log('Google login error:', error.code, error.message);
+      
+      // If popup fails due to CORS, popup blocked, or other popup issues, fallback to redirect
       if (error.code === 'auth/popup-blocked' || 
           error.code === 'auth/popup-closed-by-user' ||
-          error.code === 'auth/cancelled-popup-request') {
-        console.log('Popup blocked, falling back to redirect...');
+          error.code === 'auth/cancelled-popup-request' ||
+          error.message?.includes('Cross-Origin-Opener-Policy') ||
+          error.message?.includes('popup')) {
+        console.log('Popup failed, falling back to redirect method...');
         return signInWithRedirect(auth, provider);
       }
       throw error;
