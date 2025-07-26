@@ -139,7 +139,7 @@ export default function UploadDebugger() {
       if (isVideo) {
         addDebugInfo('🎬 Testing video metadata generation...');
         try {
-          const metadata = await generateVideoMetadata(testFile, 'test-url');
+          const metadata = await generateVideoMetadata(testFile, 'test-url', 'test-user-id');
           addDebugInfo(`✅ Video metadata: ${JSON.stringify(metadata, null, 2)}`);
         } catch (metaError) {
           addDebugInfo(`⚠️ Video metadata failed (non-critical): ${metaError.message}`);

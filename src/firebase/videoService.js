@@ -252,12 +252,44 @@ export const formatDuration = (duration) => {
 };
 
 /**
+ * Uploads video thumbnail to Firebase Storage
+ * @param {Blob} thumbnailBlob - Thumbnail blob
+ * @param {string} userId - User ID for folder organization
+ * @param {string} originalFileName - Original video file name
+ * @returns {Promise<string>} - Download URL of uploaded thumbnail
+ */
+export const uploadThumbnail = async (thumbnailBlob, userId, originalFileName) => {
+  try {
+    // Generate unique filename for thumbnail
+    const timestamp = Date.now();
+    const thumbnailName = `thumb_${timestamp}_${originalFileName.replace(/\.[^/.]+$/, '')}.jpg`;
+    const thumbnailPath = `thumbnails/${userId}/${thumbnailName}`;
+    
+    console.log('Uploading thumbnail to:', thumbnailPath);
+    
+    // Create storage reference
+    const thumbnailRef = ref(storage, thumbnailPath);
+    
+    // Upload thumbnail
+    const snapshot = await uploadBytes(thumbnailRef, thumbnailBlob);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    console.log('Thumbnail uploaded successfully:', downloadURL);
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading thumbnail:', error);
+    throw error;
+  }
+};
+
+/**
  * Generates video metadata object
  * @param {File} videoFile - Video file
  * @param {string} downloadURL - Firebase download URL
+ * @param {string} userId - User ID for thumbnail upload (optional)
  * @returns {Promise<Object>} - Video metadata object
  */
-export const generateVideoMetadata = async (videoFile, downloadURL) => {
+export const generateVideoMetadata = async (videoFile, downloadURL, userId = null) => {
   console.log('Generating video metadata for:', videoFile.name);
   
   try {
@@ -273,13 +305,19 @@ export const generateVideoMetadata = async (videoFile, downloadURL) => {
       console.warn('Could not get video duration:', durationError.message);
     }
     
-    // Try to create thumbnail, but don't fail if it doesn't work
-    let thumbnailBlob = null;
+    // Try to create and upload thumbnail, but don't fail if it doesn't work
+    let thumbnailURL = null;
     try {
-      thumbnailBlob = await createVideoThumbnail(videoFile);
+      const thumbnailBlob = await createVideoThumbnail(videoFile);
       console.log('Video thumbnail created successfully');
+      
+      // Upload thumbnail to Firebase Storage if userId is provided
+      if (thumbnailBlob && userId) {
+        thumbnailURL = await uploadThumbnail(thumbnailBlob, userId, videoFile.name);
+        console.log('Video thumbnail uploaded successfully:', thumbnailURL);
+      }
     } catch (thumbnailError) {
-      console.warn('Could not create video thumbnail:', thumbnailError.message);
+      console.warn('Could not create/upload video thumbnail:', thumbnailError.message);
     }
     
     const metadata = {
@@ -297,8 +335,8 @@ export const generateVideoMetadata = async (videoFile, downloadURL) => {
       metadata.durationFormatted = durationFormatted;
     }
     
-    if (thumbnailBlob) {
-      metadata.thumbnail = thumbnailBlob;
+    if (thumbnailURL) {
+      metadata.thumbnail = thumbnailURL;
     }
     
     console.log('Video metadata generated successfully:', metadata);

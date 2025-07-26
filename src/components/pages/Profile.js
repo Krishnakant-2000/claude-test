@@ -207,7 +207,7 @@ export default function Profile({ profileUserId = null }) {
       );
 
       // Generate metadata
-      const videoMetadata = await generateVideoMetadata(file, videoUrl);
+      const videoMetadata = await generateVideoMetadata(file, videoUrl, currentUser.uid);
 
       // Save to talentVideos collection
       const videoData = {

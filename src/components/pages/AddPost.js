@@ -322,7 +322,7 @@ export default function AddPost() {
         );
         console.log('Video uploaded, URL:', mediaUrl);
         
-        mediaMetadata = await generateVideoMetadata(newPost.video, mediaUrl);
+        mediaMetadata = await generateVideoMetadata(newPost.video, mediaUrl, currentUser.uid);
         console.log('Video metadata generated:', mediaMetadata);
       }
 

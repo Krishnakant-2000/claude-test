@@ -78,6 +78,14 @@ service firebase.storage {
         && validateVideoFile();
     }
     
+    // Video thumbnails
+    match /thumbnails/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && validateImageFile();
+    }
+    
     // Message attachments
     match /messages/{userId1}/{userId2}/{fileName} {
       allow read: if request.auth != null 
