@@ -174,7 +174,11 @@ export default function StoriesContainer() {
           >
             <div className={`story-avatar ${userGroup.hasUnviewedStories ? 'unviewed' : 'viewed'}`}>
               <img 
-                src={userGroup.userPhotoURL || 'https://via.placeholder.com/60'} 
+                src={
+                  userGroup.userId === currentUser?.uid 
+                    ? (currentUser?.photoURL || 'https://via.placeholder.com/60')
+                    : (userGroup.userPhotoURL || 'https://via.placeholder.com/60')
+                } 
                 alt={userGroup.userDisplayName}
               />
               {userGroup.stories.some(s => s.mediaType === 'video') && (

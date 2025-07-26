@@ -69,6 +69,10 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
+  function updateUserProfile(profileData) {
+    return updateProfile(currentUser, profileData);
+  }
+
   useEffect(() => {
     // Handle redirect result from Google OAuth
     getRedirectResult(auth)
@@ -103,7 +107,8 @@ export function AuthProvider({ children }) {
     guestLogin,
     googleLogin,
     appleLogin,
-    logout
+    logout,
+    updateUserProfile
   };
 
   return (

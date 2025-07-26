@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { db, storage } from '../../firebase/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, setDoc, addDoc, serverTimestamp, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { updateProfile } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { uploadVideoFile, generateVideoMetadata } from '../../firebase/videoService';
 import { filterContent, getViolationMessage } from '../../utils/contentFilter';
@@ -288,8 +289,14 @@ export default function Profile({ profileUserId = null }) {
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
       
+      // Update Firebase Auth profile
+      await updateProfile(currentUser, { photoURL: downloadURL });
+      console.log('✅ Firebase Auth profile photo updated');
+      
+      // Update Firestore user document
       const userRef = doc(db, 'users', currentUser.uid);
       await updateDoc(userRef, { photoURL: downloadURL });
+      console.log('✅ Firestore user profile photo updated');
       
       setProfile(prev => ({ ...prev, photoURL: downloadURL }));
     } catch (error) {
