@@ -347,6 +347,62 @@
   animation: fadeIn 0.3s ease;
 }
 
+/* Auto-pause indicator */
+.video-player.out-of-view {
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.video-player.out-of-view::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  z-index: 1;
+  transition: background 0.3s ease;
+}
+
+/* Visual feedback for paused state when out of view */
+.video-player.out-of-view .video-element {
+  filter: brightness(0.9);
+  transition: filter 0.3s ease;
+}
+
+/* Auto-pause notification */
+@keyframes autoPauseNotification {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.auto-pause-indicator {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  z-index: 10;
+  animation: autoPauseNotification 2s ease;
+  pointer-events: none;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

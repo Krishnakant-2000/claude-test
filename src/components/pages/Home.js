@@ -272,6 +272,8 @@ export default function Home() {
                     poster={post.mediaMetadata?.thumbnail}
                     controls={true}
                     className="post-video"
+                    videoId={`post-${post.id}`}
+                    autoPauseOnScroll={true}
                   />
                 ) : (
                   <LazyImage 

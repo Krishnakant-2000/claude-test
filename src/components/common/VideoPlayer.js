@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
 import './VideoPlayer.css';
+import { useVideoManager } from '../../hooks/useVideoManager';
 
 const VideoPlayer = memo(function VideoPlayer({ 
   src, 
@@ -12,10 +13,14 @@ const VideoPlayer = memo(function VideoPlayer({
   className = '',
   onPlay = null,
   onPause = null,
-  onEnded = null
+  onEnded = null,
+  autoPauseOnScroll = true, // New prop for auto-pause functionality
+  videoId = null, // Unique ID for video management
+  useGlobalVideoManager = true // Whether to use global video management
 }) {
   const videoRef = useRef(null);
   const progressRef = useRef(null);
+  const containerRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(muted);
   const [currentTime, setCurrentTime] = useState(0);
@@ -26,6 +31,11 @@ const VideoPlayer = memo(function VideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [showAutoPauseIndicator, setShowAutoPauseIndicator] = useState(false);
+  
+  // Video management for multiple videos on page
+  const { registerVideo } = useVideoManager();
 
   // Hide controls after inactivity
   useEffect(() => {
@@ -35,6 +45,52 @@ const VideoPlayer = memo(function VideoPlayer({
     }
     return () => clearTimeout(timeout);
   }, [isPlaying, showControls]);
+
+  // Intersection Observer for auto-pause on scroll
+  useEffect(() => {
+    if (!autoPauseOnScroll || !containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        const visible = entry.isIntersecting;
+        setIsVisible(visible);
+
+        // Auto-pause when video goes out of view and is playing
+        if (!visible && isPlaying && videoRef.current) {
+          videoRef.current.pause();
+          setShowAutoPauseIndicator(true);
+          console.log('🎥 Video auto-paused (scrolled out of view)');
+          
+          // Hide notification after 2 seconds
+          setTimeout(() => {
+            setShowAutoPauseIndicator(false);
+          }, 2000);
+        }
+      },
+      {
+        root: null, // Use viewport as root
+        rootMargin: '-20% 0px -20% 0px', // Trigger when 20% out of view
+        threshold: [0.2, 0.8] // Trigger at 20% and 80% visibility
+      }
+    );
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, [autoPauseOnScroll, isPlaying]);
+
+  // Register video with global manager
+  useEffect(() => {
+    if (useGlobalVideoManager && videoRef.current && videoId) {
+      const cleanup = registerVideo(videoId, videoRef.current);
+      return cleanup;
+    }
+  }, [useGlobalVideoManager, videoId, registerVideo]);
 
   const togglePlayPause = () => {
     if (videoRef.current) {
@@ -148,7 +204,8 @@ const VideoPlayer = memo(function VideoPlayer({
 
   return (
     <div 
-      className={`video-player ${className} ${isFullscreen ? 'fullscreen' : ''}`}
+      ref={containerRef}
+      className={`video-player ${className} ${isFullscreen ? 'fullscreen' : ''} ${!isVisible ? 'out-of-view' : ''}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setShowControls(false)}
     >
@@ -163,6 +220,12 @@ const VideoPlayer = memo(function VideoPlayer({
         <div className="video-error">
           <p>Error loading video</p>
           <button onClick={() => window.location.reload()} aria-label="Retry">Retry</button>
+        </div>
+      )}
+
+      {showAutoPauseIndicator && (
+        <div className="auto-pause-indicator">
+          Video paused (scrolled away)
         </div>
       )}
 
