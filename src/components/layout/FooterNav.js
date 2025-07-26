@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
 import './FooterNav.css';
 
-export default function FooterNav() {
+const FooterNav = memo(function FooterNav() {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -62,4 +62,6 @@ export default function FooterNav() {
       </div>
     </footer>
   );
-}
+});
+
+export default FooterNav;

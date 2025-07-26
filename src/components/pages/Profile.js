@@ -5,8 +5,9 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { db, storage } from '../../firebase/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, setDoc, addDoc, serverTimestamp, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { uploadVideoFile, generateVideoMetadata, VIDEO_PATHS } from '../../firebase/videoService';
-import { Edit2, Camera, Plus, X, Save, Users, UserPlus, UserMinus, Check, Video, Upload, Trash2, Play } from 'lucide-react';
+import { uploadVideoFile, generateVideoMetadata } from '../../firebase/videoService';
+import { filterContent, getViolationMessage } from '../../utils/contentFilter';
+import { Edit2, Camera, Plus, X, Save, Users, UserPlus, Check, Video, Trash2, Play } from 'lucide-react';
 import FooterNav from '../layout/FooterNav';
 import ThemeToggle from '../common/ThemeToggle';
 import LanguageSelector from '../common/LanguageSelector';
@@ -29,7 +30,6 @@ export default function Profile({ profileUserId = null }) {
   const [showAchievementForm, setShowAchievementForm] = useState(false);
   const [newCertificate, setNewCertificate] = useState({ name: '', date: '', description: '', fileUrl: '', fileName: '' });
   const [newAchievement, setNewAchievement] = useState({ title: '', date: '', description: '' });
-  const [followedUsers, setFollowedUsers] = useState([]);
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [followers, setFollowers] = useState([]);
@@ -354,6 +354,31 @@ export default function Profile({ profileUserId = null }) {
 
   const addCertificate = () => {
     if (newCertificate.name.trim()) {
+      // Content filtering for certificate name and description with sports context
+      const nameFilter = filterContent(newCertificate.name, {
+        strictMode: false,
+        context: 'sports_post',
+        languages: ['english', 'hindi']
+      });
+      
+      const descFilter = filterContent(newCertificate.description, {
+        strictMode: false,
+        context: 'sports_post', 
+        languages: ['english', 'hindi']
+      });
+      
+      if (!nameFilter.isClean && (nameFilter.shouldBlock || nameFilter.shouldWarn)) {
+        const violationMsg = getViolationMessage(nameFilter.violations, nameFilter.categories);
+        alert(`❌ You can't add this certificate: ${violationMsg}\n\nPlease focus on sports achievements and certifications.`);
+        return;
+      }
+      
+      if (!descFilter.isClean && (descFilter.shouldBlock || descFilter.shouldWarn)) {
+        const violationMsg = getViolationMessage(descFilter.violations, descFilter.categories);
+        alert(`❌ You can't add this description: ${violationMsg}\n\nPlease focus on sports-related content.`);
+        return;
+      }
+
       setCertificates([...certificates, { ...newCertificate, id: Date.now().toString() }]);
       setNewCertificate({ name: '', date: '', description: '', fileUrl: '', fileName: '' });
       setShowCertificateForm(false);
@@ -362,6 +387,31 @@ export default function Profile({ profileUserId = null }) {
 
   const addAchievement = () => {
     if (newAchievement.title.trim()) {
+      // Content filtering for achievement title and description with sports context
+      const titleFilter = filterContent(newAchievement.title, {
+        strictMode: false,
+        context: 'sports_post',
+        languages: ['english', 'hindi']
+      });
+      
+      const descFilter = filterContent(newAchievement.description, {
+        strictMode: false,
+        context: 'sports_post', 
+        languages: ['english', 'hindi']
+      });
+      
+      if (!titleFilter.isClean && (titleFilter.shouldBlock || titleFilter.shouldWarn)) {
+        const violationMsg = getViolationMessage(titleFilter.violations, titleFilter.categories);
+        alert(`❌ You can't add this achievement: ${violationMsg}\n\nPlease focus on sports achievements and accomplishments.`);
+        return;
+      }
+      
+      if (!descFilter.isClean && (descFilter.shouldBlock || descFilter.shouldWarn)) {
+        const violationMsg = getViolationMessage(descFilter.violations, descFilter.categories);
+        alert(`❌ You can't add this description: ${violationMsg}\n\nPlease focus on sports-related content.`);
+        return;
+      }
+
       setAchievements([...achievements, { ...newAchievement, id: Date.now().toString() }]);
       setNewAchievement({ title: '', date: '', description: '' });
       setShowAchievementForm(false);
@@ -388,7 +438,7 @@ export default function Profile({ profileUserId = null }) {
       snapshot.forEach((doc) => {
         followedList.push(doc.data().followingId);
       });
-      setFollowedUsers(followedList);
+      // followedUsers state was removed for optimization
     });
 
     return unsubscribe;

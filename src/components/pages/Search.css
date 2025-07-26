@@ -281,8 +281,22 @@
   flex-shrink: 0;
 }
 
+.social-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+@media (min-width: 768px) {
+  .social-actions {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
 /* Action Buttons */
-.add-friend-btn, .pending-btn, .accepted-btn, .friend-btn, .cancel-btn {
+.add-friend-btn, .pending-btn, .accepted-btn, .friend-btn, .cancel-btn, .follow-btn {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -329,6 +343,32 @@
   color: #27ae60;
   border: 2px solid rgba(39, 174, 96, 0.3);
   cursor: not-allowed;
+}
+
+.follow-btn {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  min-width: 80px;
+}
+
+.follow-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.follow-btn.following {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.follow-btn.following:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.follow-btn:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Mobile Responsive */

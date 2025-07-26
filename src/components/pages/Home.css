@@ -5,6 +5,76 @@
   overflow-y: auto;
 }
 
+/* Loading and pagination styles */
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.load-more-btn {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.load-more-btn:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  gap: 10px;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--bg-secondary);
+  border-top: 3px solid var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Lazy image optimization */
+.lazy-image-container {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.lazy-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.post-image.lazy-image-container {
+  max-height: 400px;
+  border-radius: 12px;
+}
+
+.comment-avatar.lazy-image-container {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .nav-bar {
   background: var(--bg-navbar);
   border-bottom: 1px solid var(--border-primary);
@@ -63,7 +133,7 @@
   background: transparent;
   border: 2px solid var(--border-secondary);
   color: var(--text-primary);
-  cursor: none;
+  cursor: pointer;
   font-size: 16px;
   font-weight: 600;
   padding: 8px 16px;
@@ -176,7 +246,7 @@
 .post-actions button {
   background: none;
   border: none;
-  cursor: none;
+  cursor: pointer;
   font-size: 16px;
   display: flex;
   align-items: center;
@@ -500,15 +570,68 @@
 
 /* Responsive Styles */
 @media (max-width: 768px) {
+  .nav-bar {
+    padding: 0 15px;
+  }
+  
+  .nav-content {
+    height: 55px;
+  }
+  
+  .nav-content h1 {
+    font-size: 18px;
+  }
+  
+  .nav-links {
+    gap: 10px;
+  }
+  
+  .nav-links button {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  
+  .home-content {
+    margin: 70px auto 0;
+    padding: 15px;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .post {
+    margin: 0 -5px;
+    border-radius: 12px;
+  }
+  
+  .post-header {
+    padding: 15px;
+  }
+  
+  .post-header h3 {
+    font-size: 1rem;
+  }
+  
   .post-actions {
     padding: 15px;
     gap: 15px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .post-actions button {
+    flex-shrink: 0;
+    white-space: nowrap;
   }
   
   .media-indicator {
     font-size: 12px;
     margin-left: 0;
     margin-top: 5px;
+  }
+  
+  .post-caption {
+    padding: 0 15px 15px;
+    font-size: 14px;
   }
   
   .comments-section {
@@ -536,9 +659,68 @@
 }
 
 @media (max-width: 480px) {
+  .nav-bar {
+    padding: 0 10px;
+  }
+  
+  .nav-content {
+    height: 50px;
+  }
+  
+  .nav-content h1 {
+    font-size: 16px;
+  }
+  
+  .nav-links {
+    gap: 8px;
+  }
+  
+  .nav-links button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  
+  .home-content {
+    margin: 60px auto 0;
+    padding: 10px;
+  }
+  
+  .post {
+    margin: 0 -2px;
+    border-radius: 10px;
+  }
+  
+  .post-header {
+    padding: 12px;
+  }
+  
+  .post-header h3 {
+    font-size: 0.9rem;
+  }
+  
   .post-actions {
     padding: 12px;
     gap: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .post-actions::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .post-actions button {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+  
+  .post-caption {
+    padding: 0 12px 12px;
+    font-size: 13px;
   }
   
   .comments-section {
@@ -571,5 +753,292 @@
   
   .comment-header strong {
     font-size: 13px;
+  }
+}
+
+/* ========== ENHANCED RESPONSIVE DESIGN SYSTEM ========== */
+
+/* Small devices - Enhanced (landscape phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .home-content {
+    margin: 70px auto 0;
+    padding: 12px;
+    max-width: 95%;
+  }
+  
+  .post {
+    margin: 0 -6px 18px;
+    border-radius: 12px;
+  }
+  
+  .post-header {
+    padding: 12px 15px;
+  }
+  
+  .post-avatar img {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .post-content {
+    padding: 0 15px 12px;
+  }
+  
+  .post-actions {
+    padding: 10px 15px 15px;
+    gap: 8px;
+  }
+  
+  .post-actions button {
+    font-size: 14px;
+    padding: 7px 12px;
+  }
+}
+
+/* Medium devices - Enhanced (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .nav-bar {
+    padding: 0 20px;
+  }
+  
+  .nav-content {
+    height: 60px;
+  }
+  
+  .nav-content h1 {
+    font-size: 20px;
+  }
+  
+  .home-content {
+    margin: 80px auto 0;
+    padding: 15px;
+    max-width: 90%;
+  }
+  
+  .post {
+    margin: 0 -8px 20px;
+    border-radius: 15px;
+  }
+  
+  .post-header {
+    padding: 15px 18px;
+  }
+  
+  .post-avatar img {
+    width: 42px;
+    height: 42px;
+  }
+  
+  .post-content {
+    padding: 0 18px 15px;
+  }
+  
+  .post-caption {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  
+  .post-actions {
+    padding: 12px 18px 18px;
+    gap: 10px;
+  }
+  
+  .post-actions button {
+    font-size: 15px;
+    padding: 8px 14px;
+    border-radius: 8px;
+  }
+  
+  .comments-section {
+    padding: 15px 18px;
+  }
+  
+  .load-more-btn {
+    padding: 12px 30px;
+    font-size: 16px;
+    margin: 20px 0;
+  }
+}
+
+/* Large devices - Enhanced (desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .nav-bar {
+    padding: 0 25px;
+  }
+  
+  .nav-content {
+    height: 65px;
+  }
+  
+  .nav-content h1 {
+    font-size: 22px;
+  }
+  
+  .home-content {
+    margin: 85px auto 0;
+    padding: 18px;
+    max-width: 750px;
+  }
+  
+  .post {
+    margin: 0 -10px 22px;
+    border-radius: 18px;
+  }
+  
+  .post-header {
+    padding: 18px 20px;
+  }
+  
+  .post-avatar img {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .post-content {
+    padding: 0 20px 18px;
+  }
+  
+  .post-actions {
+    padding: 15px 20px 20px;
+    gap: 12px;
+  }
+  
+  .post-actions button {
+    font-size: 16px;
+    padding: 9px 16px;
+  }
+  
+  .comments-section {
+    padding: 18px 20px;
+  }
+  
+  .load-more-btn {
+    padding: 14px 35px;
+    font-size: 17px;
+    margin: 25px 0;
+  }
+}
+
+/* Extra large devices - Enhanced (large desktops, 1200px and up) */
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+  .nav-bar {
+    padding: 0 30px;
+  }
+  
+  .nav-content {
+    height: 70px;
+  }
+  
+  .nav-content h1 {
+    font-size: 24px;
+  }
+  
+  .home-content {
+    margin: 90px auto 0;
+    padding: 20px;
+    max-width: 800px;
+  }
+  
+  .post {
+    margin: 0 -12px 25px;
+    border-radius: 20px;
+  }
+  
+  .post-header {
+    padding: 20px 22px;
+  }
+  
+  .post-avatar img {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .post-content {
+    padding: 0 22px 20px;
+  }
+  
+  .post-caption {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  .post-actions {
+    padding: 18px 22px 22px;
+    gap: 14px;
+  }
+  
+  .post-actions button {
+    font-size: 17px;
+    padding: 10px 18px;
+  }
+  
+  .comments-section {
+    padding: 20px 22px;
+  }
+}
+
+/* Ultra wide screens - Enhanced (1400px and up) */
+@media (min-width: 1400px) {
+  .nav-bar {
+    padding: 0 40px;
+  }
+  
+  .nav-content {
+    height: 75px;
+  }
+  
+  .nav-content h1 {
+    font-size: 26px;
+  }
+  
+  .home-content {
+    margin: 95px auto 0;
+    padding: 25px;
+    max-width: 900px;
+  }
+  
+  .post {
+    margin: 0 -15px 30px;
+    border-radius: 25px;
+  }
+  
+  .post-header {
+    padding: 25px;
+  }
+  
+  .post-avatar img {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .post-content {
+    padding: 0 25px 25px;
+  }
+  
+  .post-caption {
+    font-size: 17px;
+    line-height: 1.7;
+  }
+  
+  .post-actions {
+    padding: 20px 25px 25px;
+    gap: 16px;
+  }
+  
+  .post-actions button {
+    font-size: 18px;
+    padding: 12px 20px;
+    border-radius: 10px;
+  }
+  
+  .comments-section {
+    padding: 25px;
+  }
+  
+  .load-more-btn {
+    padding: 18px 45px;
+    font-size: 19px;
+    margin: 35px 0;
+    border-radius: 15px;
   }
 }

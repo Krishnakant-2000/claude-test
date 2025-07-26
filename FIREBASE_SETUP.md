@@ -91,3 +91,6 @@ REACT_APP_FIREBASE_APP_ID=your_app_id
 - **Crash Reporting**: Can be added with Firebase Crashlytics
 
 Your current setup is production-ready for development and testing! 🚀
+
+
+- ** firesbase storage is not unloacked so unable to make the post contents

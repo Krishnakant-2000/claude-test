@@ -26,7 +26,7 @@ service cloud.firestore {
       // Only authenticated non-guest users can create posts
       allow create: if request.auth != null 
         && !isGuestUser()
-        && request.auth.uid == resource.data.userId
+        && request.auth.uid == request.resource.data.userId
         && validatePostData();
       
       // Allow updates for likes (all users) and comments (non-guests only)
@@ -65,11 +65,13 @@ service cloud.firestore {
     }
     
     function validateCommentData() {
-      return request.resource.data.keys().hasAll(['text', 'userId', 'userDisplayName', 'timestamp'])
+      return request.resource.data.keys().hasAll(['text', 'userId', 'userDisplayName', 'timestamp', 'postId'])
         && request.resource.data.text is string
         && request.resource.data.text.size() <= 500
         && request.resource.data.userId is string
-        && request.resource.data.userDisplayName is string;
+        && request.resource.data.userDisplayName is string
+        && request.resource.data.postId is string
+        && request.resource.data.userId == request.auth.uid;
     }
     
     function onlyCommentsChanged() {
@@ -163,6 +165,189 @@ service cloud.firestore {
         && request.resource.data.followingId is string
         && request.resource.data.followingName is string
         && request.resource.data.followerId == request.auth.uid;
+    }
+    
+    // Content Reports collection - for user-generated reports of inappropriate content
+    match /contentReports/{reportId} {
+      // Users can read their own reports
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.reporterId ||
+        isAdminUser()
+      );
+      // Users can create reports (non-guests only)
+      allow create: if request.auth != null && !isGuestUser() && validateReportData();
+      // Only admins can update/delete reports (mark as reviewed, resolved, etc.)
+      allow update, delete: if request.auth != null && isAdminUser();
+    }
+    
+    // Content Moderation Logs - for tracking moderator actions
+    match /moderationLogs/{logId} {
+      // Only admins can read/write moderation logs
+      allow read, write: if request.auth != null && isAdminUser();
+    }
+    
+    // User Violations - track user violations for repeat offenders
+    match /userViolations/{userId} {
+      // Only admins can read/write user violation records
+      allow read, write: if request.auth != null && isAdminUser();
+    }
+    
+    function validateReportData() {
+      return request.resource.data.keys().hasAll(['contentId', 'contentType', 'reporterId', 'reasons', 'timestamp'])
+        && request.resource.data.contentId is string
+        && request.resource.data.contentType in ['post', 'message', 'user', 'comment']
+        && request.resource.data.reporterId is string
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.reasons is list
+        && request.resource.data.reasons.size() > 0
+        && request.resource.data.timestamp != null;
+    }
+    
+    // Admin user check - in production, this should check against admin roles in users collection
+    function isAdminUser() {
+      // For demo purposes, check if user has admin in email
+      // In production, you would check a custom claim or admin role in the users collection
+      return request.auth != null 
+        && request.auth.token.email != null 
+        && (request.auth.token.email.matches('.*admin.*') || 
+            request.auth.token.email.matches('.*moderator.*'));
+    }
+    
+    // Stories collection rules
+    match /stories/{storyId} {
+      // Anyone can read stories (including guests)
+      allow read: if true;
+      
+      // Only authenticated non-guest users can create stories
+      allow create: if request.auth != null 
+        && !isGuestUser()
+        && request.auth.uid == request.resource.data.userId
+        && validateStoryData();
+      
+      // Users can update their own stories (view counts, etc.)
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        onlyViewDataChanged()
+      );
+      
+      // Users can delete their own stories
+      allow delete: if request.auth != null 
+        && !isGuestUser()
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    // Highlights collection rules
+    match /highlights/{highlightId} {
+      // Anyone can read highlights
+      allow read: if true;
+      
+      // Only authenticated non-guest users can create highlights
+      allow create: if request.auth != null 
+        && !isGuestUser()
+        && request.auth.uid == request.resource.data.userId
+        && validateHighlightData();
+      
+      // Users can update their own highlights
+      allow update: if request.auth != null 
+        && !isGuestUser()
+        && request.auth.uid == resource.data.userId;
+      
+      // Users can delete their own highlights
+      allow delete: if request.auth != null 
+        && !isGuestUser()
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    // Story Views collection (for analytics)
+    match /storyViews/{viewId} {
+      // Anyone can read story views
+      allow read: if true;
+      
+      // Anyone can create story views (for tracking)
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.viewerId;
+      
+      // Only view creator can update
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.viewerId;
+    }
+    
+    function validateStoryData() {
+      return request.resource.data.keys().hasAll(['userId', 'userDisplayName', 'mediaType', 'mediaUrl', 'caption', 'timestamp', 'expiresAt'])
+        && request.resource.data.userId is string
+        && request.resource.data.userDisplayName is string
+        && request.resource.data.mediaType in ['image', 'video']
+        && request.resource.data.mediaUrl is string
+        && request.resource.data.caption is string
+        && request.resource.data.caption.size() <= 200;
+    }
+    
+    function validateHighlightData() {
+      return request.resource.data.keys().hasAll(['userId', 'title', 'storyIds'])
+        && request.resource.data.userId is string
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 30
+        && request.resource.data.storyIds is list;
+    }
+    
+    function onlyViewDataChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount', 'viewers', 'likes', 'likesCount']);
+    }
+
+    // Story Comments collection
+    match /storyComments/{commentId} {
+      allow read: if true;
+      allow create: if request.auth != null && !isGuestUser() && validateStoryCommentData();
+      allow update, delete: if request.auth != null 
+        && !isGuestUser()
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    function validateStoryCommentData() {
+      return request.resource.data.keys().hasAll(['storyId', 'userId', 'userDisplayName', 'text', 'timestamp'])
+        && request.resource.data.storyId is string
+        && request.resource.data.userId is string
+        && request.resource.data.userDisplayName is string
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.receiverId ||
+        request.auth.uid == resource.data.senderId
+      );
+      allow create: if request.auth != null && !isGuestUser() && validateNotificationData();
+      allow update: if request.auth != null && request.auth.uid == resource.data.receiverId;
+      allow delete: if request.auth != null && (
+        request.auth.uid == resource.data.receiverId ||
+        request.auth.uid == resource.data.senderId
+      );
+    }
+    
+    function validateNotificationData() {
+      return request.resource.data.keys().hasAll(['type', 'senderId', 'senderName', 'receiverId', 'message', 'timestamp'])
+        && request.resource.data.type is string
+        && request.resource.data.senderId is string
+        && request.resource.data.senderName is string
+        && request.resource.data.receiverId is string
+        && request.resource.data.message is string
+        && request.resource.data.senderId == request.auth.uid;
+    }
+    
+    // Enhanced content validation with basic filtering
+    function validatePostContentFilter() {
+      let caption = request.resource.data.caption.lower();
+      // Basic content filtering - block obvious inappropriate terms
+      return !caption.matches('.*\\b(nude|naked|sex|porn|xxx|kill|murder|hate|racist)\\b.*');
+    }
+    
+    function validateMessageContentFilter() {
+      let message = request.resource.data.message.lower();
+      // Basic content filtering for messages
+      return !message.matches('.*\\b(nude|naked|sex|porn|xxx|kill|murder|hate|racist)\\b.*');
     }
   }
 }

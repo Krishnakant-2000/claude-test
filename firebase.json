@@ -14,6 +14,15 @@
     ],
     "headers": [
       {
+        "source": "/**",
+        "headers": [
+          {
+            "key": "Cross-Origin-Opener-Policy",
+            "value": "same-origin-allow-popups"
+          }
+        ]
+      },
+      {
         "source": "/static/js/**",
         "headers": [
           {
@@ -35,5 +44,8 @@
   },
   "firestore": {
     "rules": "firebase.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

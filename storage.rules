@@ -2,7 +2,7 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Profile images
+    // Profile images - single level path
     match /profile-images/{userId} {
       allow read: if true;
       allow write: if request.auth != null 
@@ -10,7 +10,15 @@ service firebase.storage {
         && validateImageFile();
     }
     
-    // Post images
+    // Profile images - nested path with filename
+    match /profile-images/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && validateImageFile();
+    }
+    
+    // Post images - all nested paths
     match /posts/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null && validateImageFile();
@@ -22,6 +30,28 @@ service firebase.storage {
       allow write: if request.auth != null 
         && request.auth.uid == userId
         && validateVideoFile();
+    }
+    
+    // Stories images - THIS WAS MISSING!
+    match /stories/images/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && validateImageFile();
+    }
+    
+    // Stories videos - THIS WAS MISSING!
+    match /stories/videos/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && validateVideoFile();
+    }
+    
+    // Comments media (images/videos attached to comments)
+    match /comments/{commentId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && validateMediaFile();
     }
     
     // Athlete highlights
@@ -48,15 +78,71 @@ service firebase.storage {
         && validateVideoFile();
     }
     
+    // Message attachments
+    match /messages/{userId1}/{userId2}/{fileName} {
+      allow read: if request.auth != null 
+        && (request.auth.uid == userId1 || request.auth.uid == userId2);
+      allow write: if request.auth != null 
+        && (request.auth.uid == userId1 || request.auth.uid == userId2)
+        && validateMediaFile();
+    }
+    
+    // Chat group media
+    match /groups/{groupId}/{userId}/{fileName} {
+      allow read: if request.auth != null; // Add group membership check in production
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && validateMediaFile();
+    }
+    
+    // Temporary uploads (for processing)
+    match /temp/{userId}/{fileName} {
+      allow read, write: if request.auth != null 
+        && request.auth.uid == userId
+        && validateMediaFile();
+    }
+    
     // Helper functions
     function validateImageFile() {
       return request.resource.size < 10 * 1024 * 1024 // 10MB limit
-        && request.resource.contentType.matches('image/.*');
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.contentType in [
+          'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 
+          'image/webp', 'image/bmp', 'image/svg+xml'
+        ];
     }
     
     function validateVideoFile() {
       return request.resource.size < 100 * 1024 * 1024 // 100MB limit
-        && request.resource.contentType.matches('video/.*');
+        && request.resource.contentType.matches('video/.*')
+        && request.resource.contentType in [
+          'video/mp4', 'video/mov', 'video/avi', 'video/wmv',
+          'video/flv', 'video/webm', 'video/mkv', 'video/m4v'
+        ];
+    }
+    
+    function validateAudioFile() {
+      return request.resource.size < 50 * 1024 * 1024 // 50MB limit
+        && request.resource.contentType.matches('audio/.*')
+        && request.resource.contentType in [
+          'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac'
+        ];
+    }
+    
+    function validateDocumentFile() {
+      return request.resource.size < 25 * 1024 * 1024 // 25MB limit
+        && request.resource.contentType in [
+          'application/pdf', 'text/plain', 
+          'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+    }
+    
+    function validateMediaFile() {
+      return validateImageFile() || validateVideoFile() || validateAudioFile() || validateDocumentFile();
+    }
+    
+    function isGuestUser() {
+      return request.auth.token.firebase.sign_in_provider == 'anonymous';
     }
   }
 }

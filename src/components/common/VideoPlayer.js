@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
 import './VideoPlayer.css';
 
-export default function VideoPlayer({ 
+const VideoPlayer = memo(function VideoPlayer({ 
   src, 
   poster = null, 
   autoPlay = false, 
@@ -258,4 +258,6 @@ export default function VideoPlayer({
       )}
     </div>
   );
-}
+});
+
+export default VideoPlayer;

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import './ThemeToggle.css';
 
-export default function ThemeToggle() {
+const ThemeToggle = memo(function ThemeToggle() {
   const { isDarkMode, toggleTheme } = useTheme();
 
   return (
@@ -19,4 +19,6 @@ export default function ThemeToggle() {
       )}
     </button>
   );
-}
+});
+
+export default ThemeToggle;

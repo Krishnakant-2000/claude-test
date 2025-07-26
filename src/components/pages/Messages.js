@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../firebase/firebase';
 import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, getDoc, getDocs, deleteDoc } from 'firebase/firestore';
-import { MessageSquare, UserPlus, Check, X, Send, Users, Edit3, Trash2, Save, XCircle } from 'lucide-react';
+import { MessageSquare, UserPlus, Check, X, Send, Users, Edit3, Trash2, Save, XCircle, AlertTriangle, Bell, Heart, Play } from 'lucide-react';
 import FooterNav from '../layout/FooterNav';
 import ThemeToggle from '../common/ThemeToggle';
 import LanguageSelector from '../common/LanguageSelector';
+import { filterChatMessage, getChatViolationMessage, logChatViolation } from '../../utils/chatFilter';
 import './Messages.css';
 
 export default function Messages() {
@@ -16,16 +17,19 @@ export default function Messages() {
   const [messages, setMessages] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [friends, setFriends] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
-  const [followedUsers, setFollowedUsers] = useState([]);
-  const [followingUser, setFollowingUser] = useState(null);
   const [showMessageOptions, setShowMessageOptions] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
   const [editText, setEditText] = useState('');
   const [longPressTimer, setLongPressTimer] = useState(null);
+  const [messageViolation, setMessageViolation] = useState(null);
+  const [showMessageWarning, setShowMessageWarning] = useState(false);
+  const [followedUsers, setFollowedUsers] = useState([]);
+  const [followingUser, setFollowingUser] = useState(null);
 
   useEffect(() => {
     if (currentUser && !isGuest()) {
@@ -34,6 +38,7 @@ export default function Messages() {
         fetchFriends();
         fetchMessages();
         fetchFollowedUsers();
+        fetchNotifications();
       } catch (error) {
         console.error('Error initializing data:', error);
       }
@@ -248,6 +253,44 @@ export default function Messages() {
     };
   };
 
+  const fetchNotifications = () => {
+    console.log('🔔 Setting up notification listeners for user:', currentUser.uid);
+    
+    const q = query(
+      collection(db, 'notifications'),
+      where('receiverId', '==', currentUser.uid)
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const notificationsList = [];
+      snapshot.forEach((doc) => {
+        notificationsList.push({ id: doc.id, ...doc.data() });
+      });
+      
+      // Sort by timestamp (newest first)
+      notificationsList.sort((a, b) => {
+        const timeA = a.timestamp?.toDate?.() || new Date(a.timestamp);
+        const timeB = b.timestamp?.toDate?.() || new Date(b.timestamp);
+        return timeB - timeA;
+      });
+      
+      console.log('🔔 Notifications found:', notificationsList.length);
+      setNotifications(notificationsList);
+    });
+    
+    return unsubscribe;
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      await updateDoc(doc(db, 'notifications', notificationId), {
+        isRead: true
+      });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
   const handleAcceptRequest = async (requestId, senderId) => {
     if (isGuest()) {
       alert('Please sign up or log in to accept friend requests');
@@ -320,11 +363,73 @@ export default function Messages() {
     }
   }, [messages, selectedChat]);
 
+  // Real-time message content filtering as user types
+  const handleMessageChange = (e) => {
+    const newMessageText = e.target.value;
+    setNewMessage(newMessageText);
+    
+    // Real-time filter check (strict for messages)
+    if (newMessageText.trim().length > 3) { // Check after minimal content
+      console.log('🔍 Real-time message filter check:', newMessageText);
+      const filterResult = filterChatMessage(newMessageText, {
+        strictMode: true,
+        checkPatterns: true,
+        languages: ['english', 'hindi']
+      });
+      
+      console.log('Real-time filter result:', filterResult);
+      
+      if (!filterResult.isClean && filterResult.shouldBlock) {
+        setMessageViolation(filterResult);
+        setShowMessageWarning(true);
+      } else {
+        setMessageViolation(null);
+        setShowMessageWarning(false);
+      }
+    } else {
+      setMessageViolation(null);
+      setShowMessageWarning(false);
+    }
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat || isGuest() || sendingMessage) return;
 
     const messageText = newMessage.trim();
+    
+    // Content filtering check for messages
+    console.log('🔍 Checking message content for inappropriate material...', messageText);
+    const filterResult = filterChatMessage(messageText, {
+      strictMode: true,
+      checkPatterns: true,
+      languages: ['english', 'hindi']
+    });
+    
+    console.log('Message filter result:', filterResult);
+    
+    if (!filterResult.isClean) {
+      setMessageViolation(filterResult);
+      setShowMessageWarning(true);
+      
+      // Log violation for admin review
+      if (filterResult.shouldFlag) {
+        await logChatViolation(currentUser.uid, messageText, filterResult.violations, 'chat');
+        console.log('🚨 Message violation flagged for admin review');
+      }
+      
+      // Block content without confirmation - just show error
+      if (filterResult.shouldBlock || filterResult.shouldWarn) {
+        const violationMsg = getChatViolationMessage(filterResult.violations, filterResult.categories);
+        alert(`❌ You can't send this message: ${violationMsg}`);
+        return; // Don't send the message
+      }
+    } else {
+      setMessageViolation(null);
+      setShowMessageWarning(false);
+      console.log('✅ Message content passed all filters');
+    }
+
     setSendingMessage(true);
     setNewMessage(''); // Clear input immediately for better UX
 
@@ -490,115 +595,62 @@ export default function Messages() {
 
   // Fetch users that current user is following
   const fetchFollowedUsers = () => {
-    console.log('👥 Fetching followed users for:', currentUser.uid);
-    
     const q = query(
       collection(db, 'follows'),
       where('followerId', '==', currentUser.uid)
     );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const followedList = [];
+      const followed = [];
       snapshot.forEach((doc) => {
-        followedList.push(doc.data().followingId);
+        followed.push(doc.data().followingId);
       });
-      console.log('👥 Currently following:', followedList.length, 'users');
-      setFollowedUsers(followedList);
+      setFollowedUsers(followed);
     });
 
     return unsubscribe;
   };
 
-  // Handle follow/unfollow
   const handleFollow = async (userId, userName) => {
     if (isGuest()) {
       alert('Please sign up or log in to follow users');
       return;
     }
 
-    if (followingUser === userId) return; // Prevent multiple clicks
-
+    setFollowingUser(userId);
+    
     try {
-      setFollowingUser(userId);
-      
       const isFollowing = followedUsers.includes(userId);
       
       if (isFollowing) {
-        // Unfollow: Remove from follows collection
-        console.log('👋 Unfollowing user:', userName);
-        
-        const followQuery = query(
+        // Unfollow: remove from follows collection
+        const q = query(
           collection(db, 'follows'),
           where('followerId', '==', currentUser.uid),
           where('followingId', '==', userId)
         );
         
-        const snapshot = await getDocs(followQuery);
-        snapshot.forEach(async (doc) => {
-          await deleteDoc(doc.ref);
+        const snapshot = await getDocs(q);
+        snapshot.forEach(async (docSnapshot) => {
+          await deleteDoc(doc(db, 'follows', docSnapshot.id));
         });
-
-        // Update follower count for the user being unfollowed
-        const userRef = doc(db, 'users', userId);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists()) {
-          const currentFollowers = userDoc.data().followers || 0;
-          await updateDoc(userRef, {
-            followers: Math.max(0, currentFollowers - 1)
-          });
-        }
-
-        // Update following count for current user
-        const currentUserRef = doc(db, 'users', currentUser.uid);
-        const currentUserDoc = await getDoc(currentUserRef);
-        if (currentUserDoc.exists()) {
-          const currentFollowing = currentUserDoc.data().following || 0;
-          await updateDoc(currentUserRef, {
-            following: Math.max(0, currentFollowing - 1)
-          });
-        }
-
-        alert(`Unfollowed ${userName}!`);
         
+        console.log(`✅ Unfollowed ${userName}`);
       } else {
-        // Follow: Add to follows collection
-        console.log('🎯 Following user:', userName);
-        
+        // Follow: add to follows collection
         await addDoc(collection(db, 'follows'), {
           followerId: currentUser.uid,
-          followerName: currentUser.displayName || 'Anonymous User',
-          followerPhoto: currentUser.photoURL || '',
           followingId: userId,
+          followerName: currentUser.displayName || 'Anonymous User',
           followingName: userName,
           timestamp: serverTimestamp()
         });
-
-        // Update follower count for the user being followed
-        const userRef = doc(db, 'users', userId);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists()) {
-          const currentFollowers = userDoc.data().followers || 0;
-          await updateDoc(userRef, {
-            followers: currentFollowers + 1
-          });
-        }
-
-        // Update following count for current user
-        const currentUserRef = doc(db, 'users', currentUser.uid);
-        const currentUserDoc = await getDoc(currentUserRef);
-        if (currentUserDoc.exists()) {
-          const currentFollowing = currentUserDoc.data().following || 0;
-          await updateDoc(currentUserRef, {
-            following: currentFollowing + 1
-          });
-        }
-
-        alert(`Now following ${userName}!`);
+        
+        console.log(`✅ Now following ${userName}`);
       }
-      
     } catch (error) {
-      console.error('❌ Error following/unfollowing user:', error);
-      alert('Error updating follow status: ' + error.message);
+      console.error('❌ Error updating follow status:', error);
+      alert('Failed to update follow status: ' + error.message);
     }
     
     setFollowingUser(null);
@@ -693,6 +745,16 @@ export default function Messages() {
             Requests
             {friendRequests.length > 0 && <span className="badge">{friendRequests.length}</span>}
           </button>
+          <button
+            className={`tab-btn ${activeTab === 'notifications' ? 'active' : ''}`}
+            onClick={() => setActiveTab('notifications')}
+          >
+            <Bell size={20} />
+            Notifications
+            {notifications.filter(n => !n.isRead).length > 0 && (
+              <span className="badge">{notifications.filter(n => !n.isRead).length}</span>
+            )}
+          </button>
         </div>
 
         {/* Friends Tab */}
@@ -720,6 +782,15 @@ export default function Messages() {
                         <p>Click to view profile</p>
                       </div>
                       <div className="friend-actions">
+                        <button 
+                          className="message-friend-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedChat(friend);
+                          }}
+                        >
+                          💬 Message
+                        </button>
                         <button 
                           className={`follow-btn ${isFollowing ? 'following' : ''}`}
                           onClick={(e) => {
@@ -872,15 +943,32 @@ export default function Messages() {
                   </div>
                 </div>
                 
+                {/* Message content violation warning */}
+                {showMessageWarning && messageViolation && (
+                  <div className="message-violation-warning">
+                    <div className="warning-header">
+                      <AlertTriangle size={16} />
+                      Inappropriate Content Detected
+                    </div>
+                    <div className="warning-message">
+                      {getChatViolationMessage(messageViolation.violations, messageViolation.categories)}
+                    </div>
+                    <div className="warning-suggestion">
+                      💬 Try discussing sports, training, or positive team experiences.
+                    </div>
+                  </div>
+                )}
+
                 {/* Fixed Message Input */}
                 <form onSubmit={handleSendMessage} className="fixed-message-input">
                   <input
                     type="text"
                     placeholder="Type a message..."
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={handleMessageChange}
                     onClick={() => setShowMessageOptions(null)} // Close options when typing
                     onFocus={() => setShowMessageOptions(null)} // Close options when focusing input
+                    className={showMessageWarning ? 'content-warning' : ''}
                   />
                   <button type="submit" disabled={!newMessage.trim() || sendingMessage}>
                     <Send size={20} />
@@ -963,6 +1051,78 @@ export default function Messages() {
                           <X size={16} />
                           Decline
                         </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Notifications Tab */}
+        {activeTab === 'notifications' && (
+          <div className="notifications-tab">
+            {notifications.length === 0 ? (
+              <div className="empty-state">
+                <Bell size={48} />
+                <h3>No notifications</h3>
+                <p>Story likes and other notifications will appear here</p>
+              </div>
+            ) : (
+              <div className="notifications-list">
+                {notifications.map((notification) => (
+                  <div 
+                    key={notification.id} 
+                    className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
+                    onClick={() => markNotificationAsRead(notification.id)}
+                  >
+                    <div className="notification-content">
+                      <div className="notification-header">
+                        <img 
+                          src={notification.senderPhotoURL || '/default-avatar.png'} 
+                          alt={notification.senderName}
+                          className="notification-avatar"
+                        />
+                        <div className="notification-info">
+                          <div className="notification-text">
+                            <strong>{notification.senderName}</strong> liked your story
+                          </div>
+                          <div className="notification-time">
+                            {notification.timestamp?.toDate?.() ? 
+                              new Date(notification.timestamp.toDate()).toLocaleString() :
+                              new Date(notification.timestamp).toLocaleString()
+                            }
+                          </div>
+                        </div>
+                        {!notification.isRead && (
+                          <div className="notification-unread-dot"></div>
+                        )}
+                      </div>
+                      
+                      {/* Story Preview */}
+                      <div className="story-preview">
+                        {notification.storyMediaType === 'video' ? (
+                          <div className="story-video-preview">
+                            <video 
+                              src={notification.storyThumbnail || notification.storyMediaUrl}
+                              className="story-preview-media"
+                              muted
+                            />
+                            <div className="video-play-icon">
+                              <Play size={24} fill="white" />
+                            </div>
+                          </div>
+                        ) : (
+                          <img 
+                            src={notification.storyMediaUrl}
+                            alt="Story"
+                            className="story-preview-media"
+                          />
+                        )}
+                        <div className="story-like-icon">
+                          <Heart size={16} fill="#ff3040" />
+                        </div>
                       </div>
                     </div>
                   </div>

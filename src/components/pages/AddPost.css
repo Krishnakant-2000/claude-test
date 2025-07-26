@@ -49,6 +49,213 @@
   align-items: center;
 }
 
+/* Content Filtering Styles */
+.content-violation-warning {
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+  animation: slideIn 0.3s ease-out;
+}
+
+.dark-theme .content-violation-warning {
+  background: linear-gradient(135deg, #3d3d2a, #4d4d2a);
+  border-color: #f39c12;
+  color: #f1c40f;
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.2);
+}
+
+.warning-header {
+  font-weight: 600;
+  font-size: 16px;
+  color: #856404;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dark-theme .warning-header {
+  color: #f39c12;
+}
+
+.warning-message {
+  font-size: 14px;
+  color: #856404;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.dark-theme .warning-message {
+  color: #f1c40f;
+}
+
+.warning-suggestion {
+  font-size: 13px;
+  color: #6c757d;
+  font-style: italic;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #28a745;
+}
+
+.dark-theme .warning-suggestion {
+  color: #95a5a6;
+  background: rgba(255, 255, 255, 0.05);
+  border-left-color: #27ae60;
+}
+
+.content-warning {
+  border-color: #ffc107 !important;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2) !important;
+}
+
+.dark-theme .content-warning {
+  border-color: #f39c12 !important;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.2) !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Image Analysis Styles */
+.image-analysis-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  z-index: 10;
+}
+
+.analysis-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.image-analysis-warning {
+  position: absolute;
+  bottom: -120px;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #fff3e0, #ffcc80);
+  border: 2px solid #ff9800;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+  z-index: 10;
+  animation: slideInUp 0.3s ease-out;
+}
+
+.dark-theme .image-analysis-warning {
+  background: linear-gradient(135deg, #3d2a1a, #4d3520);
+  border-color: #f39c12;
+  color: #ffa726;
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.2);
+}
+
+.analysis-header {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #e65100;
+}
+
+.dark-theme .analysis-header {
+  color: #f39c12;
+}
+
+.analysis-status {
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.risk-low {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.risk-medium {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.risk-high {
+  color: #f44336;
+  font-weight: 600;
+}
+
+.analysis-warnings ul {
+  margin: 4px 0 0 16px;
+  padding: 0;
+}
+
+.analysis-warnings li {
+  font-size: 11px;
+  margin: 2px 0;
+  color: #bf360c;
+}
+
+.dark-theme .analysis-warnings li {
+  color: #ffab40;
+}
+
+.analysis-recommendations {
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid #4caf50;
+}
+
+.analysis-recommendations p {
+  margin: 4px 0;
+  font-size: 11px;
+  color: #2e7d32;
+  font-style: italic;
+}
+
+.dark-theme .analysis-recommendations p {
+  color: #81c784;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .back-btn {
   background: transparent;
   border: 2px solid var(--border-secondary);
@@ -484,9 +691,7 @@
   transform: scale(1.05);
 }
 
-/* Only hide cursor on desktop */
-@media (hover: hover) and (pointer: fine) {
-  .sign-in-link {
-    cursor: none;
-  }
+/* Ensure proper cursor on all devices */
+.sign-in-link {
+  cursor: pointer;
 }

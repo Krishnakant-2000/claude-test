@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { Globe } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import './LanguageSelector.css';
 
-export default function LanguageSelector() {
+const LanguageSelector = memo(function LanguageSelector() {
   const { currentLanguage, changeLanguage, getCurrentLanguage, languages } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -67,4 +67,6 @@ export default function LanguageSelector() {
       )}
     </div>
   );
-}
+});
+
+export default LanguageSelector;

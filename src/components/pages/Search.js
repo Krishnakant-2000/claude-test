@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../firebase/firebase';
@@ -18,6 +18,8 @@ export default function Search() {
   const [sentRequests, setSentRequests] = useState([]);
   const [friendships, setFriendships] = useState([]);
   const [searchDebounceTimer, setSearchDebounceTimer] = useState(null);
+  const [followedUsers, setFollowedUsers] = useState([]);
+  const [followingUser, setFollowingUser] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     location: '',
@@ -34,12 +36,30 @@ export default function Search() {
     customAgeValue: ''
   });
 
+  const fetchSentRequests = useCallback(() => {
+    const q = query(
+      collection(db, 'friendRequests'),
+      where('senderId', '==', currentUser.uid)
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const requests = [];
+      snapshot.forEach((doc) => {
+        requests.push({ id: doc.id, ...doc.data() });
+      });
+      setSentRequests(requests);
+    });
+
+    return unsubscribe;
+  }, [currentUser.uid]);
+
   useEffect(() => {
     if (currentUser && !isGuest()) {
       fetchSentRequests();
       fetchFriendships();
+      fetchFollowedUsers();
     }
-  }, [currentUser, isGuest]);
+  }, [currentUser, isGuest, fetchSentRequests]);
 
   // Live search effect with debouncing
   useEffect(() => {
@@ -78,35 +98,71 @@ export default function Search() {
     };
   }, [searchTerm, filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchSentRequests = () => {
+  const fetchFriendships = () => {
+    // For simplicity, just track friendships
+    setFriendships([]);
+  };
+
+  const fetchFollowedUsers = () => {
     const q = query(
-      collection(db, 'friendRequests'),
-      where('senderId', '==', currentUser.uid)
+      collection(db, 'follows'),
+      where('followerId', '==', currentUser.uid)
     );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const requests = [];
+      const followed = [];
       snapshot.forEach((doc) => {
-        requests.push({ id: doc.id, ...doc.data() });
+        followed.push(doc.data().followingId);
       });
-      setSentRequests(requests);
+      setFollowedUsers(followed);
     });
 
     return unsubscribe;
   };
 
-  const fetchFriendships = () => {
-    const q1 = query(
-      collection(db, 'friendships'),
-      where('user1', '==', currentUser.uid)
-    );
-    const q2 = query(
-      collection(db, 'friendships'),
-      where('user2', '==', currentUser.uid)
-    );
+  const handleFollow = async (userId, userName) => {
+    if (isGuest()) {
+      alert('Please sign up or log in to follow users');
+      return;
+    }
+
+    setFollowingUser(userId);
     
-    // For simplicity, just track friendships
-    setFriendships([]);
+    try {
+      const isFollowing = followedUsers.includes(userId);
+      
+      if (isFollowing) {
+        // Unfollow: remove from follows collection
+        const q = query(
+          collection(db, 'follows'),
+          where('followerId', '==', currentUser.uid),
+          where('followingId', '==', userId)
+        );
+        
+        const snapshot = await getDocs(q);
+        snapshot.forEach(async (docSnapshot) => {
+          await deleteDoc(doc(db, 'follows', docSnapshot.id));
+        });
+        
+        console.log(`✅ Unfollowed ${userName}`);
+      } else {
+        // Follow: add to follows collection
+        await addDoc(collection(db, 'follows'), {
+          followerId: currentUser.uid,
+          followingId: userId,
+          followerName: currentUser.displayName || 'Anonymous User',
+          followingName: userName,
+          timestamp: serverTimestamp()
+        });
+        
+        console.log(`✅ Now following ${userName}`);
+      }
+    } catch (error) {
+      console.error('❌ Error updating follow status:', error);
+      alert('Failed to update follow status: ' + error.message);
+    }
+    
+    setFollowingUser(null);
   };
 
   const handleSearch = async () => {
@@ -581,6 +637,8 @@ export default function Search() {
           {searchResults.map((user) => {
             const requestStatus = getRequestStatus(user.id);
             const isFriend = isAlreadyFriend(user.id);
+            const isFollowing = followedUsers.includes(user.id);
+            const isProcessing = followingUser === user.id;
             
             return (
               <div key={user.id} className="user-result">
@@ -603,33 +661,46 @@ export default function Search() {
                   {user.email && <span className="user-email">{user.email}</span>}
                 </div>
                 <div className="user-actions">
-                  {isFriend ? (
-                    <button className="friend-btn" disabled>
-                      <Check size={16} />
-                      Friends
-                    </button>
-                  ) : requestStatus === 'pending' ? (
+                  <div className="social-actions">
+                    {isFriend ? (
+                      <button className="friend-btn" disabled>
+                        <Check size={16} />
+                        Friends
+                      </button>
+                    ) : requestStatus === 'pending' ? (
+                      <button 
+                        className="cancel-btn"
+                        onClick={() => handleSendFriendRequest(user.id, user.displayName, user.photoURL)}
+                      >
+                        <X size={16} />
+                        Cancel Request
+                      </button>
+                    ) : requestStatus === 'accepted' ? (
+                      <button className="accepted-btn" disabled>
+                        <Check size={16} />
+                        Accepted
+                      </button>
+                    ) : (
+                      <button 
+                        className="add-friend-btn"
+                        onClick={() => handleSendFriendRequest(user.id, user.displayName, user.photoURL)}
+                      >
+                        <UserPlus size={16} />
+                        Add Friend
+                      </button>
+                    )}
+                    
                     <button 
-                      className="cancel-btn"
-                      onClick={() => handleSendFriendRequest(user.id, user.displayName, user.photoURL)}
+                      className={`follow-btn ${isFollowing ? 'following' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFollow(user.id, user.displayName || 'Anonymous User');
+                      }}
+                      disabled={isProcessing}
                     >
-                      <X size={16} />
-                      Cancel Request
+                      {isProcessing ? '...' : (isFollowing ? 'Unfollow' : 'Follow')}
                     </button>
-                  ) : requestStatus === 'accepted' ? (
-                    <button className="accepted-btn" disabled>
-                      <Check size={16} />
-                      Accepted
-                    </button>
-                  ) : (
-                    <button 
-                      className="add-friend-btn"
-                      onClick={() => handleSendFriendRequest(user.id, user.displayName, user.photoURL)}
-                    >
-                      <UserPlus size={16} />
-                      Add Friend
-                    </button>
-                  )}
+                  </div>
                 </div>
               </div>
             );

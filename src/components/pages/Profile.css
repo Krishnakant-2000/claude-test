@@ -103,7 +103,7 @@
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   color: white;
   border-radius: 8px;
-  cursor: none;
+  cursor: pointer;
   font-size: 14px;
   font-weight: 600;
   transition: all 0.3s ease;
@@ -150,7 +150,7 @@
   border: 2px solid var(--border-secondary);
   color: var(--text-primary);
   border-radius: 8px;
-  cursor: none;
+  cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
   text-transform: uppercase;
@@ -239,7 +239,7 @@
   color: white;
   border: none;
   border-radius: 8px;
-  cursor: none;
+  cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
   text-transform: uppercase;
@@ -351,7 +351,7 @@
   background: none;
   border: none;
   color: var(--accent-danger);
-  cursor: none;
+  cursor: pointer;
   padding: 5px;
   border-radius: 4px;
   transition: all 0.3s ease;
@@ -452,7 +452,7 @@
   color: white;
   border: none;
   border-radius: 8px;
-  cursor: none;
+  cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
   text-transform: uppercase;
@@ -485,7 +485,7 @@
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 12px;
-  cursor: none;
+  cursor: pointer;
   transition: all 0.3s ease;
   border: 1px solid var(--border-primary);
   background: var(--bg-card);

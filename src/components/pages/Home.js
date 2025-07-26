@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../firebase/firebase';
@@ -6,22 +6,28 @@ import { Heart, MessageCircle, Video, Send, Trash2 } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
 import LanguageSelector from '../common/LanguageSelector';
 import VideoPlayer from '../common/VideoPlayer';
+import LazyImage from '../common/LazyImage';
+import StoriesContainer from '../stories/StoriesContainer';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { 
   collection, 
   query, 
   orderBy, 
-  onSnapshot, 
   doc, 
   updateDoc, 
   arrayUnion, 
   arrayRemove,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  limit,
+  startAfter,
+  getDocs
 } from 'firebase/firestore';
 import './Home.css';
 import FooterNav from '../layout/FooterNav';
 import { samplePosts } from '../../data/samplePosts';
+
+const POSTS_PER_PAGE = 10;
 
 export default function Home() {
   const { currentUser, logout, isGuest } = useAuth();
@@ -30,23 +36,61 @@ export default function Home() {
   const [showComments, setShowComments] = useState({});
   const [newComment, setNewComment] = useState({});
   const [samplePostLikes, setSamplePostLikes] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [lastDoc, setLastDoc] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const q = query(collection(db, 'posts'), orderBy('timestamp', 'desc'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+  // Load initial posts
+  const loadPosts = useCallback(async (loadMore = false) => {
+    if (loading) return;
+    
+    setLoading(true);
+    try {
+      let q;
+      if (loadMore && lastDoc) {
+        q = query(
+          collection(db, 'posts'),
+          orderBy('timestamp', 'desc'),
+          startAfter(lastDoc),
+          limit(POSTS_PER_PAGE)
+        );
+      } else {
+        q = query(
+          collection(db, 'posts'),
+          orderBy('timestamp', 'desc'),
+          limit(POSTS_PER_PAGE)
+        );
+      }
+
+      const querySnapshot = await getDocs(q);
       const postsData = [];
       querySnapshot.forEach((doc) => {
         postsData.push({ id: doc.id, ...doc.data() });
       });
       
-      // Combine real posts with sample posts for preview
-      const allPosts = [...postsData, ...samplePosts];
-      setPosts(allPosts);
-    });
+      if (loadMore) {
+        setPosts(prev => [...prev, ...postsData]);
+      } else {
+        // Initial load - combine with sample posts
+        const allPosts = [...postsData, ...samplePosts];
+        setPosts(allPosts);
+      }
+      
+      // Update pagination state
+      const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+      setLastDoc(lastVisible);
+      setHasMore(querySnapshot.docs.length === POSTS_PER_PAGE);
+      
+    } catch (error) {
+      console.error('Error loading posts:', error);
+    }
+    setLoading(false);
+  }, [loading, lastDoc]);
 
-    return () => unsubscribe();
-  }, []);
+  useEffect(() => {
+    loadPosts();
+  }, [loadPosts]);
 
   const handleLogout = async () => {
     try {
@@ -192,6 +236,9 @@ export default function Home() {
       </nav>
 
       <div className="main-content home-content">
+        
+        {/* Stories Section */}
+        <StoriesContainer />
 
         <div className="posts-feed">
           {posts.map((post) => {
@@ -227,10 +274,12 @@ export default function Home() {
                     className="post-video"
                   />
                 ) : (
-                  <img 
+                  <LazyImage 
                     src={post.mediaUrl || post.imageUrl} 
                     alt={post.caption} 
-                    className="post-image" 
+                    className="post-image"
+                    width={600}
+                    height={400}
                   />
                 )}
               </div>
@@ -282,9 +331,12 @@ export default function Home() {
                       {post.comments.map((comment, index) => (
                         <div key={index} className="comment">
                           <div className="comment-avatar">
-                            <img 
+                            <LazyImage 
                               src={comment.userPhotoURL || 'https://via.placeholder.com/32/2d3748/00ff88?text=👤'} 
                               alt={comment.userDisplayName}
+                              width={32}
+                              height={32}
+                              style={{ borderRadius: '50%' }}
                             />
                           </div>
                           <div className="comment-content">
@@ -330,10 +382,13 @@ export default function Home() {
                           if (input) input.focus();
                         }}
                       >
-                        <img 
+                        <LazyImage 
                           src={currentUser.photoURL || 'https://via.placeholder.com/32/2d3748/00ff88?text=👤'} 
                           alt="Your avatar"
                           className="comment-avatar"
+                          width={32}
+                          height={32}
+                          style={{ borderRadius: '50%' }}
                         />
                         <input
                           type="text"
@@ -365,6 +420,26 @@ export default function Home() {
             </div>
             );
           })}
+          
+          {/* Load More Button */}
+          {hasMore && !loading && (
+            <div className="load-more-container">
+              <button 
+                onClick={() => loadPosts(true)}
+                className="load-more-btn"
+              >
+                Load More Posts
+              </button>
+            </div>
+          )}
+          
+          {/* Loading Indicator */}
+          {loading && (
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <span>Loading posts...</span>
+            </div>
+          )}
         </div>
       </div>
       

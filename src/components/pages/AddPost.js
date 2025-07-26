@@ -12,6 +12,8 @@ import ThemeToggle from '../common/ThemeToggle';
 import LanguageSelector from '../common/LanguageSelector';
 import FooterNav from '../layout/FooterNav';
 import { errorTracker, getErrorSolution } from '../../utils/errorTracker';
+import { filterPostContent, getPostViolationMessage, logPostViolation } from '../../utils/postContentFilter';
+import { validateImageContent } from '../../utils/imageContentFilter';
 import './AddPost.css';
 
 export default function AddPost() {
@@ -22,6 +24,11 @@ export default function AddPost() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [mediaType, setMediaType] = useState('image');
   const [imagePreview, setImagePreview] = useState(null);
+  const [contentViolation, setContentViolation] = useState(null);
+  const [showViolationWarning, setShowViolationWarning] = useState(false);
+  const [imageAnalysis, setImageAnalysis] = useState(null);
+  const [showImageWarning, setShowImageWarning] = useState(false);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
   const navigate = useNavigate();
 
   // Cleanup effect for image preview
@@ -33,7 +40,7 @@ export default function AddPost() {
     };
   }, [imagePreview]);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     if (e.target.files[0]) {
       const file = e.target.files[0];
       setNewPost({ ...newPost, image: file, video: null, mediaType: 'image' });
@@ -41,6 +48,52 @@ export default function AddPost() {
       // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
+      
+      // Analyze image content
+      setAnalyzingImage(true);
+      try {
+        console.log('🔍 Analyzing uploaded image for inappropriate content...');
+        const analysis = await validateImageContent(file, {
+          strictMode: false,
+          quickCheck: false
+        });
+        
+        console.log('📊 Image analysis result:', analysis);
+        setImageAnalysis(analysis);
+        
+        if (!analysis.isClean) {
+          setShowImageWarning(true);
+          
+          if (analysis.shouldBlock) {
+            alert(`❌ Image blocked: This image may contain inappropriate content.\n\nReasons: ${analysis.warnings.join(', ')}\n\nPlease upload sports-related images like action shots, team photos, or training moments.`);
+            handleImageRemove();
+            return;
+          }
+          
+          if (analysis.shouldWarn) {
+            const proceed = window.confirm(`⚠️ Image Warning: This image may contain questionable content.\n\nReasons: ${analysis.warnings.join(', ')}\n\nRecommendation: ${analysis.recommendations.join(', ')}\n\nDo you want to continue with this image?`);
+            if (!proceed) {
+              handleImageRemove();
+              return;
+            }
+          }
+        } else {
+          setShowImageWarning(false);
+          console.log('✅ Image passed content analysis');
+        }
+        
+      } catch (error) {
+        console.error('❌ Image analysis failed:', error);
+        // Continue with upload but warn user
+        setImageAnalysis({ 
+          warnings: ['Could not analyze image content'], 
+          shouldWarn: true,
+          isClean: false 
+        });
+        setShowImageWarning(true);
+      }
+      
+      setAnalyzingImage(false);
     }
   };
 
@@ -50,6 +103,11 @@ export default function AddPost() {
       URL.revokeObjectURL(imagePreview);
       setImagePreview(null);
     }
+    // Clear image analysis
+    setImageAnalysis(null);
+    setShowImageWarning(false);
+    setAnalyzingImage(false);
+    
     if (document.getElementById('file-input')) {
       document.getElementById('file-input').value = '';
     }
@@ -75,6 +133,39 @@ export default function AddPost() {
     
     if (document.getElementById('file-input')) {
       document.getElementById('file-input').value = '';
+    }
+  };
+
+  // Real-time content filtering as user types
+  const handleCaptionChange = (e) => {
+    const newCaption = e.target.value;
+    setNewPost({ ...newPost, caption: newCaption });
+    
+    // Real-time filter check (less strict for typing)
+    if (newCaption.trim().length > 10) { // Only check after some content is entered
+      // Detect if this might be sports/talent content for more lenient filtering
+      const sportsKeywords = ['performance', 'training', 'workout', 'talent', 'skills', 'competition', 'match', 'game', 'victory', 'win'];
+      const isSportsContent = sportsKeywords.some(keyword => 
+        newCaption.toLowerCase().includes(keyword)
+      );
+      
+      const filterResult = filterPostContent(newCaption, {
+        strictMode: false,
+        checkPatterns: true,
+        languages: ['english', 'hindi'],
+        context: isSportsContent ? 'sports_post' : 'general'
+      });
+      
+      if (!filterResult.isClean && filterResult.shouldBlock) {
+        setContentViolation(filterResult);
+        setShowViolationWarning(true);
+      } else {
+        setContentViolation(null);
+        setShowViolationWarning(false);
+      }
+    } else {
+      setContentViolation(null);
+      setShowViolationWarning(false);
     }
   };
 
@@ -110,6 +201,51 @@ export default function AddPost() {
         navigate('/login');
       }
       return;
+    }
+
+    // Content filtering check
+    console.log('🔍 Checking content for inappropriate material...');
+    
+    // Detect sports/talent context for more lenient filtering
+    const sportsKeywords = ['performance', 'training', 'workout', 'talent', 'skills', 'competition', 'match', 'game', 'victory', 'win', 'congrats', 'fire', 'beast', 'crush'];
+    const isSportsContent = sportsKeywords.some(keyword => 
+      newPost.caption.toLowerCase().includes(keyword)
+    );
+    
+    const filterResult = filterPostContent(newPost.caption, {
+      strictMode: true,
+      checkPatterns: true,
+      languages: ['english', 'hindi'],
+      context: isSportsContent ? 'sports_post' : 'general'
+    });
+    
+    console.log('Filter result:', filterResult);
+    
+    if (!filterResult.isClean) {
+      setContentViolation(filterResult);
+      setShowViolationWarning(true);
+      
+      // Log violation for admin review
+      if (filterResult.shouldFlag) {
+        await logPostViolation(currentUser.uid, newPost.caption, filterResult.violations, 'post');
+        console.log('🚨 Content violation flagged for admin review');
+      }
+      
+      // Block content without confirmation - just show error
+      if (filterResult.shouldBlock || filterResult.shouldWarn) {
+        const violationMsg = getPostViolationMessage(filterResult.violations, filterResult.categories);
+        alert(`❌ You can't post this content: ${violationMsg}`);
+        errorTracker.trackError(new Error('Content blocked by filter'), { 
+          step: 'content_filter',
+          violations: filterResult.violations 
+        });
+        errorTracker.stopRecording();
+        return;
+      }
+    } else {
+      setContentViolation(null);
+      setShowViolationWarning(false);
+      console.log('✅ Content passed all filters');
     }
 
     setUploading(true);
@@ -266,6 +402,8 @@ export default function AddPost() {
         errorMessage += 'Invalid file format.';
       } else if (error.code === 'storage/invalid-event-name') {
         errorMessage += 'Invalid upload configuration.';
+      } else if (error.message && error.message.includes('ERR_FAILED')) {
+        errorMessage += 'Firebase Storage is not properly configured. Please contact the administrator to set up Firebase Storage in the Firebase Console.';
       } else if (error.message) {
         errorMessage += error.message;
       } else {
@@ -346,9 +484,25 @@ export default function AddPost() {
             <textarea
               placeholder={t('whats_mind')}
               value={newPost.caption}
-              onChange={(e) => setNewPost({ ...newPost, caption: e.target.value })}
+              onChange={handleCaptionChange}
               required
+              className={showViolationWarning ? 'content-warning' : ''}
             />
+            
+            {/* Real-time content violation warning */}
+            {showViolationWarning && contentViolation && (
+              <div className="content-violation-warning">
+                <div className="warning-header">
+                  ⚠️ Content Warning
+                </div>
+                <div className="warning-message">
+                  {getPostViolationMessage(contentViolation.violations, contentViolation.categories)}
+                </div>
+                <div className="warning-suggestion">
+                  💡 Try focusing on sports achievements, training tips, or positive team interactions.
+                </div>
+              </div>
+            )}
             
             {mediaType === 'image' ? (
               <div className="image-upload-container">
@@ -386,6 +540,44 @@ export default function AddPost() {
                         Change
                       </label>
                     </div>
+                    
+                    {/* Image Analysis Indicator */}
+                    {analyzingImage && (
+                      <div className="image-analysis-indicator">
+                        <div className="analysis-spinner"></div>
+                        <span>Analyzing content...</span>
+                      </div>
+                    )}
+                    
+                    {/* Image Analysis Warning */}
+                    {showImageWarning && imageAnalysis && (
+                      <div className="image-analysis-warning">
+                        <div className="analysis-header">
+                          📷 Image Content Analysis
+                        </div>
+                        <div className="analysis-status">
+                          Risk Level: <span className={`risk-${imageAnalysis.riskLevel}`}>
+                            {imageAnalysis.riskLevel?.toUpperCase()}
+                          </span>
+                        </div>
+                        {imageAnalysis.warnings && imageAnalysis.warnings.length > 0 && (
+                          <div className="analysis-warnings">
+                            <strong>Concerns:</strong>
+                            <ul>
+                              {imageAnalysis.warnings.slice(0, 3).map((warning, index) => (
+                                <li key={index}>{warning}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {imageAnalysis.recommendations && imageAnalysis.recommendations.length > 0 && (
+                          <div className="analysis-recommendations">
+                            <strong>💡 Suggestions:</strong>
+                            <p>{imageAnalysis.recommendations[0]}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
