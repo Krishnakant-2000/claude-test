@@ -238,7 +238,7 @@ export default function Home() {
       <div className="main-content home-content">
         
         {/* Stories Section */}
-        <StoriesContainer />
+        <StoriesContainer key={currentUser?.photoURL || 'no-photo'} />
 
         <div className="posts-feed">
           {posts.map((post) => {

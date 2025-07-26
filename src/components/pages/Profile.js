@@ -17,7 +17,7 @@ import './Profile.css';
 export default function Profile({ profileUserId = null }) {
   const { userId: urlUserId } = useParams();
   const navigate = useNavigate();
-  const { currentUser, isGuest } = useAuth();
+  const { currentUser, isGuest, updateUserProfile, refreshAuth } = useAuth();
   const { t } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -289,9 +289,9 @@ export default function Profile({ profileUserId = null }) {
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
       
-      // Update Firebase Auth profile
-      await updateProfile(currentUser, { photoURL: downloadURL });
-      console.log('✅ Firebase Auth profile photo updated');
+      // Update Firebase Auth profile using context function (includes refresh)
+      await updateUserProfile({ photoURL: downloadURL });
+      console.log('✅ Firebase Auth profile photo updated with context refresh');
       
       // Update Firestore user document
       const userRef = doc(db, 'users', currentUser.uid);
@@ -299,6 +299,12 @@ export default function Profile({ profileUserId = null }) {
       console.log('✅ Firestore user profile photo updated');
       
       setProfile(prev => ({ ...prev, photoURL: downloadURL }));
+      
+      // Force refresh auth context to update all components
+      setTimeout(() => {
+        refreshAuth();
+        console.log('🔄 Forced auth refresh after profile photo update');
+      }, 500);
     } catch (error) {
       console.error('Error uploading image:', error);
     }

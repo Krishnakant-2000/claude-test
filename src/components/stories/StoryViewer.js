@@ -150,6 +150,7 @@ export default function StoryViewer({ userStories, currentStoryIndex, onClose, o
       // Add to local state
       setComments(prev => [...prev, { id: Date.now(), ...commentData }]);
       setNewComment('');
+      console.log('✅ Comment submitted successfully');
     } catch (error) {
       console.error('Error adding comment:', error);
       alert('Failed to add comment. Please try again.');
@@ -378,7 +379,12 @@ export default function StoryViewer({ userStories, currentStoryIndex, onClose, o
                 </button>
                 <button 
                   className="story-action-btn"
-                  onClick={() => setShowComments(!showComments)}
+                  onClick={() => {
+                    const newShowComments = !showComments;
+                    setShowComments(newShowComments);
+                    // Pause story when opening comments, resume when closing
+                    setIsPaused(newShowComments);
+                  }}
                 >
                   <MessageCircle size={24} />
                   {comments.length > 0 && <span className="action-count">{comments.length}</span>}
@@ -460,7 +466,11 @@ export default function StoryViewer({ userStories, currentStoryIndex, onClose, o
               <h4>Comments</h4>
               <button 
                 className="close-comments-btn"
-                onClick={() => setShowComments(false)}
+                onClick={() => {
+                  setShowComments(false);
+                  // Resume story when closing comments
+                  setIsPaused(false);
+                }}
               >
                 <X size={20} />
               </button>
@@ -492,6 +502,18 @@ export default function StoryViewer({ userStories, currentStoryIndex, onClose, o
                   type="text"
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
+                  onFocus={() => {
+                    // Pause story when user starts typing
+                    setIsPaused(true);
+                    console.log('🎥 Story paused - user is typing comment');
+                  }}
+                  onBlur={() => {
+                    // Resume story when user stops typing (but only if comments modal is still open)
+                    if (showComments && !newComment.trim()) {
+                      setIsPaused(true); // Keep paused if comments modal is open
+                    }
+                    console.log('🎥 Comment input blurred');
+                  }}
                   placeholder="Add a comment..."
                   maxLength={500}
                   disabled={isSubmittingComment}

@@ -73,8 +73,22 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
-  function updateUserProfile(profileData) {
-    return updateProfile(currentUser, profileData);
+  async function updateUserProfile(profileData) {
+    await updateProfile(currentUser, profileData);
+    // Force refresh the current user to get updated profile
+    await currentUser.reload();
+    setCurrentUser({ ...currentUser });
+    console.log('✅ Auth context refreshed with new profile data');
+    return currentUser;
+  }
+
+  function refreshAuth() {
+    if (currentUser) {
+      currentUser.reload().then(() => {
+        setCurrentUser({ ...currentUser });
+        console.log('✅ Auth context manually refreshed');
+      });
+    }
   }
 
   useEffect(() => {
@@ -112,7 +126,8 @@ export function AuthProvider({ children }) {
     googleLogin,
     appleLogin,
     logout,
-    updateUserProfile
+    updateUserProfile,
+    refreshAuth
   };
 
   return (

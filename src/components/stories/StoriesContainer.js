@@ -180,6 +180,7 @@ export default function StoriesContainer() {
                     : (userGroup.userPhotoURL || 'https://via.placeholder.com/60')
                 } 
                 alt={userGroup.userDisplayName}
+                onLoad={() => console.log('🖼️ Story avatar loaded for', userGroup.userDisplayName, 'URL:', userGroup.userId === currentUser?.uid ? currentUser?.photoURL : userGroup.userPhotoURL)}
               />
               {userGroup.stories.some(s => s.mediaType === 'video') && (
                 <div className="story-media-indicator">
