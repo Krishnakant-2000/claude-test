@@ -5,6 +5,8 @@ import {
   signInWithEmailAndPassword, 
   signInAnonymously,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   OAuthProvider,
   signOut, 
@@ -37,9 +39,22 @@ export function AuthProvider({ children }) {
     return signInAnonymously(auth);
   }
 
-  function googleLogin() {
+  async function googleLogin() {
     const provider = new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
+    
+    try {
+      // First try popup method
+      return await signInWithPopup(auth, provider);
+    } catch (error) {
+      // If popup fails due to CORS or popup blocked, fallback to redirect
+      if (error.code === 'auth/popup-blocked' || 
+          error.code === 'auth/popup-closed-by-user' ||
+          error.code === 'auth/cancelled-popup-request') {
+        console.log('Popup blocked, falling back to redirect...');
+        return signInWithRedirect(auth, provider);
+      }
+      throw error;
+    }
   }
 
   function appleLogin() {
@@ -55,6 +70,18 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    // Handle redirect result from Google OAuth
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          console.log('Google redirect login successful:', result.user);
+          setCurrentUser(result.user);
+        }
+      })
+      .catch((error) => {
+        console.error('Redirect result error:', error);
+      });
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       setLoading(false);
