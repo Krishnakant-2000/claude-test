@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
+import { Home, Search, Calendar, MessageCircle, User } from 'lucide-react';
 import './FooterNav.css';
 
 const FooterNav = memo(function FooterNav() {
@@ -21,10 +21,10 @@ const FooterNav = memo(function FooterNav() {
       path: '/search'
     },
     {
-      id: 'add',
-      icon: Plus,
-      label: 'Add',
-      path: '/add-post'
+      id: 'events',
+      icon: Calendar,
+      label: 'Events',
+      path: '/events'
     },
     {
       id: 'messages',

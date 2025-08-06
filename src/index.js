@@ -4,7 +4,61 @@ import './index.css';
 import App from './App';
 import reportWebVitals, { trackPerformance, observePerformance, sendToAnalytics } from './reportWebVitals';
 
+// Global error handler for React error #31 debugging
+window.addEventListener('error', (event) => {
+  if (event.error && event.error.message && event.error.message.includes('Objects are not valid as a React child')) {
+    console.error('🚨 REACT ERROR #31 CAUGHT GLOBALLY!');
+    console.error('🚨 Error message:', event.error.message);
+    console.error('🚨 Stack trace:', event.error.stack);
+    console.error('🚨 Event details:', event);
+    
+    // Try to extract object information from error message
+    const errorUrl = event.error.message.match(/visit (https:\/\/[^\s]+)/);
+    if (errorUrl) {
+      console.error('🚨 React error URL:', errorUrl[1]);
+    }
+    
+    // Log current page state
+    console.error('🚨 Current page:', window.location.href);
+    console.error('🚨 Time:', new Date().toISOString());
+  }
+});
+
+// Unhandled promise rejection handler
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('🚨 Unhandled promise rejection:', event.reason);
+});
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
+// Override React's error handling to get better debugging info
+const originalError = console.error;
+console.error = (...args) => {
+  if (args[0] && typeof args[0] === 'string' && args[0].includes('Objects are not valid as a React child')) {
+    console.error('🚨 REACT ERROR #31 DETAILED DEBUG:');
+    console.error('🚨 Args:', args);
+    console.error('🚨 Stack trace:', new Error().stack);
+    
+    // Try to extract the object information from the error URL
+    const errorMessage = args[0];
+    const urlMatch = errorMessage.match(/visit (https:\/\/[^\s]+)/);
+    if (urlMatch) {
+      console.error('🚨 Error URL:', urlMatch[1]);
+      // Decode the URL parameters to see the object structure
+      try {
+        const url = new URL(urlMatch[1]);
+        const params = url.searchParams.get('args[]');
+        if (params) {
+          console.error('🚨 Object being rendered:', decodeURIComponent(params));
+        }
+      } catch (e) {
+        console.error('🚨 Could not parse error URL:', e);
+      }
+    }
+  }
+  originalError.apply(console, args);
+};
+
 root.render(
   <React.StrictMode>
     <App />
@@ -62,5 +116,5 @@ window.addEventListener('load', () => {
   observePerformance();
   
   // Log that performance monitoring is active
-  console.log('🚀 AmaPlayer Performance Monitoring Active');
+  // console.log('🚀 AmaPlayer Performance Monitoring Active');
 });

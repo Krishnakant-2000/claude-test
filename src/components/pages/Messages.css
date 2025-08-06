@@ -1220,6 +1220,11 @@
   box-shadow: var(--shadow-hover);
 }
 
+.notification-item:active {
+  transform: translateY(0);
+  transition: transform 0.1s ease;
+}
+
 .notification-item.unread {
   border-color: var(--accent-primary);
   background: linear-gradient(135deg, 
@@ -1332,6 +1337,60 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Post Preview Styles */
+.post-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.post-preview-media {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border-secondary);
+}
+
+.post-video-preview {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.post-like-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.post-preview-fallback {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--text-muted);
 }
 
 @keyframes pulse {

@@ -77,43 +77,182 @@
   text-align: center;
 }
 
-.profile-image {
+/* Profile Image Container */
+.profile-image-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-image-wrapper {
+  position: relative;
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid var(--accent-primary);
+  overflow: hidden;
   transition: all 0.3s ease;
 }
 
-.profile-image:hover {
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+.profile-image-wrapper.clickable {
+  cursor: pointer;
 }
 
-.image-upload {
-  display: none;
+.profile-image-wrapper.clickable:hover {
+  transform: scale(1.05);
 }
 
-.upload-label {
-  display: inline-flex;
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 3px solid var(--accent-primary);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.profile-image-wrapper.clickable:hover .profile-image {
+  filter: brightness(0.8);
+}
+
+/* Profile Image Overlay */
+.profile-image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: all 0.3s ease;
+  border-radius: 50%;
+  gap: 4px;
+}
+
+.profile-image-wrapper.clickable:hover .profile-image-overlay {
+  opacity: 1;
+}
+
+.profile-image-overlay span {
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Profile Image Menu */
+.profile-image-menu {
+  position: absolute;
+  top: 50%;
+  left: 170px; /* Position to the right of the profile image */
+  transform: translateY(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  z-index: 1000;
+  min-width: 160px;
+  animation: slideInFromLeft 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.menu-item {
+  display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 15px;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  color: white;
+  width: 100%;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.upload-label:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+.menu-item:hover {
+  background: var(--bg-hover);
+  transform: translateX(3px);
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 8px rgba(0, 255, 136, 0.2);
+}
+
+.menu-item.delete {
+  color: #ff4757;
+}
+
+.menu-item.delete:hover {
+  background: rgba(255, 71, 87, 0.1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+/* Mobile responsive for profile image */
+@media (max-width: 768px) {
+  .profile-image-wrapper {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .profile-image-menu {
+    left: 140px; /* Adjust for smaller profile image */
+    min-width: 140px;
+  }
+  
+  .profile-image-overlay span {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-image-wrapper {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .profile-image-menu {
+    left: 10px; /* Position menu to the left on small screens */
+    top: 120px; /* Move below the image on very small screens for better visibility */
+    transform: translateY(0);
+    min-width: 120px;
+  }
+  
+  .menu-item {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  
+  .profile-image-overlay span {
+    font-size: 10px;
+  }
 }
 
 .profile-info {
@@ -173,6 +312,61 @@
 .edit-profile-btn:disabled:hover {
   border-color: var(--border-secondary);
   color: var(--text-primary);
+  box-shadow: none;
+  transform: none;
+}
+
+.profile-action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.follow-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: var(--accent-primary);
+  border: 2px solid var(--accent-primary);
+  color: var(--bg-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.follow-btn:hover {
+  background: transparent;
+  color: var(--accent-primary);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+  transform: translateY(-2px);
+}
+
+.follow-btn.following {
+  background: transparent;
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
+}
+
+.follow-btn.following:hover {
+  border-color: #ff4444;
+  color: #ff4444;
+  box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
+}
+
+.follow-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.follow-btn:disabled:hover {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
   box-shadow: none;
   transform: none;
 }
@@ -489,6 +683,33 @@
   transition: all 0.3s ease;
   border: 1px solid var(--border-primary);
   background: var(--bg-card);
+}
+
+/* Profile Post Menu Styles */
+.post-thumbnail .post-menu-container {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
+
+.post-thumbnail .post-menu-btn.profile-post-menu {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 6px;
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px);
+}
+
+.post-thumbnail:hover .post-menu-btn.profile-post-menu {
+  opacity: 1;
+}
+
+.post-thumbnail .post-menu-btn.profile-post-menu:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
 }
 
 .post-thumbnail:hover {

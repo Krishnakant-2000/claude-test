@@ -50,12 +50,13 @@ const LazyImage = memo(function LazyImage({
   const getOptimizedImageUrl = (url) => {
     if (!url || error) return placeholder;
     
-    // For Firebase Storage URLs, we can add transformation parameters
+    // For Firebase Storage URLs, ensure proper loading
     if (url.includes('firebasestorage.googleapis.com')) {
-      // Add compression and resize parameters
-      const maxWidth = width || 800;
-      const quality = 80;
-      return `${url}?alt=media&w=${maxWidth}&q=${quality}`;
+      // Ensure alt=media is present for proper image loading
+      if (!url.includes('alt=media')) {
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}alt=media`;
+      }
     }
     
     return url;
@@ -120,7 +121,12 @@ const LazyImage = memo(function LazyImage({
         <img
           src={getOptimizedImageUrl(src)}
           alt={alt}
-          style={imageStyle}
+          style={{
+            ...imageStyle,
+            width: '100%',
+            height: 'auto',
+            objectFit: style.objectFit || 'cover'
+          }}
           onLoad={handleLoad}
           onError={handleError}
           loading="lazy"

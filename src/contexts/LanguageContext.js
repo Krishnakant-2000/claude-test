@@ -79,6 +79,7 @@ export const translations = {
     close: 'Close',
     
     // Posts
+    createPost: 'Create Post',
     whatsOnYourMind: "What's on your mind?",
     sharePost: 'Share Post',
     addPhoto: 'Add Photo',
@@ -168,6 +169,7 @@ export const translations = {
     close: 'बंद करें',
     
     // Posts
+    createPost: 'पोस्ट बनाएं',
     whatsOnYourMind: 'आपके मन में क्या है?',
     sharePost: 'पोस्ट साझा करें',
     addPhoto: 'फोटो जोड़ें',

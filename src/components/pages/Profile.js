@@ -5,13 +5,15 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { db, storage } from '../../firebase/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, setDoc, addDoc, serverTimestamp, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { uploadVideoFile, generateVideoMetadata } from '../../firebase/videoService';
 import { filterContent, getViolationMessage } from '../../utils/contentFilter';
-import { Edit2, Camera, Plus, X, Save, Users, UserPlus, Check, Video, Trash2, Play } from 'lucide-react';
+import { Edit2, Camera, Plus, X, Save, Users, UserPlus, Check, Video, Trash2, Play, MoreVertical } from 'lucide-react';
 import FooterNav from '../layout/FooterNav';
 import ThemeToggle from '../common/ThemeToggle';
 import LanguageSelector from '../common/LanguageSelector';
+import StoryViewer from '../stories/StoryViewer';
+import { StoriesService } from '../../firebase/storiesService';
 import './Profile.css';
 
 export default function Profile({ profileUserId = null }) {
@@ -43,6 +45,13 @@ export default function Profile({ profileUserId = null }) {
   const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const [uploadTask, setUploadTask] = useState(null);
   const [playingVideo, setPlayingVideo] = useState(null);
+  const [followedUsers, setFollowedUsers] = useState([]);
+  const [isFollowingProfile, setIsFollowingProfile] = useState(false);
+  const [showProfileImageMenu, setShowProfileImageMenu] = useState(false);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [userStories, setUserStories] = useState({ user: null, stories: [] });
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const [showPostMenus, setShowPostMenus] = useState({});
   
   // Determine which user's profile we're viewing
   const targetUserId = urlUserId || profileUserId || currentUser?.uid;
@@ -61,6 +70,25 @@ export default function Profile({ profileUserId = null }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, targetUserId]);
+
+  // Close profile image menu and post menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showProfileImageMenu && !event.target.closest('.profile-image-container')) {
+        setShowProfileImageMenu(false);
+      }
+      
+      // Close post menus when clicking outside
+      if (!event.target.closest('.post-menu-container')) {
+        setShowPostMenus({});
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showProfileImageMenu]);
 
   const fetchProfile = async () => {
     try {
@@ -126,7 +154,6 @@ export default function Profile({ profileUserId = null }) {
   };
 
   const fetchTalentVideos = async () => {
-    console.log('Fetching talent videos for user:', targetUserId);
     
     // Always add sample video as the first video
     const sampleVideo = {
@@ -148,26 +175,29 @@ export default function Profile({ profileUserId = null }) {
     try {
       let videos = [];
       
-      // Only fetch user videos if we have a valid targetUserId
-      if (targetUserId) {
-        const q = query(
-          collection(db, 'talentVideos'),
-          where('userId', '==', targetUserId)
-        );
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          videos.push({ id: doc.id, ...doc.data() });
-        });
+      // Only fetch user videos if we have a valid targetUserId and user is authenticated
+      if (targetUserId && currentUser) {
+        try {
+          const q = query(
+            collection(db, 'talentVideos'),
+            where('userId', '==', targetUserId)
+          );
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((doc) => {
+            videos.push({ id: doc.id, ...doc.data() });
+          });
+        } catch (firestoreError) {
+          console.warn('Could not fetch talent videos from Firestore:', firestoreError.message);
+          // Continue without user videos - not a critical error
+        }
       }
       
       // Add sample video first, then user videos
       const allVideos = [sampleVideo, ...videos];
-      console.log('Setting talent videos:', allVideos);
       setTalentVideos(allVideos);
     } catch (error) {
-      console.error('Error fetching talent videos:', error);
+      console.error('Error in fetchTalentVideos:', error);
       // If there's an error, at least show the sample video
-      console.log('Showing sample video only due to error');
       setTalentVideos([sampleVideo]);
     }
   };
@@ -280,6 +310,11 @@ export default function Profile({ profileUserId = null }) {
       return;
     }
 
+    if (!isOwnProfile) {
+      alert('You can only upload profile photos for your own account.');
+      return;
+    }
+
     const file = e.target.files[0];
     if (!file) return;
 
@@ -291,24 +326,284 @@ export default function Profile({ profileUserId = null }) {
       
       // Update Firebase Auth profile using context function (includes refresh)
       await updateUserProfile({ photoURL: downloadURL });
-      console.log('✅ Firebase Auth profile photo updated with context refresh');
       
       // Update Firestore user document
       const userRef = doc(db, 'users', currentUser.uid);
       await updateDoc(userRef, { photoURL: downloadURL });
-      console.log('✅ Firestore user profile photo updated');
       
       setProfile(prev => ({ ...prev, photoURL: downloadURL }));
       
       // Force refresh auth context to update all components
       setTimeout(() => {
         refreshAuth();
-        console.log('🔄 Forced auth refresh after profile photo update');
       }, 500);
     } catch (error) {
       console.error('Error uploading image:', error);
     }
     setUploading(false);
+  };
+
+  const handleDeleteProfileImage = async () => {
+    if (isGuest()) {
+      alert('Please sign up or log in to delete profile photos.');
+      return;
+    }
+
+    if (!isOwnProfile) {
+      alert('You can only delete your own profile photo.');
+      return;
+    }
+
+    if (!profile?.photoURL) {
+      alert('No profile photo to delete.');
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to delete your profile photo?')) {
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Delete from Firebase Storage if it's a custom uploaded image (not default)
+      if (profile.photoURL && !profile.photoURL.includes('placeholder') && !profile.photoURL.includes('googleapis.com')) {
+        try {
+          const imageRef = ref(storage, `profile-images/${currentUser.uid}`);
+          await deleteObject(imageRef);
+        } catch (storageError) {
+          console.log('Storage delete error (image may not exist):', storageError);
+          // Continue with profile update even if storage delete fails
+        }
+      }
+      
+      // Update Firebase Auth profile
+      await updateUserProfile({ photoURL: null });
+      
+      // Update Firestore user document
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, { photoURL: null });
+      
+      setProfile(prev => ({ ...prev, photoURL: null }));
+      setShowProfileImageMenu(false);
+      
+      // Force refresh auth context
+      setTimeout(() => {
+        refreshAuth();
+      }, 500);
+      
+      alert('Profile photo deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting profile image:', error);
+      alert('Failed to delete profile photo. Please try again.');
+    }
+    setUploading(false);
+  };
+
+  // Generic function to open stories for any user
+  const openStoriesForUser = async (userId, userDisplayName, userPhotoURL) => {
+    try {
+      console.log('🔍 Fetching stories for user:', userId);
+      console.log('👤 User info:', { userDisplayName, userPhotoURL });
+      console.log('🎯 Known active user IDs:');
+      console.log('   - jVBTgUSK7DbEJctFrVtJX80V7WE2 (krishnakant bhardwaj)');
+      console.log('   - SiuIzG3GPhaBOb02aZRhFYzxojI3 (vishnuayurvedic company)');
+      console.log('🔍 Searching for user ID:', userId);
+      
+      // First try to get real stories from Firebase
+      let stories = await StoriesService.getUserStories(userId);
+      console.log('📋 Firebase stories data:', stories);
+      console.log('📊 Firebase stories count:', stories.length);
+      
+      // If we found Firebase stories, use them
+      if (stories.length > 0) {
+        console.log('✅ Using Firebase stories for user');
+      } else {
+        console.log('❌ No Firebase stories found for this user');
+        
+        // DEBUG: Check if this is one of our known active users
+        if (userId === 'jVBTgUSK7DbEJctFrVtJX80V7WE2' || userId === 'SiuIzG3GPhaBOb02aZRhFYzxojI3') {
+          console.log('🚨 ERROR: This user SHOULD have active stories but none were found!');
+          console.log('🔍 This indicates a problem with the story fetching logic.');
+          alert(`Debug Error: User ${userDisplayName} should have stories but none found. Check console for details.`);
+        } else {
+          console.log(`ℹ️ User ${userDisplayName || userId} has no active stories (this is expected)`);
+          alert(`${userDisplayName || 'This user'} has no active stories to view. Stories expire after 24 hours.`);
+        }
+        return;
+      }
+      
+      console.log(`📱 Total stories found: ${stories.length}`);
+      console.log('📋 Stories data:', stories);
+      
+      // Set up user stories data for StoryViewer
+      const userStoriesData = {
+        user: {
+          userId: userId,
+          displayName: userDisplayName || 'User',
+          photoURL: userPhotoURL || 'https://via.placeholder.com/150/2d3748/00ff88?text=Profile'
+        },
+        stories: stories
+      };
+
+      console.log('🎬 Opening story viewer with data:', userStoriesData);
+      setUserStories(userStoriesData);
+      setCurrentStoryIndex(0);
+      setShowStoryViewer(true);
+    } catch (error) {
+      console.error('❌ Error fetching user stories:', error);
+      console.error('❌ Error details:', error.message);
+      alert(`Failed to load stories: ${error.message}. Please try again.`);
+    }
+  };
+
+  // Function to open user stories (for main profile image)
+  const openUserStories = async () => {
+    const displayName = profile?.displayName || profile?.name || 'User';
+    const photoURL = profile?.photoURL || 'https://via.placeholder.com/150/2d3748/00ff88?text=Profile';
+    await openStoriesForUser(targetUserId, displayName, photoURL);
+  };
+
+  const handleProfileImageClick = async () => {
+    if (isGuest()) {
+      alert('Please sign up or log in to manage profile photos.');
+      return;
+    }
+
+    if (!isOwnProfile) {
+      // For other users' profiles, try to open their stories
+      await openUserStories();
+      return;
+    }
+
+    // For own profile, show the menu
+    setShowProfileImageMenu(!showProfileImageMenu);
+  };
+
+  const handleUpdateProfileImage = () => {
+    setShowProfileImageMenu(false);
+    document.getElementById('profile-image-upload').click();
+  };
+
+  // Story viewer navigation functions
+  const handleStoryClose = () => {
+    setShowStoryViewer(false);
+    setUserStories({ user: null, stories: [] });
+    setCurrentStoryIndex(0);
+  };
+
+  const handleStoryNavigate = (direction) => {
+    if (direction === 'next') {
+      if (currentStoryIndex < userStories.stories.length - 1) {
+        setCurrentStoryIndex(currentStoryIndex + 1);
+      } else {
+        handleStoryClose();
+      }
+    } else if (direction === 'prev') {
+      if (currentStoryIndex > 0) {
+        setCurrentStoryIndex(currentStoryIndex - 1);
+      }
+    }
+  };
+
+  // Test function to create a sample story for current user (for testing purposes)
+  const createTestStory = async () => {
+    if (!currentUser || isGuest()) {
+      alert('Please log in to create test stories');
+      return;
+    }
+
+    try {
+      console.log('🧪 Creating test story for user:', currentUser.uid);
+      
+      // Create multiple test stories for better demonstration
+      const testStories = [
+        {
+          mediaUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=800&fit=crop',
+          caption: 'Morning workout session! 💪 Ready to crush today\'s goals!'
+        },
+        {
+          mediaUrl: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=600&h=800&fit=crop',
+          caption: 'Sports training in progress! 🏃‍♂️ Never give up on your dreams!'
+        },
+        {
+          mediaUrl: 'https://images.unsplash.com/photo-1593766827228-8737b4534aa6?w=600&h=800&fit=crop',
+          caption: 'Victory celebration! 🏆 Hard work always pays off!'
+        }
+      ];
+
+      console.log(`🚀 Creating ${testStories.length} test stories...`);
+      
+      for (let i = 0; i < testStories.length; i++) {
+        const story = testStories[i];
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + (24 * 60 * 60 * 1000)); // 24 hours
+        
+        const storyData = {
+          userId: currentUser.uid,
+          userDisplayName: currentUser.displayName || currentUser.email || 'Test User',
+          userPhotoURL: currentUser.photoURL || '',
+          mediaType: 'image',
+          mediaUrl: story.mediaUrl,
+          caption: story.caption,
+          timestamp: serverTimestamp(),
+          expiresAt: expiresAt,
+          viewCount: 0,
+          viewers: [],
+          isHighlight: false,
+          sharingEnabled: true,
+          publicLink: `${window.location.origin}/story/test_${currentUser.uid}_${Date.now()}_${i}`
+        };
+
+        // Add to Firebase
+        const docRef = await addDoc(collection(db, 'stories'), storyData);
+        console.log(`✅ Test story ${i + 1} created with ID:`, docRef.id);
+      }
+
+      console.log('🎉 All test stories created successfully!');
+      alert(`✅ ${testStories.length} test stories created successfully! Now others can view your stories by clicking your profile image. Stories will expire in 24 hours.`);
+    } catch (error) {
+      console.error('❌ Error creating test stories:', error);
+      alert('Failed to create test stories: ' + error.message);
+    }
+  };
+
+  // Toggle post menu visibility
+  const togglePostMenu = (postId) => {
+    setShowPostMenus(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  // Delete post function
+  const handleDeletePost = async (postId) => {
+    if (!currentUser) {
+      alert('You must be logged in to delete posts');
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      // Delete from Firebase
+      await deleteDoc(doc(db, 'posts', postId));
+      
+      // Close the menu
+      setShowPostMenus(prev => ({
+        ...prev,
+        [postId]: false
+      }));
+
+      // Refresh posts from Firebase to get updated list
+      await fetchUserPosts();
+
+      alert('Post deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post. Please try again.');
+    }
   };
 
   const handleEditProfile = () => {
@@ -441,6 +736,8 @@ export default function Profile({ profileUserId = null }) {
 
   // Fetch users that current user is following
   const fetchFollowedUsers = () => {
+    if (!currentUser) return;
+    
     const q = query(
       collection(db, 'follows'),
       where('followerId', '==', currentUser.uid)
@@ -451,7 +748,8 @@ export default function Profile({ profileUserId = null }) {
       snapshot.forEach((doc) => {
         followedList.push(doc.data().followingId);
       });
-      // followedUsers state was removed for optimization
+      setFollowedUsers(followedList);
+      setIsFollowingProfile(followedList.includes(targetUserId));
     });
 
     return unsubscribe;
@@ -477,6 +775,7 @@ export default function Profile({ profileUserId = null }) {
 
   // Fetch friendships
   const fetchFriendships = () => {
+    
     const q1 = query(
       collection(db, 'friendships'),
       where('user1', '==', currentUser.uid)
@@ -502,14 +801,20 @@ export default function Profile({ profileUserId = null }) {
         
         setFriendships(friendshipsList);
       } catch (error) {
-        console.error('Error fetching friendships:', error);
+        console.error('❌ Error fetching friendships:', error);
       }
     };
     
-    updateFriendships();
+    // Set up real-time listeners
+    const unsubscribe1 = onSnapshot(q1, () => {
+      updateFriendships();
+    });
+    const unsubscribe2 = onSnapshot(q2, () => {
+      updateFriendships();
+    });
     
-    const unsubscribe1 = onSnapshot(q1, updateFriendships);
-    const unsubscribe2 = onSnapshot(q2, updateFriendships);
+    // Initial load
+    updateFriendships();
     
     return () => {
       unsubscribe1();
@@ -528,6 +833,54 @@ export default function Profile({ profileUserId = null }) {
     return friendships.some(friendship => 
       friendship.user1 === userId || friendship.user2 === userId
     );
+  };
+
+  // Handle follow/unfollow functionality
+  const handleFollowUnfollow = async () => {
+    if (isGuest()) {
+      alert('Please sign up or log in to follow users');
+      return;
+    }
+
+    if (followingUser || isOwnProfile) return;
+
+    try {
+      setFollowingUser(true);
+      
+      const isFollowing = followedUsers.includes(targetUserId);
+      
+      if (isFollowing) {
+        // Unfollow: remove from follows collection
+        const q = query(
+          collection(db, 'follows'),
+          where('followerId', '==', currentUser.uid),
+          where('followingId', '==', targetUserId)
+        );
+        
+        const snapshot = await getDocs(q);
+        snapshot.forEach(async (docSnapshot) => {
+          await deleteDoc(doc(db, 'follows', docSnapshot.id));
+        });
+        
+        console.log(`✅ Unfollowed ${profile?.displayName || 'user'}`);
+      } else {
+        // Follow: add to follows collection
+        await addDoc(collection(db, 'follows'), {
+          followerId: currentUser.uid,
+          followingId: targetUserId,
+          followerName: currentUser.displayName || 'Anonymous User',
+          followingName: profile?.displayName || 'Anonymous User',
+          timestamp: serverTimestamp()
+        });
+        
+        console.log(`✅ Now following ${profile?.displayName || 'user'}`);
+      }
+    } catch (error) {
+      console.error('❌ Error updating follow status:', error);
+      alert('Failed to update follow status: ' + error.message);
+    }
+    
+    setFollowingUser(false);
   };
 
   // Handle friend request (send or cancel)
@@ -551,9 +904,38 @@ export default function Profile({ profileUserId = null }) {
         if (request) {
           await deleteDoc(doc(db, 'friendRequests', request.id));
           alert('Friend request cancelled');
+          // Refresh data after canceling request
+          fetchSentRequests();
+          
+          // Trigger manual refresh of other components
+          window.dispatchEvent(new CustomEvent('friendshipChanged', { 
+            detail: { action: 'friend_request_cancelled', userId: targetUserId } 
+          }));
         }
-      } else if (!isFriend && !requestStatus) {
-        // Send friend request
+      } else if (isFriend) {
+        // Unfriend - Remove from friendships collection
+        const friendship = friendships.find(f => 
+          (f.user1 === currentUser.uid && f.user2 === targetUserId) ||
+          (f.user1 === targetUserId && f.user2 === currentUser.uid)
+        );
+        if (friendship) {
+          
+          // Delete the friendship document
+          await deleteDoc(doc(db, 'friendships', friendship.id));
+          
+          // Immediately update local state
+          setFriendships(prev => prev.filter(f => f.id !== friendship.id));
+          
+          // Trigger cross-component updates
+          window.dispatchEvent(new CustomEvent('friendshipChanged', { 
+            detail: { action: 'unfriend', userId: targetUserId } 
+          }));
+          
+          alert(`Unfriended ${profile?.displayName || 'user'}`);
+        } else {
+        }
+      } else {
+        // Send friend request (default case: not friends and no pending request)
         await addDoc(collection(db, 'friendRequests'), {
           senderId: currentUser.uid,
           receiverId: targetUserId,
@@ -565,6 +947,13 @@ export default function Profile({ profileUserId = null }) {
           timestamp: serverTimestamp()
         });
         alert('Friend request sent!');
+        // Refresh data after sending friend request
+        fetchSentRequests();
+        
+        // Trigger manual refresh of other components
+        window.dispatchEvent(new CustomEvent('friendshipChanged', { 
+          detail: { action: 'friend_request_sent', userId: targetUserId } 
+        }));
       }
       
     } catch (error) {
@@ -578,7 +967,6 @@ export default function Profile({ profileUserId = null }) {
   // Fetch followers list
   const fetchFollowers = async () => {
     try {
-      console.log('🔍 Fetching followers for user:', targetUserId);
       const q = query(
         collection(db, 'follows'),
         where('followingId', '==', targetUserId)
@@ -586,11 +974,9 @@ export default function Profile({ profileUserId = null }) {
       
       const snapshot = await getDocs(q);
       const followersList = [];
-      console.log('📊 Found', snapshot.size, 'follow records');
       
       for (const docSnap of snapshot.docs) {
         const followData = docSnap.data();
-        console.log('👤 Processing follower:', followData.followerId);
         const followerDoc = await getDoc(doc(db, 'users', followData.followerId));
         if (followerDoc.exists()) {
           followersList.push({
@@ -600,7 +986,6 @@ export default function Profile({ profileUserId = null }) {
         }
       }
       
-      console.log('✅ Final followers list:', followersList.length, 'followers');
       setFollowers(followersList);
       setShowFollowersModal(true);
     } catch (error) {
@@ -732,25 +1117,57 @@ export default function Profile({ profileUserId = null }) {
       <div className="main-content profile-container">
         <div className="profile-header">
           <div className="profile-image-container">
-            <img
-              src={profile?.photoURL || 'https://via.placeholder.com/150/2d3748/00ff88?text=Profile'}
-              alt={t('profile')}
-              className="profile-image"
-            />
-            {!isGuest() && (
-              <>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="image-upload"
-                  id="profile-image-upload"
-                />
-                <label htmlFor="profile-image-upload" className="upload-label">
-                  <Camera size={20} />
-                  {uploading ? 'Uploading...' : t('upload_photo')}
-                </label>
-              </>
+            <div 
+              className={`profile-image-wrapper ${(isOwnProfile && !isGuest()) || (!isOwnProfile && !isGuest()) ? 'clickable' : ''}`} 
+              onClick={handleProfileImageClick}
+            >
+              <img
+                src={profile?.photoURL || 'https://via.placeholder.com/150/2d3748/00ff88?text=Profile'}
+                alt={t('profile')}
+                className="profile-image"
+              />
+              {!isGuest() && (
+                <div className="profile-image-overlay">
+                  {isOwnProfile ? (
+                    <>
+                      <Camera size={24} />
+                      <span>{uploading ? 'Uploading...' : 'Update Photo'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play size={24} />
+                      <span>View Stories</span>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Hidden file input */}
+            {isOwnProfile && !isGuest() && (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: 'none' }}
+                id="profile-image-upload"
+              />
+            )}
+            
+            {/* Profile Image Menu */}
+            {showProfileImageMenu && isOwnProfile && !isGuest() && (
+              <div className="profile-image-menu">
+                <button className="menu-item" onClick={handleUpdateProfileImage}>
+                  <Camera size={16} />
+                  Update Photo
+                </button>
+                {profile?.photoURL && (
+                  <button className="menu-item delete" onClick={handleDeleteProfileImage}>
+                    <Trash2 size={16} />
+                    Delete Photo
+                  </button>
+                )}
+              </div>
             )}
           </div>
           <div className="profile-info">
@@ -766,28 +1183,43 @@ export default function Profile({ profileUserId = null }) {
                 </button>
               )}
               {!isOwnProfile && !isGuest() && (
-                <button 
-                  className="edit-profile-btn" 
-                  onClick={handleFollowProfile}
-                  disabled={followingUser}
-                >
-                  {followingUser ? (
-                    'Loading...'
-                  ) : (() => {
-                    const requestStatus = getRequestStatus(targetUserId);
-                    const isFriend = isAlreadyFriend(targetUserId);
-                    
-                    if (isFriend) {
-                      return <><Check size={20} /> Friends</>;
-                    } else if (requestStatus === 'pending') {
-                      return <><X size={20} /> Cancel Request</>;
-                    } else if (requestStatus === 'accepted') {
-                      return <><Check size={20} /> Accepted</>;
-                    } else {
-                      return <><UserPlus size={20} /> Add Friend</>;
-                    }
-                  })()}
-                </button>
+                <div className="profile-action-buttons">
+                  <button 
+                    className={`follow-btn ${isFollowingProfile ? 'following' : ''}`}
+                    onClick={handleFollowUnfollow}
+                    disabled={followingUser}
+                  >
+                    {followingUser ? (
+                      'Loading...'
+                    ) : isFollowingProfile ? (
+                      'Unfollow'
+                    ) : (
+                      'Follow'
+                    )}
+                  </button>
+                  <button 
+                    className="edit-profile-btn" 
+                    onClick={handleFollowProfile}
+                    disabled={followingUser}
+                  >
+                    {followingUser ? (
+                      'Loading...'
+                    ) : (() => {
+                      const requestStatus = getRequestStatus(targetUserId);
+                      const isFriend = isAlreadyFriend(targetUserId);
+                      
+                      
+                      if (isFriend) {
+                        return <><X size={20} /> Unfriend</>;
+                      } else if (requestStatus === 'pending') {
+                        return <><X size={20} /> Cancel Request</>;
+                      } else {
+                        // Default case: not friends and no pending request = show Add Friend
+                        return <><UserPlus size={20} /> Add Friend</>;
+                      }
+                    })()}
+                  </button>
+                </div>
               )}
             </div>
             <div className="profile-stats">
@@ -1087,19 +1519,37 @@ export default function Profile({ profileUserId = null }) {
         <div className="profile-section">
           <div className="section-header">
             <h2><Video size={24} /> Talent Showcase ({talentVideos.length}/7)</h2>
-            {isOwnProfile && !isGuest() && talentVideos.length < 7 && (
-              <div className="upload-video-container">
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={handleVideoUpload}
-                  id="talent-video-upload"
-                  style={{ display: 'none' }}
-                />
-                <label htmlFor="talent-video-upload" className="upload-video-btn">
-                  <Plus size={16} />
-                  {uploadingVideo ? 'Uploading...' : 'Upload Video'}
-                </label>
+            {isOwnProfile && !isGuest() && (
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                {talentVideos.length < 7 && (
+                  <div className="upload-video-container">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                      id="talent-video-upload"
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="talent-video-upload" className="upload-video-btn">
+                      <Plus size={16} />
+                      {uploadingVideo ? 'Uploading...' : 'Upload Video'}
+                    </label>
+                  </div>
+                )}
+                
+                {/* Test Story Button - for testing purposes */}
+                <button 
+                  className="add-btn"
+                  onClick={createTestStory}
+                  style={{ 
+                    fontSize: '12px', 
+                    padding: '6px 12px',
+                    backgroundColor: '#ff6b6b',
+                    border: 'none'
+                  }}
+                >
+                  Create Test Story
+                </button>
               </div>
             )}
           </div>
@@ -1147,7 +1597,7 @@ export default function Profile({ profileUserId = null }) {
                   </button>
                   <div className="video-info">
                     <span>👁️ {video.views || 0}</span>
-                    <span>❤️ {video.likes || 0}</span>
+                    <span>❤️ {video.likes?.length || 0}</span>
                   </div>
                   {isOwnProfile && !isGuest() && !video.isSample && (
                     <button 
@@ -1180,14 +1630,45 @@ export default function Profile({ profileUserId = null }) {
         
         {/* Posts Grid */}
         <div className="profile-section">
-          <h2>Posts ({posts.length})</h2>
+          <h2>Posts ({posts.filter(post => post.imageUrl || post.mediaUrl).length})</h2>
           <div className="posts-grid">
-            {posts.map((post) => (
+            {posts.filter(post => post.imageUrl || post.mediaUrl).map((post) => (
               <div key={post.id} className="post-thumbnail">
-                {post.imageUrl && <img src={post.imageUrl} alt={post.caption} />}
+                <img src={post.imageUrl || post.mediaUrl} alt={post.caption} />
+                
+                {/* Three dots menu for own posts */}
+                {isOwnProfile && !isGuest() && (
+                  <div className="post-menu-container">
+                    <button 
+                      className="post-menu-btn profile-post-menu"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        togglePostMenu(post.id);
+                      }}
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+                    
+                    {showPostMenus[post.id] && (
+                      <div className="post-menu-dropdown">
+                        <button 
+                          className="menu-item delete"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePost(post.id);
+                          }}
+                        >
+                          <Trash2 size={14} />
+                          Delete Post
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <div className="post-overlay">
-                  <span>❤️ {post.likes || 0}</span>
-                  <span>💬 {post.comments || 0}</span>
+                  <span>❤️ {post.likes?.length || 0}</span>
+                  <span>💬 {post.comments?.length || 0}</span>
                 </div>
               </div>
             ))}
@@ -1217,11 +1698,18 @@ export default function Profile({ profileUserId = null }) {
               ) : (
                 <div className="users-list">
                   {followers.map((follower) => (
-                    <div key={follower.id} className="user-item" onClick={() => navigateToProfile(follower.id)}>
-                      <div className="user-avatar">
+                    <div key={follower.id} className="user-item">
+                      <div 
+                        className="user-avatar"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openStoriesForUser(follower.id, follower.displayName, follower.photoURL);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <img src={follower.photoURL || 'https://via.placeholder.com/40'} alt="Avatar" />
                       </div>
-                      <div className="user-info">
+                      <div className="user-info" onClick={() => navigateToProfile(follower.id)}>
                         <strong>{follower.displayName || 'Anonymous User'}</strong>
                         <p>{follower.bio || 'No bio available'}</p>
                       </div>
@@ -1253,11 +1741,18 @@ export default function Profile({ profileUserId = null }) {
               ) : (
                 <div className="users-list">
                   {following.map((user) => (
-                    <div key={user.id} className="user-item" onClick={() => navigateToProfile(user.id)}>
-                      <div className="user-avatar">
+                    <div key={user.id} className="user-item">
+                      <div 
+                        className="user-avatar"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openStoriesForUser(user.id, user.displayName, user.photoURL);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <img src={user.photoURL || 'https://via.placeholder.com/40'} alt="Avatar" />
                       </div>
-                      <div className="user-info">
+                      <div className="user-info" onClick={() => navigateToProfile(user.id)}>
                         <strong>{user.displayName || 'Anonymous User'}</strong>
                         <p>{user.bio || 'No bio available'}</p>
                       </div>
@@ -1291,8 +1786,27 @@ export default function Profile({ profileUserId = null }) {
               <div className="video-modal-info">
                 <div className="video-stats">
                   <span>👁️ {playingVideo.views || 0} views</span>
-                  <span>❤️ {playingVideo.likes || 0} likes</span>
-                  <span>📅 {playingVideo.uploadedAt ? new Date(playingVideo.uploadedAt.seconds ? playingVideo.uploadedAt.seconds * 1000 : playingVideo.uploadedAt).toLocaleDateString() : 'Unknown date'}</span>
+                  <span>❤️ {playingVideo.likes?.length || 0} likes</span>
+                  <span>📅 {playingVideo.uploadedAt ? (() => {
+                    try {
+                      if (playingVideo.uploadedAt.seconds) {
+                        // Firestore Timestamp
+                        return new Date(playingVideo.uploadedAt.seconds * 1000).toLocaleDateString();
+                      } else if (playingVideo.uploadedAt.toDate) {
+                        // Firestore Timestamp with toDate method
+                        return playingVideo.uploadedAt.toDate().toLocaleDateString();
+                      } else if (playingVideo.uploadedAt instanceof Date) {
+                        // JavaScript Date object
+                        return playingVideo.uploadedAt.toLocaleDateString();
+                      } else {
+                        // String or other format
+                        return new Date(playingVideo.uploadedAt).toLocaleDateString();
+                      }
+                    } catch (error) {
+                      console.warn('Error formatting date:', error);
+                      return 'Unknown date';
+                    }
+                  })() : 'Unknown date'}</span>
                 </div>
                 <div className="video-description">
                   <strong>Uploaded by:</strong> {playingVideo.userDisplayName || 'Unknown User'}
@@ -1304,6 +1818,16 @@ export default function Profile({ profileUserId = null }) {
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Story Viewer */}
+      {showStoryViewer && userStories.stories.length > 0 && (
+        <StoryViewer
+          userStories={userStories}
+          currentStoryIndex={currentStoryIndex}
+          onClose={handleStoryClose}
+          onNavigate={handleStoryNavigate}
+        />
       )}
       
       <FooterNav />

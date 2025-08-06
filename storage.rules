@@ -21,7 +21,15 @@ service firebase.storage {
     // Post images - all nested paths
     match /posts/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null && validateImageFile();
+      allow write: if request.auth != null && validateMediaFile();
+    }
+    
+    // Post images - specific path structure
+    match /posts/images/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && validateImageFile();
     }
     
     // Post videos
@@ -116,7 +124,7 @@ service firebase.storage {
         && request.resource.contentType.matches('image/.*')
         && request.resource.contentType in [
           'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 
-          'image/webp', 'image/bmp', 'image/svg+xml'
+          'image/webp', 'image/bmp', 'image/svg+xml', 'image/avif', 'image/heic'
         ];
     }
     

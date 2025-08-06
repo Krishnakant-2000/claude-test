@@ -19,6 +19,9 @@ const Profile = React.lazy(() => import('./components/pages/Profile'));
 const Search = React.lazy(() => import('./components/pages/Search'));
 const AddPost = React.lazy(() => import('./components/pages/AddPost'));
 const Messages = React.lazy(() => import('./components/pages/Messages'));
+const Events = React.lazy(() => import('./components/pages/Events'));
+const PostDetail = React.lazy(() => import('./components/pages/PostDetail'));
+const StoryDetail = React.lazy(() => import('./components/stories/StoryDetail'));
 const StorySharePage = React.lazy(() => import('./components/stories/StorySharePage'));
 
 // Loading component for Suspense fallback
@@ -71,6 +74,11 @@ function AppContent() {
                   <Messages />
                 </PrivateRoute>
               } />
+              <Route path="/events" element={
+                <PrivateRoute>
+                  <Events />
+                </PrivateRoute>
+              } />
               <Route path="/profile" element={
                 <PrivateRoute>
                   <Profile />
@@ -81,7 +89,17 @@ function AppContent() {
                   <Profile />
                 </PrivateRoute>
               } />
-              <Route path="/story/:storyId" element={<StorySharePage />} />
+              <Route path="/post/:postId" element={
+                <PrivateRoute>
+                  <PostDetail />
+                </PrivateRoute>
+              } />
+              <Route path="/story/:storyId" element={
+                <PrivateRoute>
+                  <StoryDetail />
+                </PrivateRoute>
+              } />
+              <Route path="/story-share/:storyId" element={<StorySharePage />} />
               <Route path="/dashboard" element={<Navigate to="/home" />} />
               </Routes>
       </Suspense>

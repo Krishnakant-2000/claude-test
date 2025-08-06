@@ -25,16 +25,10 @@ export const trackPerformance = () => {
   if ('performance' in window && 'getEntriesByType' in window.performance) {
     const navigation = performance.getEntriesByType('navigation')[0];
     if (navigation) {
-      console.group('🚀 AmaPlayer Performance Metrics');
-      console.log('📊 Navigation Timing:', {
-        'DNS Lookup': `${navigation.domainLookupEnd - navigation.domainLookupStart}ms`,
-        'TCP Connection': `${navigation.connectEnd - navigation.connectStart}ms`,
-        'Request': `${navigation.responseStart - navigation.requestStart}ms`,
-        'Response': `${navigation.responseEnd - navigation.responseStart}ms`,
-        'DOM Loading': `${navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart}ms`,
-        'Total Load Time': `${navigation.loadEventEnd - navigation.navigationStart}ms`
-      });
-      console.groupEnd();
+      // Performance metrics disabled for production
+      // console.group('🚀 AmaPlayer Performance Metrics');
+      // console.log('📊 Navigation Timing:', navigation);
+      // console.groupEnd();
     }
   }
   
@@ -59,25 +53,15 @@ export const trackPerformance = () => {
   
   // Track memory usage (Chrome only)
   if ('memory' in performance) {
-    console.log('💾 Memory Usage:', {
-      'Used JS Heap': `${(performance.memory.usedJSHeapSize / 1048576).toFixed(1)}MB`,
-      'Total JS Heap': `${(performance.memory.totalJSHeapSize / 1048576).toFixed(1)}MB`,
-      'Limit': `${(performance.memory.jsHeapSizeLimit / 1048576).toFixed(1)}MB`
-    });
+    // Memory tracking disabled for production
+    // console.log('💾 Memory Usage:', performance.memory);
   }
 };
 
 // Send performance data to analytics (placeholder)
 export const sendToAnalytics = (metric) => {
   // In production, send to your analytics service
-  console.log('📈 Web Vital:', {
-    name: metric.name,
-    value: metric.value,
-    rating: metric.rating,
-    delta: metric.delta,
-    id: metric.id,
-    entries: metric.entries
-  });
+  // console.log('📈 Web Vital:', metric);
   
   // Example: Send to Google Analytics 4
   if (typeof window !== 'undefined' && typeof window.gtag !== 'undefined') {

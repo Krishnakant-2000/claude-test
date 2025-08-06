@@ -1,9 +1,10 @@
 // Upload Test Runner Component
 // Admin component for running upload tests to verify Firebase Storage configuration
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { runUploadTests, runStoriesUploadTest } from '../../tests/uploadTests';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import './UploadTestRunner.css';
 
 export default function UploadTestRunner() {
@@ -11,10 +12,34 @@ export default function UploadTestRunner() {
   const [testResults, setTestResults] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [currentTest, setCurrentTest] = useState('');
+  const [adminStatus, setAdminStatus] = useState({ isAdmin: false, loading: true });
 
-  // Check if user has admin privileges
-  const isAdmin = currentUser && 
-    (currentUser.email?.includes('admin') || currentUser.email?.includes('test'));
+  // Verify admin status using secure Cloud Function
+  useEffect(() => {
+    const verifyAdminStatus = async () => {
+      if (!currentUser || isGuest) {
+        setAdminStatus({ isAdmin: false, loading: false });
+        return;
+      }
+
+      try {
+        const functions = getFunctions();
+        const verifyAdminRole = httpsCallable(functions, 'verifyAdminRole');
+        const result = await verifyAdminRole();
+        
+        const { isAdmin, permissions } = result.data;
+        setAdminStatus({ 
+          isAdmin: isAdmin && permissions?.canRunTests, 
+          loading: false 
+        });
+      } catch (error) {
+        console.error('Error verifying admin status:', error);
+        setAdminStatus({ isAdmin: false, loading: false });
+      }
+    };
+
+    verifyAdminStatus();
+  }, [currentUser, isGuest]);
 
   const runFullTestSuite = async () => {
     if (isRunning) return;
@@ -77,12 +102,23 @@ export default function UploadTestRunner() {
     );
   }
 
-  if (!isAdmin) {
+  if (adminStatus.loading) {
+    return (
+      <div className="upload-test-runner">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!adminStatus.isAdmin) {
     return (
       <div className="upload-test-runner admin-only">
         <h2>🧪 Upload Test Runner</h2>
         <p>This feature is only available to admin users.</p>
-        <p className="hint">Admin access is granted to users with 'admin' or 'test' in their email address.</p>
+        <p className="hint">Admin access is managed through secure role-based permissions.</p>
       </div>
     );
   }

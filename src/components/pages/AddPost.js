@@ -435,7 +435,7 @@ export default function AddPost() {
             <ArrowLeft size={20} />
             Cancel
           </button>
-          <h1>{t('create_post')}</h1>
+          <h1>{t('createPost')}</h1>
           <div className="nav-controls">
             <LanguageSelector />
             <ThemeToggle />
@@ -482,7 +482,7 @@ export default function AddPost() {
 
           <form onSubmit={handleSubmit}>
             <textarea
-              placeholder={t('whats_mind')}
+              placeholder={t('whatsOnYourMind')}
               value={newPost.caption}
               onChange={handleCaptionChange}
               required

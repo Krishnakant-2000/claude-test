@@ -29,11 +29,7 @@ export default function Search() {
     name: '',
     achievement: '',
     sex: '',
-    age: '',
-    minAge: '',
-    maxAge: '',
-    customAgeOperator: '<',
-    customAgeValue: ''
+    age: ''
   });
 
   const fetchSentRequests = useCallback(() => {
@@ -56,10 +52,54 @@ export default function Search() {
   useEffect(() => {
     if (currentUser && !isGuest()) {
       fetchSentRequests();
-      fetchFriendships();
-      fetchFollowedUsers();
+      const unsubscribeFriendships = fetchFriendships();
+      const unsubscribeFollowedUsers = fetchFollowedUsers();
+      
+      // Return cleanup function
+      return () => {
+        if (unsubscribeFriendships) unsubscribeFriendships();
+        if (unsubscribeFollowedUsers) unsubscribeFollowedUsers();
+      };
     }
   }, [currentUser, isGuest, fetchSentRequests]);
+
+  // Listen for friendship changes from other components
+  useEffect(() => {
+    const handleFriendshipChange = (event) => {
+      console.log('🔄 Search - Received friendship change event:', event.detail);
+      // Force aggressive refresh of ALL friendship data
+      if (currentUser && !isGuest()) {
+        console.log('🔄 Search - Force refreshing all friendship data...');
+        
+        // Clear current state immediately
+        setFriendships([]);
+        setSentRequests([]);
+        setFollowedUsers([]);
+        
+        // Refresh from database with delay
+        setTimeout(() => {
+          console.log('🔄 Search - Fetching fresh data from database...');
+          fetchFriendships();
+          fetchSentRequests();
+          fetchFollowedUsers();
+        }, 1000);
+        
+        // Also refresh search results if there are any
+        if (searchResults.length > 0) {
+          console.log('🔄 Search - Refreshing search results...');
+          setTimeout(() => {
+            handleSearch();
+          }, 1500);
+        }
+      }
+    };
+
+    window.addEventListener('friendshipChanged', handleFriendshipChange);
+    
+    return () => {
+      window.removeEventListener('friendshipChanged', handleFriendshipChange);
+    };
+  }, [currentUser, searchResults.length]);
 
   // Live search effect with debouncing
   useEffect(() => {
@@ -99,8 +139,58 @@ export default function Search() {
   }, [searchTerm, filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchFriendships = () => {
-    // For simplicity, just track friendships
-    setFriendships([]);
+    console.log('🔍 Setting up real-time friendships listener for search');
+    
+    const q1 = query(
+      collection(db, 'friendships'),
+      where('user1', '==', currentUser.uid)
+    );
+    const q2 = query(
+      collection(db, 'friendships'),
+      where('user2', '==', currentUser.uid)
+    );
+    
+    const updateFriendshipsList = async () => {
+      try {
+        const friendshipsList = [];
+        
+        // Get friendships where current user is user1
+        const snapshot1 = await getDocs(q1);
+        snapshot1.forEach((doc) => {
+          friendshipsList.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Get friendships where current user is user2
+        const snapshot2 = await getDocs(q2);
+        snapshot2.forEach((doc) => {
+          friendshipsList.push({ id: doc.id, ...doc.data() });
+        });
+        
+        console.log('✅ Search - Updated friendships list:', friendshipsList.length);
+        setFriendships(friendshipsList);
+      } catch (error) {
+        console.error('❌ Error fetching friendships for search:', error);
+      }
+    };
+    
+    // Set up real-time listeners
+    const unsubscribe1 = onSnapshot(q1, () => {
+      console.log('🔄 Friendship change detected in search (user1)');
+      updateFriendshipsList();
+    });
+    const unsubscribe2 = onSnapshot(q2, () => {
+      console.log('🔄 Friendship change detected in search (user2)');
+      updateFriendshipsList();
+    });
+    
+    // Initial load
+    updateFriendshipsList();
+    
+    // Return cleanup function
+    return () => {
+      unsubscribe1();
+      unsubscribe2();
+    };
   };
 
   const fetchFollowedUsers = () => {
@@ -255,30 +345,7 @@ export default function Search() {
               }
             }
             
-            // Age range filter
-            if (matches && (filters.minAge || filters.maxAge)) {
-              const minAge = filters.minAge ? parseInt(filters.minAge) : 0;
-              const maxAge = filters.maxAge ? parseInt(filters.maxAge) : 150;
-              
-              if (userAge < minAge || userAge > maxAge) {
-                matches = false;
-              }
-            }
-            
-            // Custom age operator filter
-            if (matches && filters.customAgeValue) {
-              const customAge = parseInt(filters.customAgeValue);
-              if (filters.customAgeOperator === '<') {
-                if (userAge >= customAge) {
-                  matches = false;
-                }
-              } else if (filters.customAgeOperator === '>') {
-                if (userAge <= customAge) {
-                  matches = false;
-                }
-              }
-            }
-          } else if (filters.age || filters.minAge || filters.maxAge || filters.customAgeValue) {
+          } else if (filters.age) {
             // If age filters are applied but user has no age data, exclude them
             matches = false;
           }
@@ -365,22 +432,12 @@ export default function Search() {
       name: '',
       achievement: '',
       sex: '',
-      age: '',
-      minAge: '',
-      maxAge: '',
-      customAgeOperator: '<',
-      customAgeValue: ''
+      age: ''
     });
     setSearchTerm('');
     setSearchResults([]);
   };
 
-  const toggleAgeOperator = () => {
-    setFilters(prev => ({
-      ...prev,
-      customAgeOperator: prev.customAgeOperator === '<' ? '>' : '<'
-    }));
-  };
 
   const hasActiveFilters = Object.values(filters).some(filter => filter.trim().length > 0) || searchTerm.trim().length > 0;
 
@@ -561,50 +618,6 @@ export default function Search() {
                 />
               </div>
               
-              <div className="filter-group age-range-group">
-                <label><Calendar size={16} />Age Range</label>
-                <div className="age-range-inputs">
-                  <input
-                    type="number"
-                    placeholder="Min age"
-                    min="13"
-                    max="100"
-                    value={filters.minAge}
-                    onChange={(e) => handleFilterChange('minAge', e.target.value)}
-                  />
-                  <span className="age-range-separator">to</span>
-                  <input
-                    type="number"
-                    placeholder="Max age"
-                    min="13"
-                    max="100"
-                    value={filters.maxAge}
-                    onChange={(e) => handleFilterChange('maxAge', e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <div className="filter-group custom-age-group">
-                <label><Calendar size={16} />Custom Age Filter</label>
-                <div className="custom-age-inputs">
-                  <button
-                    type="button"
-                    className="age-operator-btn"
-                    onClick={toggleAgeOperator}
-                    title={filters.customAgeOperator === '<' ? 'Less than' : 'Greater than'}
-                  >
-                    {filters.customAgeOperator}
-                  </button>
-                  <input
-                    type="number"
-                    placeholder="Age"
-                    min="13"
-                    max="100"
-                    value={filters.customAgeValue}
-                    onChange={(e) => handleFilterChange('customAgeValue', e.target.value)}
-                  />
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -662,33 +675,47 @@ export default function Search() {
                 </div>
                 <div className="user-actions">
                   <div className="social-actions">
-                    {isFriend ? (
-                      <button className="friend-btn" disabled>
-                        <Check size={16} />
-                        Friends
-                      </button>
-                    ) : requestStatus === 'pending' ? (
-                      <button 
-                        className="cancel-btn"
-                        onClick={() => handleSendFriendRequest(user.id, user.displayName, user.photoURL)}
-                      >
-                        <X size={16} />
-                        Cancel Request
-                      </button>
-                    ) : requestStatus === 'accepted' ? (
-                      <button className="accepted-btn" disabled>
-                        <Check size={16} />
-                        Accepted
-                      </button>
-                    ) : (
-                      <button 
-                        className="add-friend-btn"
-                        onClick={() => handleSendFriendRequest(user.id, user.displayName, user.photoURL)}
-                      >
-                        <UserPlus size={16} />
-                        Add Friend
-                      </button>
-                    )}
+                    {(() => {
+                      // Debug logging for search button state
+                      console.log('🔘 Search button state for user:', user.displayName, {
+                        userId: user.id,
+                        isFriend,
+                        requestStatus,
+                        friendshipsCount: friendships.length,
+                        sentRequestsCount: sentRequests.length,
+                        allFriendships: friendships.map(f => ({id: f.id, user1: f.user1, user2: f.user2}))
+                      });
+                      
+                      if (isFriend) {
+                        return (
+                          <button className="friend-btn" disabled>
+                            <Check size={16} />
+                            Friends
+                          </button>
+                        );
+                      } else if (requestStatus === 'pending') {
+                        return (
+                          <button 
+                            className="cancel-btn"
+                            onClick={() => handleSendFriendRequest(user.id, user.displayName, user.photoURL)}
+                          >
+                            <X size={16} />
+                            Cancel Request
+                          </button>
+                        );
+                      } else {
+                        // Default case: not friends and no pending request
+                        return (
+                          <button 
+                            className="add-friend-btn"
+                            onClick={() => handleSendFriendRequest(user.id, user.displayName, user.photoURL)}
+                          >
+                            <UserPlus size={16} />
+                            Add Friend
+                          </button>
+                        );
+                      }
+                    })()}
                     
                     <button 
                       className={`follow-btn ${isFollowing ? 'following' : ''}`}

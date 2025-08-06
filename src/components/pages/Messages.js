@@ -32,21 +32,124 @@ export default function Messages() {
   const [followingUser, setFollowingUser] = useState(null);
 
   useEffect(() => {
+    console.log('📱 Messages: Initializing component', { currentUser: !!currentUser, isGuest: isGuest() });
+    
     if (currentUser && !isGuest()) {
       try {
-        fetchFriendRequests();
-        fetchFriends();
-        fetchMessages();
+        console.log('📱 Messages: Setting up listeners for user:', currentUser.uid);
+        const unsubscribeFriendRequests = fetchFriendRequests();
+        const unsubscribeFriends = fetchFriends();
+        const unsubscribeMessages = fetchMessages();
         fetchFollowedUsers();
-        fetchNotifications();
+        const unsubscribeNotifications = fetchNotifications();
+        
+        // Set loading to false after a brief delay to allow data to load
+        setTimeout(() => {
+          console.log('📱 Messages: Setting loading to false');
+          setLoading(false);
+        }, 1000);
+        
+        // Return cleanup function
+        return () => {
+          if (unsubscribeFriendRequests) unsubscribeFriendRequests();
+          if (unsubscribeFriends) unsubscribeFriends();
+          if (unsubscribeMessages) unsubscribeMessages();
+          if (unsubscribeNotifications) unsubscribeNotifications();
+        };
       } catch (error) {
         console.error('Error initializing data:', error);
+        setLoading(false);
       }
+    } else {
+      console.log('📱 Messages: Guest user or no user, setting loading to false');
+      setLoading(false);
     }
-    setLoading(false);
+  }, [currentUser, isGuest]);
+
+  // Listen for friendship changes from other components
+  useEffect(() => {
+    const handleFriendshipChange = () => {
+      // Force refresh of friends data
+      if (currentUser && !isGuest()) {
+        // Clear current friends immediately
+        setFriends([]);
+        
+        // Refresh from database with delay
+        setTimeout(() => {
+          fetchFriends();
+          fetchFriendRequests();
+        }, 500);
+      }
+    };
+
+    window.addEventListener('friendshipChanged', handleFriendshipChange);
+    
+    return () => {
+      window.removeEventListener('friendshipChanged', handleFriendshipChange);
+    };
   }, [currentUser]);
 
+  // Mark all notifications as read when notifications tab is opened
+  useEffect(() => {
+    if (activeTab === 'notifications' && currentUser && !isGuest() && notifications.length > 0) {
+      console.log('📱 Notifications tab opened, marking all as read...');
+      // Add a small delay to ensure notifications are loaded
+      const timer = setTimeout(() => {
+        markAllNotificationsAsRead();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, notifications, currentUser]);
+
+  // Handle notification click - mark as read and redirect
+  const handleNotificationClick = async (notification) => {
+    try {
+      // Mark notification as read
+      await markNotificationAsRead(notification.id);
+      
+      // Redirect based on notification type
+      if (notification.type === 'like' || notification.type === 'comment') {
+        // Redirect to the specific post detail page
+        if (notification.postId) {
+          console.log('📱 Redirecting to post detail:', notification.postId);
+          navigate(`/post/${notification.postId}`);
+        } else if (notification.url) {
+          // Fallback to URL if postId not available
+          const url = notification.url.startsWith('/') ? notification.url : `/${notification.url}`;
+          navigate(url);
+        }
+      } else if (notification.type === 'story_like' || notification.type === 'story_view' || notification.type === 'story_comment') {
+        // Redirect to the specific story page
+        if (notification.storyId) {
+          console.log('📱 Redirecting to story:', notification.storyId);
+          navigate(`/story/${notification.storyId}`);
+        } else if (notification.url) {
+          // Fallback to URL if storyId not available
+          const url = notification.url.startsWith('/') ? notification.url : `/${notification.url}`;
+          navigate(url);
+        }
+      } else if (notification.type === 'follow') {
+        // Redirect to the follower's profile
+        if (notification.senderId) {
+          console.log('📱 Redirecting to profile:', notification.senderId);
+          navigate(`/profile/${notification.senderId}`);
+        }
+      } else if (notification.type === 'friend_request') {
+        // Stay on messages page but switch to requests tab
+        console.log('📱 Switching to requests tab');
+        setActiveTab('requests');
+      } else {
+        console.log('📱 Unknown notification type:', notification.type);
+      }
+      
+    } catch (error) {
+      console.error('Error handling notification click:', error);
+    }
+  };
+
   const fetchFriendRequests = () => {
+    console.log('📱 Messages: Setting up friend requests listener');
     const q = query(
       collection(db, 'friendRequests'),
       where('receiverId', '==', currentUser.uid),
@@ -58,6 +161,7 @@ export default function Messages() {
       snapshot.forEach((doc) => {
         requests.push({ id: doc.id, ...doc.data() });
       });
+      console.log('📱 Messages: Friend requests updated:', requests.length);
       setFriendRequests(requests);
     });
 
@@ -65,12 +169,7 @@ export default function Messages() {
   };
 
   const fetchFriends = () => {
-    console.log('🔍 Fetching friends for user:', currentUser.uid);
-    console.log('📝 Current user info:', {
-      uid: currentUser.uid,
-      email: currentUser.email,
-      displayName: currentUser.displayName
-    });
+    console.log('📱 Messages: Setting up friends listener');
     
     const q1 = query(
       collection(db, 'friendships'),
@@ -81,111 +180,111 @@ export default function Messages() {
       where('user2', '==', currentUser.uid)
     );
     
-    // Function to combine results from both queries
-    const updateFriendsList = async () => {
-      try {
-        console.log('🔄 Starting to update friends list...');
-        const friendsList = [];
-        
-        // Get friendships where current user is user1
-        console.log('📊 Querying friendships where current user is user1...');
-        const snapshot1 = await getDocs(q1);
-        console.log('✅ Friendships where user is user1:', snapshot1.size);
-        
-        for (const docSnap of snapshot1.docs) {
-          const friendship = docSnap.data();
-          const friendId = friendship.user2;
-          console.log('👥 Found friendship (as user1):', {
-            friendshipId: docSnap.id,
-            user1: friendship.user1,
-            user2: friendship.user2,
-            friendId: friendId,
-            createdAt: friendship.createdAt
-          });
-          
-          try {
-            const friendDoc = await getDoc(doc(db, 'users', friendId));
-            console.log('📄 Friend document exists?', friendDoc.exists());
-            if (friendDoc.exists()) {
-              const friendData = {
-                id: friendId,
-                ...friendDoc.data(),
-                friendshipId: docSnap.id
-              };
-              console.log('👤 Adding friend to list:', friendData);
-              friendsList.push(friendData);
-            } else {
-              console.warn('⚠️ Friend document not found for ID:', friendId);
-            }
-          } catch (error) {
-            console.error('❌ Error fetching friend profile:', error);
-          }
-        }
-        
-        // Get friendships where current user is user2
-        console.log('📊 Querying friendships where current user is user2...');
-        const snapshot2 = await getDocs(q2);
-        console.log('✅ Friendships where user is user2:', snapshot2.size);
-        
-        for (const docSnap of snapshot2.docs) {
-          const friendship = docSnap.data();
-          const friendId = friendship.user1;
-          console.log('👥 Found friendship (as user2):', {
-            friendshipId: docSnap.id,
-            user1: friendship.user1,
-            user2: friendship.user2,
-            friendId: friendId,
-            createdAt: friendship.createdAt
-          });
-          
-          try {
-            const friendDoc = await getDoc(doc(db, 'users', friendId));
-            console.log('📄 Friend document exists?', friendDoc.exists());
-            if (friendDoc.exists()) {
-              const friendData = {
-                id: friendId,
-                ...friendDoc.data(),
-                friendshipId: docSnap.id
-              };
-              console.log('👤 Adding friend to list:', friendData);
-              friendsList.push(friendData);
-            } else {
-              console.warn('⚠️ Friend document not found for ID:', friendId);
-            }
-          } catch (error) {
-            console.error('❌ Error fetching friend profile:', error);
-          }
-        }
-        
-        console.log('🎉 FINAL RESULT - Total friends found:', friendsList.length);
-        console.log('📋 Friends list:', friendsList);
-        setFriends(friendsList);
-      } catch (error) {
-        console.error('❌ Error in updateFriendsList:', error);
-      }
-    };
+    // Debounce updates to prevent duplicate calls
+    let updateTimeout = null;
     
-    // Update friends list initially and set up listeners
+    // Function to combine results from both queries with deduplication
+    async function updateFriendsList() {
+      // Clear any pending updates
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+      
+      // Debounce the update by 100ms to prevent race conditions
+      updateTimeout = setTimeout(async () => {
+        try {
+          const friendsList = [];
+          const addedFriendIds = new Set(); // Track added friends to prevent duplicates
+          
+          // Get friendships where current user is user1
+          const snapshot1 = await getDocs(q1);
+          
+          for (const docSnap of snapshot1.docs) {
+            const friendship = docSnap.data();
+            const friendId = friendship.user2;
+            
+            // Skip if already added
+            if (addedFriendIds.has(friendId)) {
+              console.log('🔄 Skipping duplicate friend:', friendId);
+              continue;
+            }
+            
+            try {
+              const friendDoc = await getDoc(doc(db, 'users', friendId));
+              if (friendDoc.exists()) {
+                const friendData = {
+                  id: friendId,
+                  ...friendDoc.data(),
+                  friendshipId: docSnap.id
+                };
+                friendsList.push(friendData);
+                addedFriendIds.add(friendId);
+              } else {
+                console.warn('⚠️ Friend document not found for ID:', friendId);
+              }
+            } catch (error) {
+              console.error('❌ Error fetching friend profile:', error);
+            }
+          }
+          
+          // Get friendships where current user is user2
+          const snapshot2 = await getDocs(q2);
+          
+          for (const docSnap of snapshot2.docs) {
+            const friendship = docSnap.data();
+            const friendId = friendship.user1;
+            
+            // Skip if already added
+            if (addedFriendIds.has(friendId)) {
+              console.log('🔄 Skipping duplicate friend:', friendId);
+              continue;
+            }
+            
+            try {
+              const friendDoc = await getDoc(doc(db, 'users', friendId));
+              if (friendDoc.exists()) {
+                const friendData = {
+                  id: friendId,
+                  ...friendDoc.data(),
+                  friendshipId: docSnap.id
+                };
+                friendsList.push(friendData);
+                addedFriendIds.add(friendId);
+              } else {
+                console.warn('⚠️ Friend document not found for ID:', friendId);
+              }
+            } catch (error) {
+              console.error('❌ Error fetching friend profile:', error);
+            }
+          }
+          
+          console.log('📱 Messages: Friends list updated:', friendsList.length, 'unique friends');
+          console.log('📱 Messages: Added friend IDs:', Array.from(addedFriendIds));
+          setFriends(friendsList);
+        } catch (error) {
+          console.error('❌ Error in updateFriendsList:', error);
+        }
+      }, 100);
+    }
+    
+    const unsubscribe1 = onSnapshot(q1, () => updateFriendsList());
+    const unsubscribe2 = onSnapshot(q2, () => updateFriendsList());
+    
+    // Update friends list initially
     updateFriendsList();
     
-    // Listen for changes in both collections
-    const unsubscribe1 = onSnapshot(q1, () => {
-      console.log('🔄 Friendship change detected (user1 collection)');
-      updateFriendsList();
-    });
-    const unsubscribe2 = onSnapshot(q2, () => {
-      console.log('🔄 Friendship change detected (user2 collection)');
-      updateFriendsList();
-    });
-    
+    // Return cleanup function
     return () => {
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
       unsubscribe1();
       unsubscribe2();
     };
   };
 
   const fetchMessages = () => {
-    console.log('📨 Setting up message listeners for user:', currentUser.uid);
+    console.log('📱 Messages: Setting up messages listener');
     
     // Query for messages where current user is receiver
     const q1 = query(
@@ -205,12 +304,14 @@ export default function Messages() {
         
         // Get messages where user is receiver
         const snapshot1 = await getDocs(q1);
+        console.log('📱 Messages: Received messages:', snapshot1.size);
         snapshot1.forEach((doc) => {
           messagesList.push({ id: doc.id, ...doc.data() });
         });
         
         // Get messages where user is sender
         const snapshot2 = await getDocs(q2);
+        console.log('📱 Messages: Sent messages:', snapshot2.size);
         snapshot2.forEach((doc) => {
           messagesList.push({ id: doc.id, ...doc.data() });
         });
@@ -227,7 +328,7 @@ export default function Messages() {
           return timeA - timeB; // Changed to oldest first for chat display
         });
         
-        console.log('📨 Total messages found:', uniqueMessages.length);
+        console.log('📱 Messages: Total unique messages:', uniqueMessages.length);
         setMessages(uniqueMessages);
       } catch (error) {
         console.error('❌ Error fetching messages:', error);
@@ -239,11 +340,9 @@ export default function Messages() {
     
     // Listen for changes in both collections
     const unsubscribe1 = onSnapshot(q1, () => {
-      console.log('📨 Message change detected (as receiver)');
       updateMessages();
     });
     const unsubscribe2 = onSnapshot(q2, () => {
-      console.log('📨 Message change detected (as sender)');
       updateMessages();
     });
     
@@ -254,7 +353,7 @@ export default function Messages() {
   };
 
   const fetchNotifications = () => {
-    console.log('🔔 Setting up notification listeners for user:', currentUser.uid);
+    console.log('🔍 Setting up notifications listener for user:', currentUser.uid);
     
     const q = query(
       collection(db, 'notifications'),
@@ -262,9 +361,39 @@ export default function Messages() {
     );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      console.log('📱 Notifications snapshot received, docs count:', snapshot.docs.length);
+      
       const notificationsList = [];
+      let unreadCount = 0;
+      
       snapshot.forEach((doc) => {
-        notificationsList.push({ id: doc.id, ...doc.data() });
+        const notificationData = { id: doc.id, ...doc.data() };
+        console.log('📋 Processing notification:', {
+          id: doc.id,
+          type: notificationData.type,
+          senderName: notificationData.senderName,
+          message: notificationData.message,
+          read: notificationData.read,
+          receiverId: notificationData.receiverId,
+          timestamp: notificationData.timestamp
+        });
+        notificationsList.push(notificationData);
+        
+        if (!notificationData.read) {
+          unreadCount++;
+        }
+      });
+      
+      console.log('📱 Notifications processed:', {
+        total: notificationsList.length,
+        unread: unreadCount,
+        notifications: notificationsList.map(n => ({ 
+          id: n.id, 
+          type: n.type, 
+          read: n.read,
+          senderName: n.senderName,
+          message: n.message
+        }))
       });
       
       // Sort by timestamp (newest first)
@@ -274,8 +403,10 @@ export default function Messages() {
         return timeB - timeA;
       });
       
-      console.log('🔔 Notifications found:', notificationsList.length);
+      console.log('📱 Setting notifications state with', notificationsList.length, 'items');
       setNotifications(notificationsList);
+    }, (error) => {
+      console.error('❌ Error in notifications listener:', error);
     });
     
     return unsubscribe;
@@ -284,10 +415,43 @@ export default function Messages() {
   const markNotificationAsRead = async (notificationId) => {
     try {
       await updateDoc(doc(db, 'notifications', notificationId), {
-        isRead: true
+        read: true // Changed from isRead to read to match Firestore indexes
       });
+      console.log('📝 Marked notification as read:', notificationId);
     } catch (error) {
       console.error('Error marking notification as read:', error);
+    }
+  };
+
+
+  // Mark all notifications as read when notifications tab is opened
+  const markAllNotificationsAsRead = async () => {
+    try {
+      const unreadNotifications = notifications.filter(n => !n.read);
+      
+      if (unreadNotifications.length === 0) {
+        console.log('📝 No unread notifications to mark');
+        return;
+      }
+
+      console.log('📝 Marking notifications as read:', {
+        count: unreadNotifications.length,
+        ids: unreadNotifications.map(n => n.id)
+      });
+      
+      // Update all unread notifications
+      const updatePromises = unreadNotifications.map(notification => {
+        console.log(`📝 Marking notification ${notification.id} as read`);
+        return updateDoc(doc(db, 'notifications', notification.id), {
+          read: true
+        });
+      });
+      
+      await Promise.all(updatePromises);
+      console.log('✅ All notifications marked as read successfully');
+      
+    } catch (error) {
+      console.error('❌ Error marking all notifications as read:', error);
     }
   };
 
@@ -751,8 +915,8 @@ export default function Messages() {
           >
             <Bell size={20} />
             Notifications
-            {notifications.filter(n => !n.isRead).length > 0 && (
-              <span className="badge">{notifications.filter(n => !n.isRead).length}</span>
+            {notifications.filter(n => !n.read).length > 0 && (
+              <span className="badge">{notifications.filter(n => !n.read).length}</span>
             )}
           </button>
         </div>
@@ -787,6 +951,7 @@ export default function Messages() {
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedChat(friend);
+                            setActiveTab('messages');
                           }}
                         >
                           💬 Message
@@ -1063,6 +1228,7 @@ export default function Messages() {
         {/* Notifications Tab */}
         {activeTab === 'notifications' && (
           <div className="notifications-tab">
+            
             {notifications.length === 0 ? (
               <div className="empty-state">
                 <Bell size={48} />
@@ -1074,8 +1240,8 @@ export default function Messages() {
                 {notifications.map((notification) => (
                   <div 
                     key={notification.id} 
-                    className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
-                    onClick={() => markNotificationAsRead(notification.id)}
+                    className={`notification-item ${!notification.read ? 'unread' : ''}`}
+                    onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="notification-content">
                       <div className="notification-header">
@@ -1086,7 +1252,12 @@ export default function Messages() {
                         />
                         <div className="notification-info">
                           <div className="notification-text">
-                            <strong>{notification.senderName}</strong> liked your story
+                            <strong>{notification.senderName}</strong> {
+                              notification.type === 'like' ? 'liked your post' :
+                              notification.type === 'comment' ? 'commented on your post' :
+                              notification.type === 'follow' ? 'started following you' :
+                              notification.message || 'sent you a notification'
+                            }
                           </div>
                           <div className="notification-time">
                             {notification.timestamp?.toDate?.() ? 
@@ -1095,35 +1266,55 @@ export default function Messages() {
                             }
                           </div>
                         </div>
-                        {!notification.isRead && (
+                        {!notification.read && (
                           <div className="notification-unread-dot"></div>
                         )}
                       </div>
                       
-                      {/* Story Preview */}
-                      <div className="story-preview">
-                        {notification.storyMediaType === 'video' ? (
-                          <div className="story-video-preview">
-                            <video 
-                              src={notification.storyThumbnail || notification.storyMediaUrl}
-                              className="story-preview-media"
-                              muted
-                            />
-                            <div className="video-play-icon">
-                              <Play size={24} fill="white" />
+                      {/* Post Preview */}
+                      {(notification.postMediaUrl || notification.storyMediaUrl) && (
+                        <div className="post-preview">
+                          {(notification.postMediaType === 'video' || notification.storyMediaType === 'video') ? (
+                            <div className="post-video-preview">
+                              <video 
+                                src={notification.postThumbnail || notification.postMediaUrl || notification.storyThumbnail || notification.storyMediaUrl}
+                                className="post-preview-media"
+                                muted
+                                onError={(e) => {
+                                  console.log('Video preview failed, trying image fallback');
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'block';
+                                }}
+                              />
+                              <img 
+                                src={notification.postMediaUrl || notification.storyMediaUrl}
+                                alt="Post"
+                                className="post-preview-media"
+                                style={{ display: 'none' }}
+                              />
+                              <div className="video-play-icon">
+                                <Play size={24} fill="white" />
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <img 
-                            src={notification.storyMediaUrl}
-                            alt="Story"
-                            className="story-preview-media"
-                          />
-                        )}
-                        <div className="story-like-icon">
-                          <Heart size={16} fill="#ff3040" />
+                          ) : (
+                            <img 
+                              src={notification.postMediaUrl || notification.storyMediaUrl}
+                              alt="Post"
+                              className="post-preview-media"
+                              onError={(e) => {
+                                console.log('Image preview failed:', e.target.src);
+                                e.target.style.display = 'none';
+                                e.target.parentNode.innerHTML = '<div class="post-preview-fallback">📷</div>';
+                              }}
+                            />
+                          )}
+                          {notification.type === 'like' && (
+                            <div className="post-like-icon">
+                              <Heart size={16} fill="#ff3040" />
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 ))}

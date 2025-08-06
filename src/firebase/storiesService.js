@@ -136,20 +136,34 @@ export class StoriesService {
   static async getUserStories(userId) {
     try {
       const now = new Date();
+      
+      // Use simpler query to avoid index requirement, then filter in memory
       const q = query(
         collection(db, 'stories'),
-        where('userId', '==', userId),
-        where('expiresAt', '>', Timestamp.fromDate(now)),
-        orderBy('timestamp', 'desc')
+        where('userId', '==', userId)
       );
       
       const snapshot = await getDocs(q);
       const stories = [];
       
       snapshot.forEach((doc) => {
-        stories.push({ id: doc.id, ...doc.data() });
+        const storyData = { id: doc.id, ...doc.data() };
+        
+        // Filter expired stories in memory
+        const expiresAt = storyData.expiresAt?.toDate ? storyData.expiresAt.toDate() : new Date(storyData.expiresAt);
+        if (expiresAt > now) {
+          stories.push(storyData);
+        }
       });
       
+      // Sort by timestamp in memory
+      stories.sort((a, b) => {
+        const timeA = a.timestamp?.toDate?.()?.getTime() || 0;
+        const timeB = b.timestamp?.toDate?.()?.getTime() || 0;
+        return timeB - timeA; // Descending order
+      });
+      
+      console.log(`🔍 getUserStories: Found ${stories.length} active stories for user ${userId}`);
       return stories;
       
     } catch (error) {

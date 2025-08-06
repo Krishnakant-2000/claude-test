@@ -15,7 +15,9 @@ service cloud.firestore {
     
     function onlyFollowCountsChanged() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']) ||
-             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['following']);
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['following']) ||
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fcmTokens']) ||
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fcmTokens', 'lastTokenUpdate']);
     }
     
     // Posts collection rules
@@ -334,7 +336,12 @@ service cloud.firestore {
         && request.resource.data.senderName is string
         && request.resource.data.receiverId is string
         && request.resource.data.message is string
-        && request.resource.data.senderId == request.auth.uid;
+        && (
+          // Normal notifications: sender must be the authenticated user
+          request.resource.data.senderId == request.auth.uid ||
+          // Test notifications: allow if it's a test type and user is creating for themselves
+          (request.resource.data.type == 'test' && request.resource.data.receiverId == request.auth.uid)
+        );
     }
     
     // Enhanced content validation with basic filtering
@@ -348,6 +355,74 @@ service cloud.firestore {
       let message = request.resource.data.message.lower();
       // Basic content filtering for messages
       return !message.matches('.*\\b(nude|naked|sex|porn|xxx|kill|murder|hate|racist)\\b.*');
+    }
+    
+    // Videos collection rules (for talent showcase)
+    match /videos/{videoId} {
+      // Anyone can read videos (including guests)
+      allow read: if true;
+      
+      // Only authenticated non-guest users can create videos
+      allow create: if request.auth != null 
+        && !isGuestUser()
+        && request.auth.uid == request.resource.data.userId
+        && validateVideoData();
+      
+      // Users can update their own videos (view counts, likes, etc.)
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        onlyVideoEngagementChanged()
+      );
+      
+      // Users can delete their own videos
+      allow delete: if request.auth != null 
+        && !isGuestUser()
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    function validateVideoData() {
+      return request.resource.data.keys().hasAll(['userId', 'userDisplayName', 'title', 'videoUrl', 'timestamp'])
+        && request.resource.data.userId is string
+        && request.resource.data.userDisplayName is string
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.videoUrl is string;
+    }
+    
+    function onlyVideoEngagementChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views', 'likes', 'likesCount']);
+    }
+    
+    // Talent Videos collection rules (for profile talent showcase)
+    match /talentVideos/{videoId} {
+      // Anyone can read talent videos (including guests)
+      allow read: if true;
+      
+      // Only authenticated non-guest users can create talent videos
+      allow create: if request.auth != null 
+        && !isGuestUser()
+        && request.auth.uid == request.resource.data.userId
+        && validateTalentVideoData();
+      
+      // Users can update their own talent videos (view counts, likes, etc.)
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        onlyVideoEngagementChanged()
+      );
+      
+      // Users can delete their own talent videos
+      allow delete: if request.auth != null 
+        && !isGuestUser()
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    function validateTalentVideoData() {
+      return request.resource.data.keys().hasAll(['userId', 'userDisplayName', 'videoUrl', 'fileName', 'uploadedAt'])
+        && request.resource.data.userId is string
+        && request.resource.data.userDisplayName is string
+        && request.resource.data.videoUrl is string
+        && request.resource.data.fileName is string
+        && request.resource.data.userId == request.auth.uid;
     }
   }
 }

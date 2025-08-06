@@ -6,7 +6,22 @@ export const samplePosts = [
     userDisplayName: 'Alex Johnson',
     timestamp: { toDate: () => new Date(Date.now() - 2 * 60 * 60 * 1000) }, // 2 hours ago
     likes: ['user1', 'user2', 'user3'],
-    comments: ['Amazing shot!', 'Love this view']
+    comments: [
+      {
+        text: 'Amazing shot!',
+        userId: 'sample_user1',
+        userDisplayName: 'John Smith',
+        userPhotoURL: 'https://via.placeholder.com/32/2d3748/00ff88?text=J',
+        timestamp: { toDate: () => new Date(Date.now() - 1 * 60 * 60 * 1000) }
+      },
+      {
+        text: 'Love this view',
+        userId: 'sample_user2',
+        userDisplayName: 'Maria Garcia',
+        userPhotoURL: 'https://via.placeholder.com/32/2d3748/00ff88?text=M',
+        timestamp: { toDate: () => new Date(Date.now() - 30 * 60 * 1000) }
+      }
+    ]
   },
   {
     id: 'sample2',
@@ -15,7 +30,15 @@ export const samplePosts = [
     userDisplayName: 'Sarah Chen',
     timestamp: { toDate: () => new Date(Date.now() - 4 * 60 * 60 * 1000) }, // 4 hours ago
     likes: ['user4', 'user5'],
-    comments: ['Same energy!']
+    comments: [
+      {
+        text: 'Same energy!',
+        userId: 'sample_user3',
+        userDisplayName: 'Alex Turner',
+        userPhotoURL: 'https://via.placeholder.com/32/2d3748/00ff88?text=A',
+        timestamp: { toDate: () => new Date(Date.now() - 2 * 60 * 60 * 1000) }
+      }
+    ]
   },
   {
     id: 'sample3',
@@ -33,7 +56,22 @@ export const samplePosts = [
     userDisplayName: 'Emma Wilson',
     timestamp: { toDate: () => new Date(Date.now() - 8 * 60 * 60 * 1000) }, // 8 hours ago
     likes: ['user7', 'user8', 'user9', 'user10'],
-    comments: ['Looks amazing!', 'Recipe please!']
+    comments: [
+      {
+        text: 'Looks amazing!',
+        userId: 'sample_user4',
+        userDisplayName: 'Chris Lee',
+        userPhotoURL: 'https://via.placeholder.com/32/2d3748/00ff88?text=C',
+        timestamp: { toDate: () => new Date(Date.now() - 5 * 60 * 60 * 1000) }
+      },
+      {
+        text: 'Recipe please!',
+        userId: 'sample_user5',
+        userDisplayName: 'Nina Patel',
+        userPhotoURL: 'https://via.placeholder.com/32/2d3748/00ff88?text=N',
+        timestamp: { toDate: () => new Date(Date.now() - 4 * 60 * 60 * 1000) }
+      }
+    ]
   },
   {
     id: 'sample5',
@@ -42,7 +80,15 @@ export const samplePosts = [
     userDisplayName: 'David Kim',
     timestamp: { toDate: () => new Date(Date.now() - 12 * 60 * 60 * 1000) }, // 12 hours ago
     likes: ['user11', 'user12'],
-    comments: ['Great find!']
+    comments: [
+      {
+        text: 'Great find!',
+        userId: 'sample_user6',
+        userDisplayName: 'Sophie Brown',
+        userPhotoURL: 'https://via.placeholder.com/32/2d3748/00ff88?text=S',
+        timestamp: { toDate: () => new Date(Date.now() - 10 * 60 * 60 * 1000) }
+      }
+    ]
   },
   {
     id: 'sample6',

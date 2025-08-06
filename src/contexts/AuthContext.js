@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth } from '../firebase/firebase';
+import notificationService from '../services/notificationService';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -104,9 +105,28 @@ export function AuthProvider({ children }) {
         console.error('Redirect result error:', error);
       });
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       setLoading(false);
+      
+      // Only initialize notifications if permission is already granted and user is on authenticated pages
+      if (user && !user.isAnonymous && Notification.permission === 'granted') {
+        // Check if we're on an authenticated page (not landing/login/signup)
+        const currentPath = window.location.pathname;
+        const isAuthenticatedPage = !['/','', '/landing', '/login', '/signup'].includes(currentPath);
+        
+        if (isAuthenticatedPage) {
+          try {
+            console.log('🔔 Initializing push notifications for user:', user.uid);
+            await notificationService.initialize();
+            await notificationService.getAndSaveToken(user.uid);
+          } catch (error) {
+            console.error('Error initializing notifications:', error);
+          }
+        } else {
+          console.log('🔔 Skipping notification init on public page:', currentPath);
+        }
+      }
     });
 
     return unsubscribe;

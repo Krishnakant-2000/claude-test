@@ -17,11 +17,9 @@ export default function StoriesContainer() {
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
 
   useEffect(() => {
-    console.log('📱 Setting up stories listener...');
     
     // Set up real-time listener for active stories
     const unsubscribe = StoriesService.onActiveStoriesUpdate((activeStories) => {
-      console.log('📱 Stories updated:', activeStories.length);
       setStories(activeStories);
       
       // Group stories by user
@@ -180,7 +178,7 @@ export default function StoriesContainer() {
                     : (userGroup.userPhotoURL || 'https://via.placeholder.com/60')
                 } 
                 alt={userGroup.userDisplayName}
-                onLoad={() => console.log('🖼️ Story avatar loaded for', userGroup.userDisplayName, 'URL:', userGroup.userId === currentUser?.uid ? currentUser?.photoURL : userGroup.userPhotoURL)}
+                onLoad={() => {}}
               />
               {userGroup.stories.some(s => s.mediaType === 'video') && (
                 <div className="story-media-indicator">

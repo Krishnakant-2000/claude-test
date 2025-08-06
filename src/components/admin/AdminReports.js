@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../firebase/firebase';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, where, getDocs } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { Shield, Eye, CheckCircle, XCircle, Clock, Flag, User, MessageSquare, FileText, MessageCircle } from 'lucide-react';
 import './AdminReports.css';
 
@@ -15,23 +16,39 @@ export default function AdminReports() {
   const [moderatorAction, setModeratorAction] = useState('');
   const [moderatorNotes, setModeratorNotes] = useState('');
   const [actionInProgress, setActionInProgress] = useState(false);
+  const [adminStatus, setAdminStatus] = useState({ isAdmin: false, loading: true, permissions: null });
 
-  // Admin check - In production, this should check against admin roles in Firestore
-  const isAdmin = () => {
-    // For demo purposes, check if user has admin in email or specific UIDs
-    const adminEmails = ['admin@amaplayer.com', 'moderator@amaplayer.com'];
-    const adminUIDs = []; // Add specific admin UIDs here
-    
-    return !isGuest() && currentUser && (
-      adminEmails.includes(currentUser.email) || 
-      adminUIDs.includes(currentUser.uid) ||
-      currentUser.email?.includes('admin') ||
-      currentUser.displayName?.toLowerCase().includes('admin')
-    );
-  };
+  // Verify admin status using secure Cloud Function
+  useEffect(() => {
+    const verifyAdminStatus = async () => {
+      if (!currentUser || isGuest) {
+        setAdminStatus({ isAdmin: false, loading: false, permissions: null });
+        return;
+      }
+
+      try {
+        const functions = getFunctions();
+        const verifyAdminRole = httpsCallable(functions, 'verifyAdminRole');
+        const result = await verifyAdminRole();
+        
+        const { isAdmin, permissions } = result.data;
+        setAdminStatus({ 
+          isAdmin: isAdmin && permissions?.canManageReports, 
+          loading: false,
+          permissions
+        });
+      } catch (error) {
+        console.error('Error verifying admin status:', error);
+        setAdminStatus({ isAdmin: false, loading: false, permissions: null });
+      }
+    };
+
+    verifyAdminStatus();
+  }, [currentUser, isGuest]);
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!adminStatus.isAdmin) {
+      setLoading(false);
       return;
     }
 
@@ -51,7 +68,7 @@ export default function AdminReports() {
     });
 
     return unsubscribe;
-  }, [currentUser]);
+  }, [adminStatus.isAdmin]);
 
   const filteredReports = reports.filter(report => {
     switch (filter) {
@@ -111,17 +128,15 @@ export default function AdminReports() {
     setActionInProgress(true);
     
     try {
-      const reportRef = doc(db, 'contentReports', reportId);
-      const updateData = {
-        status: action,
-        moderatorId: currentUser.uid,
-        moderatorName: currentUser.displayName || 'Admin',
-        moderatorNotes: notes,
-        actionTaken: moderatorAction,
-        reviewedAt: new Date()
-      };
-
-      await updateDoc(reportRef, updateData);
+      // Use secure Cloud Function for handling reports
+      const functions = getFunctions();
+      const handleContentReport = httpsCallable(functions, 'handleContentReport');
+      
+      await handleContentReport({
+        reportId,
+        action,
+        notes
+      });
       
       console.log(`✅ Report ${reportId} marked as ${action}`);
       
@@ -144,9 +159,15 @@ export default function AdminReports() {
     }
 
     try {
-      // Delete the actual content based on type
-      const collectionName = contentType === 'message' ? 'messages' : 'posts';
-      await deleteDoc(doc(db, collectionName, contentId));
+      // Use secure Cloud Function for content deletion
+      const functions = getFunctions();
+      const deleteContent = httpsCallable(functions, 'deleteContent');
+      
+      await deleteContent({
+        contentId,
+        contentType,
+        reason: 'Admin deletion via reports dashboard'
+      });
       
       console.log(`✅ Deleted ${contentType} ${contentId}`);
       alert('Content deleted successfully');
@@ -169,7 +190,7 @@ export default function AdminReports() {
     ).join(', ');
   };
 
-  if (isGuest() || !currentUser) {
+  if (isGuest || !currentUser) {
     return (
       <div className="admin-access-denied">
         <Shield size={48} />
@@ -179,7 +200,16 @@ export default function AdminReports() {
     );
   }
 
-  if (!isAdmin()) {
+  if (adminStatus.loading) {
+    return (
+      <div className="admin-loading">
+        <div className="loading-spinner"></div>
+        <p>Verifying admin access...</p>
+      </div>
+    );
+  }
+
+  if (!adminStatus.isAdmin) {
     return (
       <div className="admin-access-denied">
         <Shield size={48} />
