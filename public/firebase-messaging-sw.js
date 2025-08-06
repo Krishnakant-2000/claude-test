@@ -6,7 +6,7 @@ importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-com
 
 // Initialize Firebase in the service worker
 const firebaseConfig = {
-  apiKey: "AIzaSyBrFpknzO0LwmCKzRbIznQE3erVY0teo80",
+  apiKey: ,
   authDomain: "my-react-firebase-app-69fcd.firebaseapp.com",
   projectId: "my-react-firebase-app-69fcd",
   storageBucket: "my-react-firebase-app-69fcd.firebasestorage.app",
