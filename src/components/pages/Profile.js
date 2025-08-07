@@ -17,9 +17,13 @@ import { StoriesService } from '../../firebase/storiesService';
 import './Profile.css';
 
 export default function Profile({ profileUserId = null }) {
+  console.log('🏠 PROFILE COMPONENT LOADING!');
+  
   const { userId: urlUserId } = useParams();
   const navigate = useNavigate();
   const { currentUser, isGuest, updateUserProfile, refreshAuth } = useAuth();
+  
+  console.log('🆔 Profile IDs:', { urlUserId, profileUserId, currentUserId: currentUser?.uid });
   const { t } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -58,7 +62,10 @@ export default function Profile({ profileUserId = null }) {
   const isOwnProfile = targetUserId === currentUser?.uid;
 
   useEffect(() => {
+    console.log('🔥 Profile useEffect triggered:', { currentUser: currentUser?.uid, targetUserId });
+    
     if (currentUser) {
+      console.log('✅ CurrentUser exists, calling functions...');
       fetchProfile();
       fetchUserPosts();
       fetchTalentVideos();
