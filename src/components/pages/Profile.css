@@ -6,6 +6,134 @@
   z-index: 3;
 }
 
+/* Enhanced Status Badges */
+.status-badge {
+  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.status-badge.approved {
+  background: rgba(34, 197, 94, 0.95);
+  color: white;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.status-badge.pending {
+  background: rgba(245, 158, 11, 0.95);
+  color: white;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  animation: pulse 2s infinite;
+}
+
+.status-badge.rejected-container {
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+  border: 2px solid rgba(239, 68, 68, 0.6);
+  border-radius: 8px;
+  padding: 6px;
+  min-width: 120px;
+  animation: shake 0.5s ease-in-out;
+}
+
+.rejected-badge {
+  display: block;
+  font-weight: 700;
+  font-size: 11px;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+
+.rejection-details {
+  font-size: 9px;
+  line-height: 1.2;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.rejection-details p {
+  margin: 2px 0;
+}
+
+.action-hint {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  margin-top: 4px !important;
+}
+
+/* Video Actions Enhancement */
+.video-actions {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 4;
+}
+
+.delete-video-btn {
+  background: rgba(239, 68, 68, 0.8);
+  color: white;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.delete-video-btn.delete-rejected {
+  background: rgba(255, 59, 48, 0.95);
+  color: white;
+  padding: 8px 12px;
+  font-size: 11px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.delete-video-btn:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.delete-video-btn.delete-rejected:hover {
+  background: rgba(255, 59, 48, 1);
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(255, 59, 48, 0.5);
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(255, 59, 48, 0.5); }
+  100% { box-shadow: 0 0 20px rgba(255, 59, 48, 0.8), 0 0 30px rgba(255, 59, 48, 0.4); }
+}
+
+/* Legacy styles for backwards compatibility */
 .verified-badge,
 .rejected-badge,
 .pending-badge {
@@ -1669,32 +1797,7 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-.delete-video-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(231, 76, 60, 0.9);
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: white;
-  opacity: 0;
-  transition: all 0.3s ease;
-}
-
-.video-thumbnail:hover .delete-video-btn {
-  opacity: 1;
-}
-
-.delete-video-btn:hover {
-  background: var(--accent-danger);
-  transform: scale(1.1);
-}
+/* Old delete-video-btn styles removed - using enhanced styles above */
 
 .video-duration {
   position: absolute;

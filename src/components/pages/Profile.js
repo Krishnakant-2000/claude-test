@@ -1570,32 +1570,46 @@ export default function Profile({ profileUserId = null }) {
                   {/* Verification Status Badge (for own profile) */}
                   {isOwnProfile && !isGuest() && (
                     <div className="video-status-badge">
-                      {video.isVerified ? (
-                        <span className="verified-badge" title="Video verified by admin">
-                          ✅ Verified
+                      {video.verificationStatus === 'approved' && video.isVerified ? (
+                        <span className="status-badge approved" title="Video approved and visible to everyone">
+                          ✅ Approved & Public
                         </span>
                       ) : video.verificationStatus === 'rejected' ? (
-                        <span className="rejected-badge" title={`Rejected: ${video.rejectionReason || 'No reason provided'}`}>
-                          ❌ Rejected
-                        </span>
+                        <div className="status-badge rejected-container" title={`Rejected: ${video.rejectionReason || 'No reason provided'}`}>
+                          <span className="rejected-badge">❌ REJECTED</span>
+                          <div className="rejection-details">
+                            <p><strong>Reason:</strong> {video.rejectionReason || 'No reason provided'}</p>
+                            <p className="action-hint">💡 Delete and re-upload with corrections</p>
+                          </div>
+                        </div>
                       ) : (
-                        <span className="pending-badge" title="Pending admin review">
-                          ⏳ Pending
+                        <span className="status-badge pending" title="Video under admin review - will be public once approved">
+                          ⏳ Under Review
                         </span>
                       )}
                     </div>
                   )}
                   
                   {isOwnProfile && !isGuest() && (
-                    <button 
-                      className="delete-video-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteVideo(video.id);
-                      }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="video-actions">
+                      <button 
+                        className={`delete-video-btn ${video.verificationStatus === 'rejected' ? 'delete-rejected' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (video.verificationStatus === 'rejected') {
+                            if (window.confirm(`This video was rejected. Reason: ${video.rejectionReason || 'No reason provided'}\n\nDelete and try uploading again?`)) {
+                              handleDeleteVideo(video.id);
+                            }
+                          } else {
+                            handleDeleteVideo(video.id);
+                          }
+                        }}
+                        title={video.verificationStatus === 'rejected' ? 'Delete rejected video and try again' : 'Delete video'}
+                      >
+                        <Trash2 size={16} />
+                        {video.verificationStatus === 'rejected' ? ' Delete & Retry' : ''}
+                      </button>
+                    </div>
                   )}
                 </div>
                 <div className="video-duration">
