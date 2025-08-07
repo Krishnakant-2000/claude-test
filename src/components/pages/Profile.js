@@ -168,10 +168,25 @@ export default function Profile({ profileUserId = null }) {
           querySnapshot.forEach((doc) => {
             const videoData = { id: doc.id, ...doc.data() };
             
+            const isOwnProfile = targetUserId === currentUser?.uid;
+            const isExplicitlyVerified = videoData.isVerified === true && videoData.verificationStatus === 'approved';
+            
+            console.log('🎥 Video filtering debug:', {
+              videoId: videoData.id,
+              targetUserId,
+              currentUserId: currentUser?.uid,
+              isOwnProfile,
+              isVerified: videoData.isVerified,
+              verificationStatus: videoData.verificationStatus,
+              isExplicitlyVerified,
+              shouldShow: isOwnProfile || isExplicitlyVerified
+            });
+            
             // Only show videos that are either:
             // 1. Owned by the current user (they can see all their videos regardless of verification)
-            // 2. Verified by admin (others can only see verified videos)
-            if (targetUserId === currentUser?.uid || videoData.isVerified) {
+            // 2. Explicitly verified by admin (isVerified === true AND verificationStatus === 'approved')
+            
+            if (isOwnProfile || isExplicitlyVerified) {
               videos.push(videoData);
             }
           });

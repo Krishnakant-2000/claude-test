@@ -33,7 +33,7 @@ const VideoVerification: React.FC = () => {
   const loadVideos = async () => {
     try {
       setLoading(true);
-      const allVideos = await videoVerificationService.getPendingVideos();
+      const allVideos = await videoVerificationService.getAllVideos();
       setVideos(allVideos);
     } catch (error) {
       console.error('Error loading videos:', error);
