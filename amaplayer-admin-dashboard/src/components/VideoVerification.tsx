@@ -31,12 +31,15 @@ const VideoVerification: React.FC = () => {
   }, []);
 
   const loadVideos = async () => {
+    console.log('🎬 ADMIN: LoadVideos function called');
     try {
       setLoading(true);
+      console.log('🔄 ADMIN: Calling getAllVideos...');
       const allVideos = await videoVerificationService.getAllVideos();
+      console.log('📊 ADMIN: Received videos:', allVideos.length, allVideos);
       setVideos(allVideos);
     } catch (error) {
-      console.error('Error loading videos:', error);
+      console.error('❌ ADMIN: Error loading videos:', error);
     } finally {
       setLoading(false);
     }

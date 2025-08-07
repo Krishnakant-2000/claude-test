@@ -154,11 +154,14 @@ export default function Profile({ profileUserId = null }) {
   };
 
   const fetchTalentVideos = async () => {
+    console.log('🚀 FETCHTALENTVIDEOS CALLED!', { targetUserId, currentUser: currentUser?.uid });
+    
     try {
       let videos = [];
       
       // Only fetch user videos if we have a valid targetUserId and user is authenticated
       if (targetUserId && currentUser) {
+        console.log('✅ Conditions met - fetching videos...');
         try {
           const q = query(
             collection(db, 'talentVideos'),
@@ -217,6 +220,7 @@ export default function Profile({ profileUserId = null }) {
         return bTime - aTime;
       });
       
+      console.log('🎯 FINAL RESULT: Setting videos:', videos.length, videos);
       setTalentVideos(videos);
     } catch (error) {
       console.error('Error in fetchTalentVideos:', error);
