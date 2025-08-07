@@ -176,35 +176,33 @@ export default function Profile({ profileUserId = null }) {
             
             const isOwnProfile = targetUserId === currentUser?.uid;
             
-            // CRITICAL: For other people's profiles, ONLY show approved videos
-            if (!isOwnProfile) {
-              // STRICT CHECK: Must have BOTH conditions true
-              const isApproved = videoData.verificationStatus === 'approved';
-              const isVerified = videoData.isVerified === true;
-              
-              console.log('🔒 STRICT VIDEO FILTERING (Other Profile):', {
-                videoId: videoData.id,
-                fileName: videoData.fileName,
-                verificationStatus: videoData.verificationStatus,
-                isVerified: videoData.isVerified,
-                isApproved,
-                willShow: isApproved && isVerified
-              });
-              
-              // Only add if BOTH approved AND verified
-              if (isApproved && isVerified) {
+            console.log('🎥 Processing video:', {
+              videoId: videoData.id,
+              fileName: videoData.fileName,
+              isOwnProfile,
+              verificationStatus: videoData.verificationStatus,
+              isVerified: videoData.isVerified
+            });
+            
+            // ABSOLUTE RULE: For other people's profiles, ONLY show approved videos
+            if (isOwnProfile) {
+              // Own profile - show ALL videos (user can see their own pending/rejected videos)
+              console.log('✅ SHOWING (Own Profile):', videoData.fileName);
+              videos.push(videoData);
+            } else {
+              // Other person's profile - STRICT filtering
+              // MUST be both 'approved' status AND isVerified = true
+              if (videoData.verificationStatus === 'approved' && videoData.isVerified === true) {
+                console.log('✅ SHOWING (Approved & Verified):', videoData.fileName);
                 videos.push(videoData);
               } else {
-                console.log('❌ VIDEO BLOCKED - Not approved or not verified');
+                console.log('❌ HIDDEN (Not approved):', {
+                  fileName: videoData.fileName,
+                  status: videoData.verificationStatus,
+                  verified: videoData.isVerified,
+                  reason: videoData.verificationStatus !== 'approved' ? 'Not approved' : 'Not verified'
+                });
               }
-            } else {
-              // Own profile - show all videos with status
-              console.log('👤 Own profile - showing video:', {
-                videoId: videoData.id,
-                verificationStatus: videoData.verificationStatus || 'pending',
-                isVerified: videoData.isVerified
-              });
-              videos.push(videoData);
             }
           });
         } catch (firestoreError) {
