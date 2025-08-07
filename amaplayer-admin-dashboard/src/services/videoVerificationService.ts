@@ -49,29 +49,47 @@ class VideoVerificationService {
   // Get all videos for verification
   async getAllVideos(): Promise<TalentVideo[]> {
     try {
+      console.log('🎬 Admin: Fetching all videos from collection:', this.collectionName);
+      
       // Simple query without ordering to avoid index requirements
       const querySnapshot = await getDocs(collection(db, this.collectionName));
       const videos: TalentVideo[] = [];
       
+      console.log(`📊 Admin: Found ${querySnapshot.size} videos in database`);
+      
       querySnapshot.forEach((doc) => {
         const videoData = doc.data();
-        videos.push({ 
+        const processedVideo = { 
           id: doc.id, 
           ...videoData,
           // Ensure verification fields exist
           isVerified: videoData.isVerified || false,
           verificationStatus: videoData.verificationStatus || 'pending'
-        } as TalentVideo);
+        } as TalentVideo;
+        
+        console.log('📝 Admin: Processing video:', {
+          id: processedVideo.id,
+          fileName: processedVideo.fileName,
+          userDisplayName: processedVideo.userDisplayName,
+          verificationStatus: processedVideo.verificationStatus,
+          isVerified: processedVideo.isVerified,
+          uploadedAt: processedVideo.uploadedAt
+        });
+        
+        videos.push(processedVideo);
       });
       
       // Sort by uploadedAt client-side (newest first)
-      return videos.sort((a, b) => {
+      const sortedVideos = videos.sort((a, b) => {
         const aTime = a.uploadedAt?.seconds || 0;
         const bTime = b.uploadedAt?.seconds || 0;
         return bTime - aTime;
       });
+      
+      console.log(`✅ Admin: Returning ${sortedVideos.length} processed videos`);
+      return sortedVideos;
     } catch (error) {
-      console.error('Error fetching videos:', error);
+      console.error('❌ Admin: Error fetching videos:', error);
       throw error;
     }
   }

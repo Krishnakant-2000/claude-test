@@ -165,28 +165,42 @@ export default function Profile({ profileUserId = null }) {
             where('userId', '==', targetUserId)
           );
           const querySnapshot = await getDocs(q);
+          
+          console.log(`📹 Found ${querySnapshot.size} videos for user ${targetUserId}`);
+          
           querySnapshot.forEach((doc) => {
             const videoData = { id: doc.id, ...doc.data() };
             
             const isOwnProfile = targetUserId === currentUser?.uid;
-            const isExplicitlyVerified = videoData.isVerified === true && videoData.verificationStatus === 'approved';
             
-            console.log('🎥 Video filtering debug:', {
-              videoId: videoData.id,
-              targetUserId,
-              currentUserId: currentUser?.uid,
-              isOwnProfile,
-              isVerified: videoData.isVerified,
-              verificationStatus: videoData.verificationStatus,
-              isExplicitlyVerified,
-              shouldShow: isOwnProfile || isExplicitlyVerified
-            });
-            
-            // Only show videos that are either:
-            // 1. Owned by the current user (they can see all their videos regardless of verification)
-            // 2. Explicitly verified by admin (isVerified === true AND verificationStatus === 'approved')
-            
-            if (isOwnProfile || isExplicitlyVerified) {
+            // CRITICAL: For other people's profiles, ONLY show approved videos
+            if (!isOwnProfile) {
+              // STRICT CHECK: Must have BOTH conditions true
+              const isApproved = videoData.verificationStatus === 'approved';
+              const isVerified = videoData.isVerified === true;
+              
+              console.log('🔒 STRICT VIDEO FILTERING (Other Profile):', {
+                videoId: videoData.id,
+                fileName: videoData.fileName,
+                verificationStatus: videoData.verificationStatus,
+                isVerified: videoData.isVerified,
+                isApproved,
+                willShow: isApproved && isVerified
+              });
+              
+              // Only add if BOTH approved AND verified
+              if (isApproved && isVerified) {
+                videos.push(videoData);
+              } else {
+                console.log('❌ VIDEO BLOCKED - Not approved or not verified');
+              }
+            } else {
+              // Own profile - show all videos with status
+              console.log('👤 Own profile - showing video:', {
+                videoId: videoData.id,
+                verificationStatus: videoData.verificationStatus || 'pending',
+                isVerified: videoData.isVerified
+              });
               videos.push(videoData);
             }
           });
