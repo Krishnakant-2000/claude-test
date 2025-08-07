@@ -1,5 +1,121 @@
 /* Stories Feature - Complete CSS */
 
+/* ========== Story Delete Functionality ========== */
+.story-delete-btn {
+  background: rgba(255, 48, 64, 0.9) !important;
+  border: 1px solid rgba(255, 48, 64, 0.3) !important;
+  color: white !important;
+}
+
+.story-delete-btn:hover {
+  background: rgba(255, 48, 64, 1) !important;
+  transform: scale(1.1);
+}
+
+.story-delete-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.delete-modal-content {
+  background: var(--bg-primary, #fff);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.delete-modal-content h3 {
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.delete-modal-content p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.delete-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.delete-cancel-btn {
+  padding: 12px 24px;
+  border: 1px solid var(--border-color, #e1e5e9);
+  background: var(--bg-secondary, #f8f9fa);
+  color: var(--text-primary);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.delete-cancel-btn:hover:not(:disabled) {
+  background: var(--bg-tertiary, #e9ecef);
+  transform: translateY(-1px);
+}
+
+.delete-confirm-btn {
+  padding: 12px 24px;
+  border: none;
+  background: #ff3040;
+  color: white;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.delete-confirm-btn:hover:not(:disabled) {
+  background: #e02d3c;
+  transform: translateY(-1px);
+}
+
+.delete-cancel-btn:disabled,
+.delete-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Mobile Responsive for Delete Modal */
+@media (max-width: 768px) {
+  .delete-modal-content {
+    padding: 20px;
+    margin: 20px;
+  }
+  
+  .delete-modal-actions {
+    flex-direction: column;
+  }
+  
+  .delete-cancel-btn,
+  .delete-confirm-btn {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
 /* ========== Stories Container ========== */
 .stories-container {
   margin-bottom: 20px;

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { StoriesService } from '../../firebase/storiesService';
-import { X, Share, Heart, MessageCircle, MoreVertical, Download, Send, Volume2, VolumeX } from 'lucide-react';
+import { X, Share, Heart, MessageCircle, MoreVertical, Download, Send, Volume2, VolumeX, Trash2 } from 'lucide-react';
 import StoryProgress from './StoryProgress';
 import { db } from '../../firebase/firebase';
 import { addDoc, collection, query, where, getDocs, deleteDoc, doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -24,6 +24,8 @@ export default function StoryViewer({ userStories, currentStoryIndex, onClose, o
   const [isMediaLoaded, setIsMediaLoaded] = useState(false);
   const [isMediaLoading, setIsMediaLoading] = useState(true);
   const [isMuted, setIsMuted] = useState(true); // Start muted due to browser autoplay policies
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const progressInterval = useRef();
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -345,6 +347,29 @@ export default function StoryViewer({ userStories, currentStoryIndex, onClose, o
     }
   };
 
+  const handleDeleteStory = async () => {
+    if (!isOwnStory || !currentStory) return;
+
+    try {
+      setIsDeleting(true);
+      console.log('🗑️ Deleting story:', currentStory.id);
+      
+      // Delete the story using StoriesService
+      await StoriesService.deleteStory(currentStory.id, currentUser.uid);
+      
+      console.log('✅ Story deleted successfully');
+      setShowDeleteConfirm(false);
+      
+      // Close the story viewer after deletion
+      onClose();
+    } catch (error) {
+      console.error('❌ Error deleting story:', error);
+      alert('Failed to delete story. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const formatTimestamp = (timestamp) => {
     if (!timestamp?.toDate) return 'now';
     
@@ -400,9 +425,18 @@ export default function StoryViewer({ userStories, currentStoryIndex, onClose, o
 
           <div className="story-header-actions">
             {isOwnStory && (
-              <button className="story-action-btn" onClick={() => setShowInfo(!showInfo)}>
-                <MoreVertical size={20} />
-              </button>
+              <>
+                <button 
+                  className="story-action-btn story-delete-btn" 
+                  onClick={() => setShowDeleteConfirm(true)}
+                  title="Delete story"
+                >
+                  <Trash2 size={20} />
+                </button>
+                <button className="story-action-btn" onClick={() => setShowInfo(!showInfo)}>
+                  <MoreVertical size={20} />
+                </button>
+              </>
             )}
             <button className="story-action-btn" onClick={onClose}>
               <X size={24} />
@@ -646,6 +680,32 @@ export default function StoryViewer({ userStories, currentStoryIndex, onClose, o
                 </button>
               </form>
             )}
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="story-delete-modal">
+            <div className="delete-modal-content">
+              <h3>Delete Story?</h3>
+              <p>This story will be permanently deleted and cannot be recovered.</p>
+              <div className="delete-modal-actions">
+                <button 
+                  className="delete-cancel-btn"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="delete-confirm-btn"
+                  onClick={handleDeleteStory}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -154,24 +154,6 @@ export default function Profile({ profileUserId = null }) {
   };
 
   const fetchTalentVideos = async () => {
-    
-    // Always add sample video as the first video
-    const sampleVideo = {
-      id: 'sample-video',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-      metadata: {
-        duration: 596,
-        durationFormatted: '9:56',
-        thumbnail: 'https://peach.blender.org/wp-content/uploads/title_anouncement.jpg?x11217'
-      },
-      fileName: 'Sample_Talent_Video.mp4',
-      userDisplayName: profile?.displayName || 'Demo User',
-      likes: 45,
-      views: 128,
-      uploadedAt: new Date('2024-01-15'),
-      isSample: true
-    };
-    
     try {
       let videos = [];
       
@@ -184,7 +166,14 @@ export default function Profile({ profileUserId = null }) {
           );
           const querySnapshot = await getDocs(q);
           querySnapshot.forEach((doc) => {
-            videos.push({ id: doc.id, ...doc.data() });
+            const videoData = { id: doc.id, ...doc.data() };
+            
+            // Only show videos that are either:
+            // 1. Owned by the current user (they can see all their videos regardless of verification)
+            // 2. Verified by admin (others can only see verified videos)
+            if (targetUserId === currentUser?.uid || videoData.isVerified) {
+              videos.push(videoData);
+            }
           });
         } catch (firestoreError) {
           console.warn('Could not fetch talent videos from Firestore:', firestoreError.message);
@@ -192,13 +181,17 @@ export default function Profile({ profileUserId = null }) {
         }
       }
       
-      // Add sample video first, then user videos
-      const allVideos = [sampleVideo, ...videos];
-      setTalentVideos(allVideos);
+      // Sort videos by upload date (newest first)
+      videos.sort((a, b) => {
+        const aTime = a.uploadedAt?.toDate ? a.uploadedAt.toDate().getTime() : 0;
+        const bTime = b.uploadedAt?.toDate ? b.uploadedAt.toDate().getTime() : 0;
+        return bTime - aTime;
+      });
+      
+      setTalentVideos(videos);
     } catch (error) {
       console.error('Error in fetchTalentVideos:', error);
-      // If there's an error, at least show the sample video
-      setTalentVideos([sampleVideo]);
+      setTalentVideos([]);
     }
   };
 
@@ -267,7 +260,7 @@ export default function Profile({ profileUserId = null }) {
       // Refresh the videos list
       fetchTalentVideos();
       
-      alert('Talent video uploaded successfully!');
+      alert('Talent video uploaded successfully! Your video will be reviewed by our admin team before it appears on your public profile. You can still view it in your own profile.');
     } catch (error) {
       console.error('Error uploading video:', error);
       alert('Failed to upload video. Please try again.');
@@ -515,67 +508,6 @@ export default function Profile({ profileUserId = null }) {
     }
   };
 
-  // Test function to create a sample story for current user (for testing purposes)
-  const createTestStory = async () => {
-    if (!currentUser || isGuest()) {
-      alert('Please log in to create test stories');
-      return;
-    }
-
-    try {
-      console.log('🧪 Creating test story for user:', currentUser.uid);
-      
-      // Create multiple test stories for better demonstration
-      const testStories = [
-        {
-          mediaUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=800&fit=crop',
-          caption: 'Morning workout session! 💪 Ready to crush today\'s goals!'
-        },
-        {
-          mediaUrl: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=600&h=800&fit=crop',
-          caption: 'Sports training in progress! 🏃‍♂️ Never give up on your dreams!'
-        },
-        {
-          mediaUrl: 'https://images.unsplash.com/photo-1593766827228-8737b4534aa6?w=600&h=800&fit=crop',
-          caption: 'Victory celebration! 🏆 Hard work always pays off!'
-        }
-      ];
-
-      console.log(`🚀 Creating ${testStories.length} test stories...`);
-      
-      for (let i = 0; i < testStories.length; i++) {
-        const story = testStories[i];
-        const now = new Date();
-        const expiresAt = new Date(now.getTime() + (24 * 60 * 60 * 1000)); // 24 hours
-        
-        const storyData = {
-          userId: currentUser.uid,
-          userDisplayName: currentUser.displayName || currentUser.email || 'Test User',
-          userPhotoURL: currentUser.photoURL || '',
-          mediaType: 'image',
-          mediaUrl: story.mediaUrl,
-          caption: story.caption,
-          timestamp: serverTimestamp(),
-          expiresAt: expiresAt,
-          viewCount: 0,
-          viewers: [],
-          isHighlight: false,
-          sharingEnabled: true,
-          publicLink: `${window.location.origin}/story/test_${currentUser.uid}_${Date.now()}_${i}`
-        };
-
-        // Add to Firebase
-        const docRef = await addDoc(collection(db, 'stories'), storyData);
-        console.log(`✅ Test story ${i + 1} created with ID:`, docRef.id);
-      }
-
-      console.log('🎉 All test stories created successfully!');
-      alert(`✅ ${testStories.length} test stories created successfully! Now others can view your stories by clicking your profile image. Stories will expire in 24 hours.`);
-    } catch (error) {
-      console.error('❌ Error creating test stories:', error);
-      alert('Failed to create test stories: ' + error.message);
-    }
-  };
 
   // Toggle post menu visibility
   const togglePostMenu = (postId) => {
@@ -1547,19 +1479,6 @@ export default function Profile({ profileUserId = null }) {
                   </div>
                 )}
                 
-                {/* Test Story Button - for testing purposes */}
-                <button 
-                  className="add-btn"
-                  onClick={createTestStory}
-                  style={{ 
-                    fontSize: '12px', 
-                    padding: '6px 12px',
-                    backgroundColor: '#ff6b6b',
-                    border: 'none'
-                  }}
-                >
-                  Create Test Story
-                </button>
               </div>
             )}
           </div>
@@ -1609,7 +1528,27 @@ export default function Profile({ profileUserId = null }) {
                     <span>👁️ {video.views || 0}</span>
                     <span>❤️ {video.likes?.length || 0}</span>
                   </div>
-                  {isOwnProfile && !isGuest() && !video.isSample && (
+                  
+                  {/* Verification Status Badge (for own profile) */}
+                  {isOwnProfile && !isGuest() && (
+                    <div className="video-status-badge">
+                      {video.isVerified ? (
+                        <span className="verified-badge" title="Video verified by admin">
+                          ✅ Verified
+                        </span>
+                      ) : video.verificationStatus === 'rejected' ? (
+                        <span className="rejected-badge" title={`Rejected: ${video.rejectionReason || 'No reason provided'}`}>
+                          ❌ Rejected
+                        </span>
+                      ) : (
+                        <span className="pending-badge" title="Pending admin review">
+                          ⏳ Pending
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {isOwnProfile && !isGuest() && (
                     <button 
                       className="delete-video-btn"
                       onClick={(e) => {
