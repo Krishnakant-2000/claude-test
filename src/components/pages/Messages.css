@@ -494,6 +494,23 @@
     flex: 1;
     justify-content: center;
   }
+
+  /* Fix friend actions button alignment on mobile */
+  .friend-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+  }
+
+  .message-friend-btn, .follow-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+    min-width: 70px;
+    text-align: center;
+    white-space: nowrap;
+  }
 }
 
 @media (max-width: 480px) {
