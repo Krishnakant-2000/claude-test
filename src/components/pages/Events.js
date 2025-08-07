@@ -5,6 +5,7 @@ import { Calendar, Trophy, MapPin, Clock, Users, ExternalLink, Star, Medal, Targ
 import FooterNav from '../layout/FooterNav';
 import ThemeToggle from '../common/ThemeToggle';
 import LanguageSelector from '../common/LanguageSelector';
+import eventsService from '../../firebase/eventsService';
 import './Events.css';
 
 export default function Events() {
@@ -12,9 +13,13 @@ export default function Events() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [loading, setLoading] = useState(true);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [liveEvents, setLiveEvents] = useState([]);
+  const [pastEvents, setPastEvents] = useState([]);
+  const [hasFirebaseEvents, setHasFirebaseEvents] = useState(false);
 
-  // Sample sports events and news data
-  const upcomingEvents = [
+  // Sample sports events data (fallback when no Firebase events)
+  const sampleUpcomingEvents = [
     {
       id: 1,
       title: "Asian Games 2024",
@@ -65,7 +70,7 @@ export default function Events() {
     }
   ];
 
-  const liveEvents = [
+  const sampleLiveEvents = [
     {
       id: 5,
       title: "Wimbledon Championships",
@@ -94,7 +99,7 @@ export default function Events() {
     }
   ];
 
-  const pastEvents = [
+  const samplePastEvents = [
     {
       id: 7,
       title: "UEFA Euro 2024",
@@ -165,11 +170,52 @@ export default function Events() {
   ];
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    loadEvents();
   }, []);
+
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      console.log('Loading events from Firebase...');
+      
+      // Load events from Firebase
+      const [upcoming, live, completed] = await Promise.all([
+        eventsService.getUpcomingEvents(),
+        eventsService.getLiveEvents(),
+        eventsService.getCompletedEvents()
+      ]);
+
+      console.log('Firebase events loaded:', { upcoming: upcoming.length, live: live.length, completed: completed.length });
+
+      // Check if we have any Firebase events
+      const totalFirebaseEvents = upcoming.length + live.length + completed.length;
+      
+      if (totalFirebaseEvents > 0) {
+        // Use Firebase events
+        setHasFirebaseEvents(true);
+        setUpcomingEvents(upcoming);
+        setLiveEvents(live);
+        setPastEvents(completed);
+        console.log('Using Firebase events');
+      } else {
+        // Fallback to sample events
+        setHasFirebaseEvents(false);
+        setUpcomingEvents(sampleUpcomingEvents);
+        setLiveEvents(sampleLiveEvents);
+        setPastEvents(samplePastEvents);
+        console.log('No Firebase events found, using sample events');
+      }
+    } catch (error) {
+      console.error('Error loading events:', error);
+      // Fallback to sample events on error
+      setHasFirebaseEvents(false);
+      setUpcomingEvents(sampleUpcomingEvents);
+      setLiveEvents(sampleLiveEvents);
+      setPastEvents(samplePastEvents);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTitleClick = () => {
     if (window.location.pathname !== '/') {
@@ -264,6 +310,12 @@ export default function Events() {
             <div className="header-text">
               <h1>Sports Events & Championships</h1>
               <p>Stay updated with the latest sporting events, championships, and news from around the world</p>
+              {hasFirebaseEvents && (
+                <div className="firebase-events-indicator">
+                  <span className="live-indicator">● </span>
+                  <span style={{color: '#10b981', fontSize: '14px'}}>Live events from admin dashboard</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

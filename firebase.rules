@@ -405,9 +405,11 @@ service cloud.firestore {
         && validateTalentVideoData();
       
       // Users can update their own talent videos (view counts, likes, etc.)
+      // Admins can update any video for verification purposes
       allow update: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
-        onlyVideoEngagementChanged()
+        onlyVideoEngagementChanged() ||
+        isAdminUser()
       );
       
       // Users can delete their own talent videos
@@ -423,6 +425,48 @@ service cloud.firestore {
         && request.resource.data.videoUrl is string
         && request.resource.data.fileName is string
         && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Admin collection rules - for admin user management
+    match /admins/{adminId} {
+      // Only admins can read admin documents
+      allow read: if request.auth != null && (
+        isAdminUser() || 
+        request.auth.uid == adminId
+      );
+      
+      // Allow admin creation for specific admin email
+      allow create: if request.auth != null && (
+        request.auth.token.email == 'admin@amaplayer.com' ||
+        isAdminUser()
+      );
+      
+      // Only super admins can update admin documents
+      allow update: if request.auth != null && isAdminUser();
+      
+      // Only super admins can delete admin documents
+      allow delete: if request.auth != null && isAdminUser();
+    }
+    
+    // Events collection rules - for admin dashboard event management
+    match /events/{eventId} {
+      // Anyone can read active events (for mobile app)
+      allow read: if request.auth != null;
+      
+      // Only admins can create, update, delete events
+      allow create, update, delete: if request.auth != null && isAdminUser();
+    }
+    
+    // Admin logs collection - for tracking admin actions
+    match /adminLogs/{logId} {
+      // Only admins can read/write admin logs
+      allow read, write: if request.auth != null && isAdminUser();
+    }
+    
+    // Video verification collection - for admin dashboard video management
+    match /videoVerifications/{videoId} {
+      // Only admins can read/write video verifications
+      allow read, write: if request.auth != null && isAdminUser();
     }
   }
 }

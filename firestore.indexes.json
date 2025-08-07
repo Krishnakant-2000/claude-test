@@ -1,45 +1,21 @@
 {
   "indexes": [
     {
-      "collectionGroup": "posts",
+      "collectionGroup": "talentVideos",
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "timestamp",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "posts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "userId",
+          "fieldPath": "verificationStatus",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "timestamp",
+          "fieldPath": "uploadedAt",
           "order": "DESCENDING"
         }
       ]
     },
     {
-      "collectionGroup": "posts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "mediaType",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "timestamp",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "stories",
+      "collectionGroup": "talentVideos",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -47,29 +23,24 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "expiresAt",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "timestamp",
+          "fieldPath": "uploadedAt",
           "order": "DESCENDING"
         }
       ]
     },
     {
-      "collectionGroup": "stories",
-      "queryScope": "COLLECTION", 
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "expiresAt",
+          "fieldPath": "isActive",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "timestamp",
-          "order": "DESCENDING"
+          "fieldPath": "date",
+          "order": "ASCENDING"
         }
       ]
     }
-  ],
-  "fieldOverrides": []
+  ]
 }

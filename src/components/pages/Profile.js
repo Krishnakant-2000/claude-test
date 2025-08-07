@@ -249,7 +249,17 @@ export default function Profile({ profileUserId = null }) {
         fileName: file.name,
         uploadedAt: serverTimestamp(),
         likes: 0,
-        views: 0
+        views: 0,
+        // Admin verification fields
+        isVerified: false,
+        verificationStatus: 'pending',
+        reviewedAt: null,
+        verifiedAt: null,
+        verifiedBy: null,
+        reviewedBy: null,
+        rejectionReason: null,
+        adminNotes: null,
+        flags: []
       };
 
       await addDoc(collection(db, 'talentVideos'), videoData);
