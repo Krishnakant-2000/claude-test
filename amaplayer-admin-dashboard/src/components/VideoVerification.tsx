@@ -298,13 +298,38 @@ const VideoVerification: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Video Verification</h1>
-        <p className="text-gray-600 mt-1">Review and verify talent showcase videos</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Video Verification</h1>
+            <p className="text-gray-600 mt-1">
+              Review and verify talent showcase videos
+              {statusFilter !== 'all' && (
+                <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  Filtering: {statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} 
+                  ({filteredVideos.length} videos)
+                </span>
+              )}
+            </p>
+          </div>
+          {statusFilter !== 'all' && (
+            <button
+              onClick={() => setStatusFilter('all')}
+              className="mt-2 sm:mt-0 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors duration-200"
+            >
+              Clear Filter
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div 
+          className={`bg-white rounded-lg shadow-sm border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 ${
+            statusFilter === 'pending' ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200 hover:border-yellow-300'
+          }`}
+          onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
+        >
           <div className="flex items-center">
             <div className="p-2 bg-yellow-100 rounded-lg">
               <Clock className="w-5 h-5 text-yellow-600" />
@@ -316,9 +341,15 @@ const VideoVerification: React.FC = () => {
               </p>
             </div>
           </div>
+          <p className="text-xs text-gray-500 mt-2">Click to {statusFilter === 'pending' ? 'show all' : 'filter pending'} videos</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div 
+          className={`bg-white rounded-lg shadow-sm border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 ${
+            statusFilter === 'approved' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+          }`}
+          onClick={() => setStatusFilter(statusFilter === 'approved' ? 'all' : 'approved')}
+        >
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
               <CheckCircle className="w-5 h-5 text-green-600" />
@@ -330,9 +361,15 @@ const VideoVerification: React.FC = () => {
               </p>
             </div>
           </div>
+          <p className="text-xs text-gray-500 mt-2">Click to {statusFilter === 'approved' ? 'show all' : 'filter approved'} videos</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div 
+          className={`bg-white rounded-lg shadow-sm border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 ${
+            statusFilter === 'rejected' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-red-300'
+          }`}
+          onClick={() => setStatusFilter(statusFilter === 'rejected' ? 'all' : 'rejected')}
+        >
           <div className="flex items-center">
             <div className="p-2 bg-red-100 rounded-lg">
               <XCircle className="w-5 h-5 text-red-600" />
@@ -344,9 +381,15 @@ const VideoVerification: React.FC = () => {
               </p>
             </div>
           </div>
+          <p className="text-xs text-gray-500 mt-2">Click to {statusFilter === 'rejected' ? 'show all' : 'filter rejected'} videos</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div 
+          className={`bg-white rounded-lg shadow-sm border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 ${
+            statusFilter === 'all' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'
+          }`}
+          onClick={() => setStatusFilter('all')}
+        >
           <div className="flex items-center">
             <div className="p-2 bg-purple-100 rounded-lg">
               <FileVideo className="w-5 h-5 text-purple-600" />
@@ -356,6 +399,7 @@ const VideoVerification: React.FC = () => {
               <p className="text-2xl font-bold text-gray-900">{videos.length}</p>
             </div>
           </div>
+          <p className="text-xs text-gray-500 mt-2">Click to show all videos</p>
         </div>
       </div>
 

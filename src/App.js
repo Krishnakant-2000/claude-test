@@ -3,26 +3,26 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import PrivateRoute from './components/auth/PrivateRoute';
-import PerformanceDashboard from './components/common/PerformanceDashboard';
+import PrivateRoute from './features/auth/PrivateRoute';
+import PerformanceDashboard from './components/common/dev-tools/PerformanceDashboard';
 import './styles/global.css';
 import './styles/themes.css';
 import './App.css';
 import './performance.css';
 
 // Lazy load components for better performance
-const LandingPage3D = React.lazy(() => import('./components/pages/LandingPage3D'));
-const Login = React.lazy(() => import('./components/auth/Login'));
-const Signup = React.lazy(() => import('./components/auth/Signup'));
-const Home = React.lazy(() => import('./components/pages/Home'));
-const Profile = React.lazy(() => import('./components/pages/Profile'));
-const Search = React.lazy(() => import('./components/pages/Search'));
-const AddPost = React.lazy(() => import('./components/pages/AddPost'));
-const Messages = React.lazy(() => import('./components/pages/Messages'));
-const Events = React.lazy(() => import('./components/pages/Events'));
-const PostDetail = React.lazy(() => import('./components/pages/PostDetail'));
-const StoryDetail = React.lazy(() => import('./components/stories/StoryDetail'));
-const StorySharePage = React.lazy(() => import('./components/stories/StorySharePage'));
+const LandingPage3D = React.lazy(() => import('./pages/landingpage3d/LandingPage3D'));
+const Login = React.lazy(() => import('./features/auth/Login'));
+const Signup = React.lazy(() => import('./features/auth/Signup'));
+const Home = React.lazy(() => import('./pages/home/Home'));
+const Profile = React.lazy(() => import('./pages/profile/Profile'));
+const Search = React.lazy(() => import('./pages/search/Search'));
+const AddPost = React.lazy(() => import('./pages/addpost/AddPost'));
+const Messages = React.lazy(() => import('./pages/messages/Messages'));
+const Events = React.lazy(() => import('./pages/events/Events'));
+const PostDetail = React.lazy(() => import('./pages/postdetail/PostDetail'));
+const StoryDetail = React.lazy(() => import('./features/stories/StoryDetail'));
+const StorySharePage = React.lazy(() => import('./features/stories/StorySharePage'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (

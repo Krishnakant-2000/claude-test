@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import VideoPlayer from '../VideoPlayer';
+import VideoPlayer from '../media/VideoPlayer';
 
 // Mock HTMLVideoElement properties and methods
 Object.defineProperty(HTMLVideoElement.prototype, 'play', {

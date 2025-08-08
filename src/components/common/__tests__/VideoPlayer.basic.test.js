@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import VideoPlayer from '../VideoPlayer';
+import VideoPlayer from '../media/VideoPlayer';
 
 describe('VideoPlayer Basic Tests', () => {
   const mockVideoSrc = 'https://example.com/test-video.mp4';

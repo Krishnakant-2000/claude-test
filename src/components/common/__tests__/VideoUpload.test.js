@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import VideoUpload from '../VideoUpload';
+import VideoUpload from '../forms/VideoUpload';
 import { validateVideoFile, SUPPORTED_VIDEO_TYPES, MAX_VIDEO_SIZE } from '../../../firebase/videoService';
 
 // Mock the video service
