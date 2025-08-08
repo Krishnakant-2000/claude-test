@@ -18,117 +18,7 @@ export default function Events() {
   const [pastEvents, setPastEvents] = useState([]);
   const [hasFirebaseEvents, setHasFirebaseEvents] = useState(false);
 
-  // Sample sports events data (fallback when no Firebase events)
-  const sampleUpcomingEvents = [
-    {
-      id: 1,
-      title: "Asian Games 2024",
-      date: "2024-09-23",
-      location: "Hangzhou, China",
-      category: "Multi-Sport",
-      description: "The 19th Asian Games featuring 40 sports and 61 disciplines with over 12,000 athletes from 45 countries.",
-      image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=200&fit=crop",
-      status: "upcoming",
-      participants: "12,000+ athletes",
-      priority: "high"
-    },
-    {
-      id: 2,
-      title: "ICC Cricket World Cup 2024",
-      date: "2024-10-05",
-      location: "India",
-      category: "Cricket",
-      description: "The most prestigious cricket tournament featuring the top 10 cricket-playing nations competing for the ultimate prize.",
-      image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=400&h=200&fit=crop",
-      status: "upcoming",
-      participants: "10 teams",
-      priority: "high"
-    },
-    {
-      id: 3,
-      title: "World Athletics Championships",
-      date: "2024-08-15",
-      location: "Budapest, Hungary",
-      category: "Athletics",
-      description: "The world's premier athletics competition featuring track and field events with the finest athletes globally.",
-      image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=200&fit=crop",
-      status: "upcoming",
-      participants: "2,000+ athletes",
-      priority: "medium"
-    },
-    {
-      id: 4,
-      title: "FIFA Women's World Cup",
-      date: "2024-07-20",
-      location: "Australia & New Zealand",
-      category: "Football",
-      description: "The pinnacle of women's international football featuring 32 nations competing for global supremacy.",
-      image: "https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?w=400&h=200&fit=crop",
-      status: "upcoming",
-      participants: "32 teams",
-      priority: "high"
-    }
-  ];
-
-  const sampleLiveEvents = [
-    {
-      id: 5,
-      title: "Wimbledon Championships",
-      date: "2024-07-01",
-      location: "London, England",
-      category: "Tennis",
-      description: "The most prestigious tennis tournament in the world, currently in the quarter-finals stage.",
-      image: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=400&h=200&fit=crop",
-      status: "live",
-      participants: "128 players",
-      priority: "high",
-      liveStatus: "Quarter Finals"
-    },
-    {
-      id: 6,
-      title: "Tour de France 2024",
-      date: "2024-07-01",
-      location: "France",
-      category: "Cycling",
-      description: "The world's most famous cycling race, currently in Stage 12 of 21 stages.",
-      image: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=200&fit=crop",
-      status: "live",
-      participants: "176 cyclists",
-      priority: "medium",
-      liveStatus: "Stage 12/21"
-    }
-  ];
-
-  const samplePastEvents = [
-    {
-      id: 7,
-      title: "UEFA Euro 2024",
-      date: "2024-06-14",
-      location: "Germany",
-      category: "Football",
-      description: "Spain emerged victorious in a thrilling final against England, winning 2-1 in extra time.",
-      image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=200&fit=crop",
-      status: "completed",
-      participants: "24 teams",
-      priority: "high",
-      winner: "Spain",
-      result: "Spain 2-1 England (AET)"
-    },
-    {
-      id: 8,
-      title: "French Open 2024",
-      date: "2024-05-26",
-      location: "Paris, France",
-      category: "Tennis",
-      description: "Rafael Nadal claimed his 15th French Open title in an epic final against Novak Djokovic.",
-      image: "https://images.unsplash.com/photo-1542144582-1ba00456b5e3?w=400&h=200&fit=crop",
-      status: "completed",
-      participants: "128 players",
-      priority: "high",
-      winner: "Rafael Nadal",
-      result: "Nadal def. Djokovic 6-4, 6-2, 6-3"
-    }
-  ];
+  // No sample events - show empty state when no Firebase events exist
 
   const sportsNews = [
     {
@@ -198,20 +88,20 @@ export default function Events() {
         setPastEvents(completed);
         console.log('Using Firebase events');
       } else {
-        // Fallback to sample events
+        // No events - show empty state
         setHasFirebaseEvents(false);
-        setUpcomingEvents(sampleUpcomingEvents);
-        setLiveEvents(sampleLiveEvents);
-        setPastEvents(samplePastEvents);
-        console.log('No Firebase events found, using sample events');
+        setUpcomingEvents([]);
+        setLiveEvents([]);
+        setPastEvents([]);
+        console.log('No Firebase events found, showing empty state');
       }
     } catch (error) {
       console.error('Error loading events:', error);
-      // Fallback to sample events on error
+      // Show empty state on error
       setHasFirebaseEvents(false);
-      setUpcomingEvents(sampleUpcomingEvents);
-      setLiveEvents(sampleLiveEvents);
-      setPastEvents(samplePastEvents);
+      setUpcomingEvents([]);
+      setLiveEvents([]);
+      setPastEvents([]);
     } finally {
       setLoading(false);
     }
@@ -382,7 +272,16 @@ export default function Events() {
 
           {/* Events Grid */}
           <div className="events-grid">
-            {getEventsByTab().map((event) => (
+            {getEventsByTab().length === 0 ? (
+              <div className="empty-events-state">
+                <div className="empty-state-icon">
+                  <Calendar size={48} />
+                </div>
+                <h3>No Events Available</h3>
+                <p>There are currently no {activeTab} events to display. Check back later for updates!</p>
+              </div>
+            ) : (
+              getEventsByTab().map((event) => (
               <div key={event.id} className={`event-card ${event.status}`}>
                 <div className="event-image">
                   <img src={event.image} alt={event.title} />
@@ -458,7 +357,8 @@ export default function Events() {
                   </button>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

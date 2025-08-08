@@ -96,8 +96,6 @@ class EventsService {
 
   // Determine event status based on date, time, and duration
   getEventStatus(event) {
-    if (!event.isActive) return 'cancelled';
-    
     const now = new Date();
     const eventDate = new Date(event.date);
     const todayDate = new Date();
@@ -159,33 +157,22 @@ class EventsService {
         if (isSameDay) {
           return {
             status: 'live',
-            displayText: 'Competition Ongoing Today',
+            displayText: 'Competition Ongoing',
             statusClass: 'status-live'
           };
         } else {
           return {
             status: 'live',
-            displayText: 'Competition Live Now',
+            displayText: 'Competition Ongoing',
             statusClass: 'status-live'
           };
         }
       case 'completed':
-        return {
-          status: 'completed',
-          displayText: 'Competition Closed',
-          statusClass: 'status-completed'
-        };
-      case 'cancelled':
-        return {
-          status: 'cancelled',
-          displayText: 'Competition Cancelled',
-          statusClass: 'status-cancelled'
-        };
       default:
         return {
-          status: 'unknown',
-          displayText: 'Status Unknown',
-          statusClass: 'status-unknown'
+          status: 'completed',
+          displayText: 'Competition Ended',
+          statusClass: 'status-completed'
         };
     }
   }

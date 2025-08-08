@@ -51,7 +51,27 @@
 - Uses Firebase for backend services
 - Supports 12 languages: English, Hindi, Punjabi, Marathi, Bengali, Tamil, Telugu, Kannada, Malayalam, Gujarati, Odia, and Assamese
 
-### Latest Updates - Current Session (Today - Codebase Organization & Structure Enhancement)
+### Latest Updates - Current Session (Today - Event Status System Enhancement & Codebase Organization)
+
+- **Enhanced Event Status System with Competition Status Indicators**
+  - **Same-Day Live Detection**: Events on the same date now show as "live" by default unless duration has clearly ended
+  - **Competition Status Indicators**: Added visual status badges below event categories showing real-time competition status
+  - **Improved Duration Handling**: Same-day events get 8-hour default duration vs 2-hour for others  
+  - **Simplified Status Messages**: Clean, straightforward status text showing competition availability
+    - `"Competition Opens Soon"` - for upcoming events
+    - `"Competition Ongoing"` - for live/active events
+    - `"Competition Ended"` - for completed events
+  - **Visual Status System**: Color-coded indicators with animated pulse for live events
+    - 🟡 Upcoming: Yellow/amber (#ffc107)
+    - 🟢 Ongoing: Green (#28a745) with pulsing animation
+    - ⚪ Ended: Gray (#6c757d)
+  - **Sample Events Removal**: All sample events completely removed - shows empty state when no Firebase events exist
+  - **Enhanced Event Service**: Added `getCompetitionStatus()` method with simplified status logic
+  - **Improved Event Logic**: Better classification of live vs completed status with time-based detection
+  - **Mobile Responsive**: Competition status badges work seamlessly across all device sizes
+  - **Clean Empty State**: Professional "No Events Available" display when no events exist
+
+### Previous Updates - Current Session (Today - Codebase Organization & Structure Enhancement)
 
 - **Comprehensive Codebase Organization & Structure Enhancement**
   - **Directory Restructuring**: Complete reorganization of all components and utilities
