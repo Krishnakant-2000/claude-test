@@ -1,10 +1,13 @@
-import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import PrivateRoute from './features/auth/PrivateRoute';
-import PerformanceDashboard from './components/common/dev-tools/PerformanceDashboard';
+import NetworkStatus from './components/common/NetworkStatus';
+import { registerSW } from './utils/serviceWorkerRegistration';
+import { queryClient } from './lib/queryClient';
 import './styles/global.css';
 import './styles/themes.css';
 import './App.css';
@@ -46,8 +49,21 @@ const LoadingSpinner = () => (
 );
 
 function AppContent() {
+  useEffect(() => {
+    // Register service worker for offline functionality - Phase 1
+    registerSW({
+      onSuccess: () => {
+        console.log('SW Phase 1: Service worker registered successfully');
+      },
+      onUpdate: () => {
+        console.log('SW Phase 1: New version available');
+      }
+    });
+  }, []);
+
   return (
     <div className="App">
+      <NetworkStatus />
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
               <Route path="/" element={<LandingPage3D />} />
@@ -100,12 +116,9 @@ function AppContent() {
                 </PrivateRoute>
               } />
               <Route path="/story-share/:storyId" element={<StorySharePage />} />
-              <Route path="/dashboard" element={<Navigate to="/home" />} />
               </Routes>
       </Suspense>
       
-      {/* Performance Dashboard (Development Only) */}
-      <PerformanceDashboard />
     </div>
   );
 }
@@ -113,13 +126,15 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <ThemeProvider>
-        <LanguageProvider>
-          <AuthProvider>
-            <AppContent />
-          </AuthProvider>
-        </LanguageProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <AppContent />
+            </AuthProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </Router>
   );
 }

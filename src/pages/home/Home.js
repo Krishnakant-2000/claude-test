@@ -3,14 +3,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import notificationService from '../../services/notificationService';
 import { db } from '../../services/api/firebase';
-import { Heart, MessageCircle, Video, Send, Trash2, Plus, Image, X, Upload, MoreVertical } from 'lucide-react';
+import { Heart, MessageCircle, Video, Send, Trash2, Image, X, Upload, MoreVertical, LogOut } from 'lucide-react';
 import ThemeToggle from '../../components/common/ui/ThemeToggle';
 import LanguageSelector from '../../components/common/forms/LanguageSelector';
 import VideoPlayer from '../../components/common/media/VideoPlayer';
 import LazyImage from '../../components/common/ui/LazyImage';
 import StoriesContainer from '../../features/stories/StoriesContainer';
 import ErrorBoundary from '../../components/common/safety/ErrorBoundary';
-import { useLanguage } from '../../contexts/LanguageContext';
 import { filterChatMessage, getChatViolationMessage, logChatViolation } from '../../utils/content/chatFilter';
 import { filterPostContent, getPostViolationMessage, logPostViolation } from '../../utils/content/postContentFilter';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -35,12 +34,23 @@ import FooterNav from '../../components/layout/FooterNav';
 import { samplePosts } from '../../data/samplePosts';
 import { cleanupCorruptedPostComments } from '../../utils/data/cleanupPosts';
 import { SafeCommentsList } from '../../components/common/safety/SafeComment';
+import { usePredictivePrefetch } from '../../utils/caching/predictivePrefetching';
+import { useSmartCacheInvalidation } from '../../utils/caching/smartCacheInvalidation';
+import { useOfflineAnalytics } from '../../utils/caching/offlineAnalytics';
+import { usePushNotifications } from '../../utils/caching/pushNotificationManager';
+
+
 
 const POSTS_PER_PAGE = 10;
 
 export default function Home() {
   const { currentUser, logout, isGuest } = useAuth();
-  const { t } = useLanguage();
+  
+  // Phase 4 Advanced Features Hooks
+  const { setUser: setPrefetchUser, trackBehavior } = usePredictivePrefetch();
+  const { performHealthCheck } = useSmartCacheInvalidation();
+  const { trackPageView, trackInteraction, track: trackAnalytics } = useOfflineAnalytics();
+  const { notifyContent } = usePushNotifications();
   const [posts, setPosts] = useState([]);
   const [showComments, setShowComments] = useState({});
   const [newComment, setNewComment] = useState({});
@@ -119,14 +129,24 @@ export default function Home() {
       }
       
       // Update pagination state
-      const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
-      setLastDoc(lastVisible);
-      setHasMore(querySnapshot.docs.length === POSTS_PER_PAGE);
+      if (querySnapshot.docs.length > 0) {
+        const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+        setLastDoc(lastVisible);
+        setHasMore(querySnapshot.docs.length === POSTS_PER_PAGE);
+      } else {
+        // No more posts available
+        setHasMore(false);
+      }
       
     } catch (error) {
       console.error('Error loading posts:', error);
+      // On error, stop trying to load more posts
+      if (loadMore) {
+        setHasMore(false);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [loading, lastDoc]);
 
   // Refresh posts - reset pagination and load fresh posts
@@ -148,6 +168,32 @@ export default function Home() {
     refreshPosts();
   }, [refreshPosts]);
 
+  // Phase 4: Initialize advanced features and track page view
+  useEffect(() => {
+    // Track page view for analytics
+    trackPageView('/home', { 
+      userId: currentUser?.uid,
+      isGuest: isGuest(),
+      timestamp: Date.now()
+    });
+
+    // Set user for predictive prefetching
+    if (currentUser) {
+      setPrefetchUser(currentUser);
+    }
+
+    // Perform periodic cache health check (every 10 minutes)
+    const cacheHealthInterval = setInterval(async () => {
+      try {
+        await performHealthCheck();
+      } catch (error) {
+        console.error('Cache health check failed:', error);
+      }
+    }, 10 * 60 * 1000);
+
+    return () => clearInterval(cacheHealthInterval);
+  }, [currentUser, isGuest, trackPageView, setPrefetchUser, performHealthCheck]);
+
   // Run cleanup only once per session
   useEffect(() => {
     if (!cleanupCompleted) {
@@ -155,15 +201,29 @@ export default function Home() {
         console.log('🧹 Post comments cleanup completed, loading posts...');
         setCleanupCompleted(true);
         loadPosts();
+        
+        // Track analytics event for successful initialization
+        trackAnalytics('SYSTEM_INITIALIZED', {
+          userId: currentUser?.uid,
+          componentsLoaded: ['posts', 'cleanup'],
+          timestamp: Date.now()
+        });
       }).catch((error) => {
         console.error('Error during cleanup, loading posts anyway:', error);
         setCleanupCompleted(true);
         loadPosts();
+        
+        // Track error for analytics
+        trackAnalytics('ERROR_OCCURRED', {
+          error: 'cleanup_failed',
+          message: error.message,
+          userId: currentUser?.uid
+        });
       });
     } else {
       loadPosts();
     }
-  }, [cleanupCompleted, loadPosts]);
+  }, [cleanupCompleted, loadPosts, currentUser, trackAnalytics]);
 
   // Check if we should show notification permission prompt
   useEffect(() => {
@@ -191,6 +251,22 @@ export default function Home() {
 
   const handleLike = async (postId, currentLikes, isSamplePost = false, postData = null) => {
     if (!currentUser) return;
+
+    // Phase 4: Track user behavior and interaction
+    trackBehavior('post_like', {
+      userId: currentUser.uid,
+      contentId: postId,
+      contentType: 'post',
+      mediaType: postData?.mediaType || 'text',
+      duration: 0
+    });
+
+    trackInteraction('like', postId, {
+      postId,
+      userId: currentUser.uid,
+      isSamplePost,
+      mediaType: postData?.mediaType
+    });
 
     // Handle sample posts differently
     if (isSamplePost) {
@@ -271,6 +347,20 @@ export default function Home() {
       }
       return;
     }
+
+    // Phase 4: Track commenting behavior
+    trackBehavior('post_comment', {
+      userId: currentUser.uid,
+      contentId: postId,
+      contentType: 'comment',
+      duration: commentText.length * 50 // Estimate time based on length
+    });
+
+    trackInteraction('comment', postId, {
+      postId,
+      commentLength: commentText.length,
+      userId: currentUser.uid
+    });
 
     // Content filtering for comments - use strict chat filter
     const filterResult = filterChatMessage(commentText);
@@ -542,6 +632,8 @@ export default function Home() {
       return;
     }
 
+    const postCreationStart = Date.now(); // Track creation time for analytics
+
     // Content filtering
     if (text) {
       const filterResult = filterPostContent(text, {
@@ -609,6 +701,27 @@ export default function Home() {
 
       // Refresh posts
       await loadPosts();
+
+      // Phase 4: Track successful post creation
+      trackBehavior('post_create', {
+        userId: currentUser.uid,
+        contentId: 'new_post',
+        contentType: 'post',
+        hasMedia: !!mediaUrl,
+        mediaType: mediaType || 'text',
+        captionLength: text.length,
+        duration: Date.now() - postCreationStart
+      });
+
+      trackAnalytics('POST_CREATED_OFFLINE', {
+        userId: currentUser.uid,
+        hasMedia: !!mediaUrl,
+        mediaType,
+        captionLength: text.length
+      });
+
+      // Notify user of successful post creation
+      notifyContent.ready({ contentCount: 1 });
 
       alert('Post created successfully!');
     } catch (error) {
@@ -693,7 +806,14 @@ export default function Home() {
             <LanguageSelector />
             <ThemeToggle />
             {isGuest() && <span className="guest-indicator">Guest Mode</span>}
-            <button onClick={handleLogout}>{isGuest() ? 'Sign In' : t('logout')}</button>
+            <button 
+              className="logout-btn"
+              onClick={handleLogout}
+              aria-label={isGuest() ? 'Sign In' : 'Logout'}
+              title={isGuest() ? 'Sign In' : 'Logout'}
+            >
+              <LogOut size={20} />
+            </button>
           </div>
         </div>
       </nav>
@@ -1063,14 +1183,23 @@ export default function Home() {
           )}
           
           {/* Loading Indicator */}
-          {loading && (
+          {loading && hasMore && (
             <div className="loading-container">
               <div className="loading-spinner"></div>
               <span>Loading posts...</span>
             </div>
           )}
+          
+          {/* End of Posts Message */}
+          {!hasMore && posts.length > 0 && (
+            <div className="end-of-posts">
+              <p>You've reached the end! 🎉</p>
+              <p>That's all the posts for now.</p>
+            </div>
+          )}
         </div>
       </div>
+      
       
       
       <FooterNav />

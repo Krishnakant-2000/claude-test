@@ -6,17 +6,16 @@
 .language-toggle {
   background: none;
   border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: 50%;
+  padding: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
   color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 500;
-  min-width: 100px;
+  width: 44px;
+  height: 44px;
 }
 
 
@@ -189,12 +188,9 @@
   }
   
   .language-toggle {
-    min-width: 80px;
-    padding: 6px 10px;
-  }
-  
-  .language-text {
-    font-size: 12px;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
   }
 }
 

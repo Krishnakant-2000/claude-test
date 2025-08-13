@@ -1,8 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
-import reportWebVitals, { trackPerformance, observePerformance, sendToAnalytics } from './reportWebVitals';
+
+// Main app imports
+const App = require('./App').default;
+const webVitals = require('./reportWebVitals');
+const reportWebVitals = webVitals.default;
 
 // Global error handler for React error #31 debugging
 window.addEventListener('error', (event) => {
@@ -65,11 +68,26 @@ root.render(
   </React.StrictMode>
 );
 
+// Phase 3: Initialize IndexedDB and register enhanced service worker
+const initializeOfflineFeatures = async () => {
+  try {
+    // Initialize IndexedDB for offline storage
+    const { idbStore } = await import('./utils/caching/indexedDB');
+    await idbStore.init();
+    console.log('✅ Phase 3: IndexedDB initialized successfully');
+  } catch (error) {
+    console.error('❌ Phase 3: Failed to initialize IndexedDB:', error);
+  }
+};
+
 // Register service worker for offline functionality
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
+  window.addEventListener('load', async () => {
+    // Initialize offline features
+    await initializeOfflineFeatures();
+    
     navigator.serviceWorker
-      .register('/sw.js')
+      .register('/sw-phase3.js')
       .then((registration) => {
         console.log('SW: Service worker registered successfully:', registration.scope);
         
@@ -104,17 +122,21 @@ if ('serviceWorker' in navigator) {
 }
 
 // Enhanced performance monitoring and Web Vitals tracking
-// Track performance metrics and send to analytics
-reportWebVitals(sendToAnalytics);
+if (reportWebVitals) {
+  const { trackPerformance, observePerformance, sendToAnalytics } = require('./reportWebVitals');
+  
+  // Track performance metrics and send to analytics
+  reportWebVitals(sendToAnalytics);
 
-// Start performance tracking after initial load
-window.addEventListener('load', () => {
-  // Track detailed performance metrics
-  trackPerformance();
-  
-  // Start observing performance issues
-  observePerformance();
-  
-  // Log that performance monitoring is active
-  // console.log('🚀 AmaPlayer Performance Monitoring Active');
-});
+  // Start performance tracking after initial load
+  window.addEventListener('load', () => {
+    // Track detailed performance metrics
+    trackPerformance();
+    
+    // Start observing performance issues
+    observePerformance();
+    
+    // Log that performance monitoring is active
+    // console.log('🚀 AmaPlayer Performance Monitoring Active');
+  });
+}

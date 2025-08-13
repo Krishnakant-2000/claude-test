@@ -1,5 +1,5 @@
 // Performance optimization utilities
-import { useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 
 // Debounce hook for performance optimization
 export const useDebounce = (value, delay) => {

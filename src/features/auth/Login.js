@@ -120,7 +120,7 @@ export default function Login() {
             className="auth-btn google-btn"
             onClick={handleGoogleLogin}
           >
-            Sign in with Google
+            🏃‍♂️ Join AmaPlayer with Google
           </button>
           <button 
             disabled={loading} 

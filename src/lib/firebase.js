@@ -1,7 +1,7 @@
 // Firebase configuration and initialization
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
@@ -27,6 +27,17 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// Enable offline persistence for Firestore
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    console.warn('Multiple tabs open, offline persistence disabled. Only one tab can have offline persistence enabled at a time.');
+  } else if (err.code === 'unimplemented') {
+    console.warn('Browser doesn\'t support offline persistence. Some offline features may be limited.');
+  } else {
+    console.error('Failed to enable offline persistence:', err);
+  }
+});
 
 // Initialize Cloud Messaging conditionally
 let messaging = null;

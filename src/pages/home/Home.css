@@ -5,6 +5,52 @@
   overflow-y: auto;
 }
 
+/* Logout button styling */
+.logout-btn {
+  background: none;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-primary);
+  width: 44px;
+  height: 44px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+  color: var(--accent-primary);
+}
+
+/* Dark mode styles for logout button */
+[data-theme="dark"] .logout-btn {
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+[data-theme="dark"] .logout-btn:hover {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: #00ff88;
+  color: #00ff88;
+}
+
+/* Light mode styles for logout button */
+[data-theme="light"] .logout-btn {
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #333;
+}
+
+[data-theme="light"] .logout-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: #667eea;
+  color: #667eea;
+}
+
 /* Notification prompt animation */
 @keyframes slideIn {
   from {
@@ -50,6 +96,28 @@
   padding: 20px;
   gap: 10px;
   color: var(--text-secondary);
+}
+
+.end-of-posts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-color);
+  margin-top: 20px;
+}
+
+.end-of-posts p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.end-of-posts p:first-child {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 .loading-spinner {

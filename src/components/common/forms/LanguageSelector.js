@@ -4,7 +4,7 @@ import { useLanguage } from '../../../contexts/LanguageContext';
 import './LanguageSelector.css';
 
 const LanguageSelector = memo(function LanguageSelector() {
-  const { currentLanguage, changeLanguage, getCurrentLanguage, languages } = useLanguage();
+  const { currentLanguage, changeLanguage, languages } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -26,7 +26,6 @@ const LanguageSelector = memo(function LanguageSelector() {
     setIsOpen(false);
   };
 
-  const currentLang = getCurrentLanguage();
 
   return (
     <div className="language-selector" ref={dropdownRef}>
@@ -35,9 +34,7 @@ const LanguageSelector = memo(function LanguageSelector() {
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Select Language"
       >
-        <Globe size={18} className="language-icon" />
-        <span className="language-text">{currentLang.nativeName}</span>
-        <span className={`language-arrow ${isOpen ? 'open' : ''}`}>▼</span>
+        <Globe size={20} className="language-icon" />
       </button>
       
       {isOpen && (
