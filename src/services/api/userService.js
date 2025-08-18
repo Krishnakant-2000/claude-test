@@ -1,7 +1,7 @@
 // User service with business logic
 import { BaseService } from './baseService';
 import { COLLECTIONS } from '../../constants/firebase';
-import { auth, db } from './firebase';
+import { auth, db } from '../../lib/firebase';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 class UserService extends BaseService {

@@ -1,7 +1,7 @@
 // Posts service with business logic
 import { BaseService } from './baseService';
 import { COLLECTIONS } from '../../constants/firebase';
-import { storage } from './firebase';
+import { storage } from '../../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 class PostsService extends BaseService {

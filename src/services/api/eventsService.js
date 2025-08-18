@@ -1,6 +1,6 @@
 // Events service for main app - connects to Firebase events collection
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../../lib/firebase';
 
 class EventsService {
   constructor() {

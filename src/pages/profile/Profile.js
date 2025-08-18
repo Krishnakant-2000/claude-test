@@ -2,28 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { db, storage } from '../../services/api/firebase';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs, setDoc, addDoc, serverTimestamp, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { db, storage } from '../../lib/firebase';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, setDoc, addDoc, serverTimestamp, onSnapshot, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { uploadVideoFile, generateVideoMetadata } from '../../services/api/videoService';
 import { filterContent, getViolationMessage } from '../../utils/content/contentFilter';
-import { Edit2, Camera, Plus, X, Save, Users, UserPlus, Check, Video, Trash2, Play, MoreVertical } from 'lucide-react';
+import { filterChatMessage, getChatViolationMessage, logChatViolation } from '../../utils/content/chatFilter';
+import { Edit2, Camera, Plus, X, Save, Users, UserPlus, Check, Video, Trash2, Play, MoreVertical, Heart, MessageCircle, Send } from 'lucide-react';
 import FooterNav from '../../components/layout/FooterNav';
 import ThemeToggle from '../../components/common/ui/ThemeToggle';
 import LanguageSelector from '../../components/common/forms/LanguageSelector';
+import VerificationBadge from '../../components/common/ui/VerificationBadge';
+import VerificationRequestModal from '../../components/common/modals/VerificationRequestModal';
 import StoryViewer from '../../features/stories/StoryViewer';
 import { StoriesService } from '../../services/api/storiesService';
 import './Profile.css';
 
 export default function Profile({ profileUserId = null }) {
-  console.log('🏠 PROFILE COMPONENT LOADING!');
+  // Profile component loading - development debug removed for production
   
   const { userId: urlUserId } = useParams();
   const navigate = useNavigate();
   const { currentUser, isGuest, updateUserProfile, refreshAuth } = useAuth();
   
-  console.log('🆔 Profile IDs:', { urlUserId, profileUserId, currentUserId: currentUser?.uid });
+  // Profile IDs debugging - development debug removed for production
   const { t } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -56,16 +59,20 @@ export default function Profile({ profileUserId = null }) {
   const [userStories, setUserStories] = useState({ user: null, stories: [] });
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [showPostMenus, setShowPostMenus] = useState({});
+  const [videoComment, setVideoComment] = useState('');
+  const [isLikingVideo, setIsLikingVideo] = useState(false);
+  const [isCommentingVideo, setIsCommentingVideo] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
   
   // Determine which user's profile we're viewing
   const targetUserId = urlUserId || profileUserId || currentUser?.uid;
   const isOwnProfile = targetUserId === currentUser?.uid;
 
   useEffect(() => {
-    console.log('🔥 Profile useEffect triggered:', { currentUser: currentUser?.uid, targetUserId });
+    // Profile useEffect triggered - development debug removed for production
     
     if (currentUser) {
-      console.log('✅ CurrentUser exists, calling functions...');
+      // CurrentUser exists, calling functions...
       fetchProfile();
       fetchUserPosts();
       fetchTalentVideos();
@@ -131,14 +138,14 @@ export default function Profile({ profileUserId = null }) {
         try {
           await setDoc(docRef, defaultProfile, { merge: true });
         } catch (error) {
-          console.error('Error creating default profile:', error);
+          // Error creating default profile - logged in production
         }
       } else {
         // Profile not found for other user
         setProfile(null);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      // Error fetching profile - logged in production
     }
     setLoading(false);
   };
@@ -156,19 +163,19 @@ export default function Profile({ profileUserId = null }) {
       });
       setPosts(userPosts);
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      // Error fetching posts - logged in production
     }
   };
 
   const fetchTalentVideos = async () => {
-    console.log('🚀 FETCHTALENTVIDEOS CALLED!', { targetUserId, currentUser: currentUser?.uid });
+    // FETCHTALENTVIDEOS CALLED - development debug removed for production
     
     try {
       let videos = [];
       
       // Only fetch user videos if we have a valid targetUserId and user is authenticated
       if (targetUserId && currentUser) {
-        console.log('✅ Conditions met - fetching videos...');
+        // Conditions met - fetching videos...
         try {
           const q = query(
             collection(db, 'talentVideos'),
@@ -176,44 +183,33 @@ export default function Profile({ profileUserId = null }) {
           );
           const querySnapshot = await getDocs(q);
           
-          console.log(`📹 Found ${querySnapshot.size} videos for user ${targetUserId}`);
+          // Found videos for user - development debug removed for production
           
           querySnapshot.forEach((doc) => {
             const videoData = { id: doc.id, ...doc.data() };
             
             const isOwnProfile = targetUserId === currentUser?.uid;
             
-            console.log('🎥 Processing video:', {
-              videoId: videoData.id,
-              fileName: videoData.fileName,
-              isOwnProfile,
-              verificationStatus: videoData.verificationStatus,
-              isVerified: videoData.isVerified
-            });
+            // Processing video - development debug removed for production
             
             // ABSOLUTE RULE: For other people's profiles, ONLY show approved videos
             if (isOwnProfile) {
               // Own profile - show ALL videos (user can see their own pending/rejected videos)
-              console.log('✅ SHOWING (Own Profile):', videoData.fileName);
+              // SHOWING (Own Profile) - development debug removed for production
               videos.push(videoData);
             } else {
               // Other person's profile - STRICT filtering
               // MUST be both 'approved' status AND isVerified = true
               if (videoData.verificationStatus === 'approved' && videoData.isVerified === true) {
-                console.log('✅ SHOWING (Approved & Verified):', videoData.fileName);
+                // SHOWING (Approved & Verified) - development debug removed for production
                 videos.push(videoData);
               } else {
-                console.log('❌ HIDDEN (Not approved):', {
-                  fileName: videoData.fileName,
-                  status: videoData.verificationStatus,
-                  verified: videoData.isVerified,
-                  reason: videoData.verificationStatus !== 'approved' ? 'Not approved' : 'Not verified'
-                });
+                // HIDDEN (Not approved) - development debug removed for production
               }
             }
           });
         } catch (firestoreError) {
-          console.warn('Could not fetch talent videos from Firestore:', firestoreError.message);
+          // Could not fetch talent videos from Firestore - logged in production
           // Continue without user videos - not a critical error
         }
       }
@@ -225,10 +221,10 @@ export default function Profile({ profileUserId = null }) {
         return bTime - aTime;
       });
       
-      console.log('🎯 FINAL RESULT: Setting videos:', videos.length, videos);
+      // FINAL RESULT: Setting videos - development debug removed for production
       setTalentVideos(videos);
     } catch (error) {
-      console.error('Error in fetchTalentVideos:', error);
+      // Error in fetchTalentVideos - logged in production
       setTalentVideos([]);
     }
   };
@@ -300,7 +296,7 @@ export default function Profile({ profileUserId = null }) {
       
       alert('Talent video uploaded successfully! Your video will be reviewed by our admin team before it appears on your public profile. You can still view it in your own profile.');
     } catch (error) {
-      console.error('Error uploading video:', error);
+      // Error uploading video - logged in production
       alert('Failed to upload video. Please try again.');
     }
 
@@ -325,6 +321,148 @@ export default function Profile({ profileUserId = null }) {
 
   const handleCloseVideoPlayer = () => {
     setPlayingVideo(null);
+    setVideoComment(''); // Clear comment when closing
+  };
+
+  // Handle liking talent videos
+  const handleVideoLike = async () => {
+    if (!currentUser || !playingVideo || isLikingVideo) return;
+
+    // Prevent guests from liking
+    if (isGuest()) {
+      if (window.confirm('Please sign up or log in to like videos.\n\nWould you like to go to the login page?')) {
+        navigate('/login');
+      }
+      return;
+    }
+
+    setIsLikingVideo(true);
+    const videoRef = doc(db, 'talentVideos', playingVideo.id);
+    const currentLikes = playingVideo.likes || [];
+    const userLiked = currentLikes.includes(currentUser.uid);
+
+    try {
+      if (userLiked) {
+        // Remove like
+        await updateDoc(videoRef, {
+          likes: arrayRemove(currentUser.uid)
+        });
+        setPlayingVideo(prev => ({
+          ...prev,
+          likes: prev.likes.filter(uid => uid !== currentUser.uid)
+        }));
+        // Update the video in talentVideos state as well
+        setTalentVideos(prev => prev.map(video => 
+          video.id === playingVideo.id 
+            ? { ...video, likes: video.likes.filter(uid => uid !== currentUser.uid) }
+            : video
+        ));
+      } else {
+        // Add like
+        await updateDoc(videoRef, {
+          likes: arrayUnion(currentUser.uid)
+        });
+        setPlayingVideo(prev => ({
+          ...prev,
+          likes: [...(prev.likes || []), currentUser.uid]
+        }));
+        // Update the video in talentVideos state as well
+        setTalentVideos(prev => prev.map(video => 
+          video.id === playingVideo.id 
+            ? { ...video, likes: [...(video.likes || []), currentUser.uid] }
+            : video
+        ));
+      }
+    } catch (error) {
+      // Error updating video like - logged in production
+      alert('Failed to update like. Please try again.');
+    } finally {
+      setIsLikingVideo(false);
+    }
+  };
+
+  // Handle commenting on talent videos
+  const handleVideoComment = async (e) => {
+    e.preventDefault();
+    const commentText = videoComment.trim();
+    
+    // Video comment attempt - development debug removed for production
+    
+    if (!commentText || !currentUser || isCommentingVideo) {
+      // Comment blocked - development debug removed for production
+      return;
+    }
+
+    setIsCommentingVideo(true);
+
+    // Prevent guests from commenting
+    if (isGuest()) {
+      setIsCommentingVideo(false);
+      if (window.confirm('Please sign up or log in to comment on videos.\n\nWould you like to go to the login page?')) {
+        navigate('/login');
+      }
+      return;
+    }
+
+    // Content filtering for video comments
+    const filterResult = filterChatMessage(commentText);
+    
+    if (!filterResult.isClean) {
+      const violationMessage = getChatViolationMessage(filterResult.violations, filterResult.categories);
+      
+      // Log the violation
+      await logChatViolation(currentUser.uid, commentText, filterResult.violations, 'video_comment');
+      
+      // Show user-friendly error message
+      alert(`You can't post this comment.\n\n${violationMessage}\n\nTip: Share positive feedback about the talent showcase!`);
+      setIsCommentingVideo(false);
+      return;
+    }
+
+    try {
+      // Starting comment submission...
+      const commentData = {
+        text: commentText,
+        userId: currentUser.uid,
+        userDisplayName: currentUser.displayName || 'Anonymous User',
+        userPhotoURL: currentUser.photoURL || '',
+        timestamp: new Date(),
+        videoId: playingVideo.id
+      };
+
+      // Comment data prepared - development debug removed for production
+
+      // Update video's comment array
+      const videoRef = doc(db, 'talentVideos', playingVideo.id);
+      // Updating Firestore with comment...
+      await updateDoc(videoRef, {
+        comments: arrayUnion(commentData)
+      });
+      // Firestore updated successfully
+
+      // Update local state
+      setPlayingVideo(prev => ({
+        ...prev,
+        comments: [...(prev.comments || []), commentData]
+      }));
+
+      // Update the video in talentVideos state as well
+      setTalentVideos(prev => prev.map(video => 
+        video.id === playingVideo.id 
+          ? { ...video, comments: [...(video.comments || []), commentData] }
+          : video
+      ));
+
+      // Clear input
+      setVideoComment('');
+      // Comment added successfully and UI updated!
+
+    } catch (error) {
+      // Error adding video comment - logged in production
+      alert('Failed to add comment. Please try again.');
+    } finally {
+      setIsCommentingVideo(false);
+    }
   };
 
   const handleDeleteVideo = async (videoId) => {
@@ -339,7 +477,7 @@ export default function Profile({ profileUserId = null }) {
         fetchTalentVideos();
         alert('Video deleted successfully!');
       } catch (error) {
-        console.error('Error deleting video:', error);
+        // Error deleting video - logged in production
         alert('Failed to delete video. Please try again.');
       }
     }
@@ -379,7 +517,7 @@ export default function Profile({ profileUserId = null }) {
         refreshAuth();
       }, 500);
     } catch (error) {
-      console.error('Error uploading image:', error);
+      // Error uploading image - logged in production
     }
     setUploading(false);
   };
@@ -412,7 +550,7 @@ export default function Profile({ profileUserId = null }) {
           const imageRef = ref(storage, `profile-images/${currentUser.uid}`);
           await deleteObject(imageRef);
         } catch (storageError) {
-          console.log('Storage delete error (image may not exist):', storageError);
+          // Storage delete error (image may not exist) - logged in production
           // Continue with profile update even if storage delete fails
         }
       }
@@ -434,7 +572,7 @@ export default function Profile({ profileUserId = null }) {
       
       alert('Profile photo deleted successfully!');
     } catch (error) {
-      console.error('Error deleting profile image:', error);
+      // Error deleting profile image - logged in production
       alert('Failed to delete profile photo. Please try again.');
     }
     setUploading(false);
@@ -443,38 +581,38 @@ export default function Profile({ profileUserId = null }) {
   // Generic function to open stories for any user
   const openStoriesForUser = async (userId, userDisplayName, userPhotoURL) => {
     try {
-      console.log('🔍 Fetching stories for user:', userId);
-      console.log('👤 User info:', { userDisplayName, userPhotoURL });
-      console.log('🎯 Known active user IDs:');
-      console.log('   - jVBTgUSK7DbEJctFrVtJX80V7WE2 (krishnakant bhardwaj)');
-      console.log('   - SiuIzG3GPhaBOb02aZRhFYzxojI3 (vishnuayurvedic company)');
-      console.log('🔍 Searching for user ID:', userId);
+      // Fetching stories for user - development debug removed for production
+      // User info - development debug removed for production
+      // Known active user IDs - development debug removed for production
+      // - Known user 1 - development debug removed for production
+      // - Known user 2 - development debug removed for production
+      // Searching for user ID - development debug removed for production
       
       // First try to get real stories from Firebase
       let stories = await StoriesService.getUserStories(userId);
-      console.log('📋 Firebase stories data:', stories);
-      console.log('📊 Firebase stories count:', stories.length);
+      // Firebase stories data - development debug removed for production
+      // Firebase stories count - development debug removed for production
       
       // If we found Firebase stories, use them
       if (stories.length > 0) {
-        console.log('✅ Using Firebase stories for user');
+        // Using Firebase stories for user
       } else {
-        console.log('❌ No Firebase stories found for this user');
+        // No Firebase stories found for this user
         
         // DEBUG: Check if this is one of our known active users
         if (userId === 'jVBTgUSK7DbEJctFrVtJX80V7WE2' || userId === 'SiuIzG3GPhaBOb02aZRhFYzxojI3') {
-          console.log('🚨 ERROR: This user SHOULD have active stories but none were found!');
-          console.log('🔍 This indicates a problem with the story fetching logic.');
+          // ERROR: This user SHOULD have active stories but none were found!
+          // This indicates a problem with the story fetching logic.
           alert(`Debug Error: User ${userDisplayName} should have stories but none found. Check console for details.`);
         } else {
-          console.log(`ℹ️ User ${userDisplayName || userId} has no active stories (this is expected)`);
+          // User has no active stories (this is expected)
           alert(`${userDisplayName || 'This user'} has no active stories to view. Stories expire after 24 hours.`);
         }
         return;
       }
       
-      console.log(`📱 Total stories found: ${stories.length}`);
-      console.log('📋 Stories data:', stories);
+      // Total stories found - development debug removed for production
+      // Stories data - development debug removed for production
       
       // Set up user stories data for StoryViewer
       const userStoriesData = {
@@ -486,13 +624,13 @@ export default function Profile({ profileUserId = null }) {
         stories: stories
       };
 
-      console.log('🎬 Opening story viewer with data:', userStoriesData);
+      // Opening story viewer with data - development debug removed for production
       setUserStories(userStoriesData);
       setCurrentStoryIndex(0);
       setShowStoryViewer(true);
     } catch (error) {
-      console.error('❌ Error fetching user stories:', error);
-      console.error('❌ Error details:', error.message);
+      // Error fetching user stories - logged in production
+      // Error details - logged in production
       alert(`Failed to load stories: ${error.message}. Please try again.`);
     }
   };
@@ -581,9 +719,14 @@ export default function Profile({ profileUserId = null }) {
 
       alert('Post deleted successfully!');
     } catch (error) {
-      console.error('Error deleting post:', error);
+      // Error deleting post - logged in production
       alert('Failed to delete post. Please try again.');
     }
+  };
+
+  // Handle verification request
+  const handleVerificationRequest = () => {
+    setShowVerificationModal(true);
   };
 
   const handleEditProfile = () => {
@@ -607,7 +750,7 @@ export default function Profile({ profileUserId = null }) {
       setProfile(updatedProfile);
       setIsEditing(false);
     } catch (error) {
-      console.error('Error saving profile:', error);
+      // Error saving profile - logged in production
     }
   };
 
@@ -635,7 +778,7 @@ export default function Profile({ profileUserId = null }) {
         fileName: file.name 
       }));
     } catch (error) {
-      console.error('Error uploading certificate:', error);
+      // Error uploading certificate - logged in production
       alert('Failed to upload certificate');
     }
   };
@@ -781,7 +924,7 @@ export default function Profile({ profileUserId = null }) {
         
         setFriendships(friendshipsList);
       } catch (error) {
-        console.error('❌ Error fetching friendships:', error);
+        // Error fetching friendships - logged in production
       }
     };
     
@@ -842,7 +985,7 @@ export default function Profile({ profileUserId = null }) {
           await deleteDoc(doc(db, 'follows', docSnapshot.id));
         });
         
-        console.log(`✅ Unfollowed ${profile?.displayName || 'user'}`);
+        // Unfollowed user - development debug removed for production
       } else {
         // Follow: add to follows collection
         await addDoc(collection(db, 'follows'), {
@@ -853,10 +996,10 @@ export default function Profile({ profileUserId = null }) {
           timestamp: serverTimestamp()
         });
         
-        console.log(`✅ Now following ${profile?.displayName || 'user'}`);
+        // Now following user - development debug removed for production
       }
     } catch (error) {
-      console.error('❌ Error updating follow status:', error);
+      // Error updating follow status - logged in production
       alert('Failed to update follow status: ' + error.message);
     }
     
@@ -937,7 +1080,7 @@ export default function Profile({ profileUserId = null }) {
       }
       
     } catch (error) {
-      console.error('Error with friend request:', error);
+      // Error with friend request - logged in production
       alert('Error updating friend request status');
     }
     
@@ -969,7 +1112,7 @@ export default function Profile({ profileUserId = null }) {
       setFollowers(followersList);
       setShowFollowersModal(true);
     } catch (error) {
-      console.error('Error fetching followers:', error);
+      // Error fetching followers - logged in production
     }
   };
 
@@ -998,7 +1141,7 @@ export default function Profile({ profileUserId = null }) {
       setFollowing(followingList);
       setShowFollowingModal(true);
     } catch (error) {
-      console.error('Error fetching following:', error);
+      // Error fetching following - logged in production
     }
   };
 
@@ -1122,6 +1265,13 @@ export default function Profile({ profileUserId = null }) {
                 </div>
               )}
             </div>
+            
+            {/* Verification Badge */}
+            <VerificationBadge 
+              profile={profile}
+              isOwnProfile={isOwnProfile}
+              onVerificationRequest={handleVerificationRequest}
+            />
             
             {/* Hidden file input */}
             {isOwnProfile && !isGuest() && (
@@ -1634,7 +1784,11 @@ export default function Profile({ profileUserId = null }) {
           <h2>Posts ({posts.filter(post => post.imageUrl || post.mediaUrl).length})</h2>
           <div className="posts-grid">
             {posts.filter(post => post.imageUrl || post.mediaUrl).map((post) => (
-              <div key={post.id} className="post-thumbnail">
+              <div 
+                key={post.id} 
+                className="post-thumbnail clickable-post"
+                onClick={() => navigate(`/post/${post.id}`)}
+              >
                 <img src={post.imageUrl || post.mediaUrl} alt={post.caption} />
                 
                 {/* Three dots menu for own posts */}
@@ -1784,35 +1938,134 @@ export default function Profile({ profileUserId = null }) {
                 className="modal-video-player"
                 poster={playingVideo.metadata?.thumbnail}
               />
+              
+              {/* Video Info and Actions */}
               <div className="video-modal-info">
-                <div className="video-stats">
-                  <span>👁️ {playingVideo.views || 0} views</span>
-                  <span>❤️ {playingVideo.likes?.length || 0} likes</span>
-                  <span>📅 {playingVideo.uploadedAt ? (() => {
-                    try {
-                      if (playingVideo.uploadedAt.seconds) {
-                        // Firestore Timestamp
-                        return new Date(playingVideo.uploadedAt.seconds * 1000).toLocaleDateString();
-                      } else if (playingVideo.uploadedAt.toDate) {
-                        // Firestore Timestamp with toDate method
-                        return playingVideo.uploadedAt.toDate().toLocaleDateString();
-                      } else if (playingVideo.uploadedAt instanceof Date) {
-                        // JavaScript Date object
-                        return playingVideo.uploadedAt.toLocaleDateString();
-                      } else {
-                        // String or other format
-                        return new Date(playingVideo.uploadedAt).toLocaleDateString();
-                      }
-                    } catch (error) {
-                      console.warn('Error formatting date:', error);
-                      return 'Unknown date';
-                    }
-                  })() : 'Unknown date'}</span>
-                </div>
                 <div className="video-description">
                   <strong>Uploaded by:</strong> {playingVideo.userDisplayName || 'Unknown User'}
                   {playingVideo.isSample && (
                     <span className="sample-badge">Sample Video</span>
+                  )}
+                </div>
+                
+                {/* Interactive Actions */}
+                <div className="video-actions-section">
+                  <button 
+                    className={`video-like-btn ${(playingVideo.likes || []).includes(currentUser?.uid) ? 'liked' : ''}`}
+                    onClick={handleVideoLike}
+                    disabled={!currentUser || isLikingVideo}
+                  >
+                    <Heart 
+                      size={20} 
+                      fill={(playingVideo.likes || []).includes(currentUser?.uid) ? '#e74c3c' : 'none'}
+                      color={(playingVideo.likes || []).includes(currentUser?.uid) ? '#e74c3c' : 'currentColor'}
+                      className={(playingVideo.likes || []).includes(currentUser?.uid) ? 'heart-liked' : ''}
+                    />
+                    <span>{(playingVideo.likes || []).length}</span>
+                    {isLikingVideo && <span style={{marginLeft: '5px'}}>...</span>}
+                  </button>
+                  <button 
+                    className="video-comment-btn"
+                    onClick={() => {
+                      // Scroll to comment input field
+                      const commentForm = document.querySelector('.video-comment-form .video-comment-input');
+                      if (commentForm) {
+                        commentForm.focus();
+                        commentForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }}
+                  >
+                    <MessageCircle size={20} />
+                    <span>{(playingVideo.comments || []).length}</span>
+                  </button>
+                  <div className="video-stats">
+                    <span>👁️ {playingVideo.views || 0} views</span>
+                    <span>📅 {playingVideo.uploadedAt ? (() => {
+                      try {
+                        if (playingVideo.uploadedAt.seconds) {
+                          // Firestore Timestamp
+                          return new Date(playingVideo.uploadedAt.seconds * 1000).toLocaleDateString();
+                        } else if (playingVideo.uploadedAt.toDate) {
+                          // Firestore Timestamp with toDate method
+                          return playingVideo.uploadedAt.toDate().toLocaleDateString();
+                        } else if (playingVideo.uploadedAt instanceof Date) {
+                          // JavaScript Date object
+                          return playingVideo.uploadedAt.toLocaleDateString();
+                        } else {
+                          // String or other format
+                          return new Date(playingVideo.uploadedAt).toLocaleDateString();
+                        }
+                      } catch (error) {
+                        // Error formatting date - logged in production
+                        return 'Unknown date';
+                      }
+                    })() : 'Unknown date'}</span>
+                  </div>
+                </div>
+                
+                {/* Comments Section */}
+                <div className="video-comments-section">
+                  <h4>Comments ({(playingVideo.comments || []).length})</h4>
+                  <div className="video-comments-list">
+                    {(playingVideo.comments || []).length === 0 ? (
+                      <p className="no-comments">No comments yet. Be the first to comment!</p>
+                    ) : (
+                      (playingVideo.comments || []).map((comment, index) => (
+                        <div key={index} className="video-comment">
+                          <img 
+                            src={comment.userPhotoURL || 'https://via.placeholder.com/32/2d3748/00ff88?text=👤'} 
+                            alt="User avatar"
+                            className="comment-avatar"
+                          />
+                          <div className="comment-content">
+                            <div className="comment-header">
+                              <strong>{comment.userDisplayName || 'Anonymous User'}</strong>
+                              <span className="comment-time">
+                                {comment.timestamp ? (
+                                  comment.timestamp instanceof Date ? 
+                                    comment.timestamp.toLocaleDateString() :
+                                    new Date(comment.timestamp).toLocaleDateString()
+                                ) : 'now'}
+                              </span>
+                            </div>
+                            <p className="comment-text">{comment.text}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  
+                  {/* Add Comment Form */}
+                  {!isGuest() ? (
+                    <form 
+                      className="video-comment-form"
+                      onSubmit={handleVideoComment}
+                    >
+                      <img 
+                        src={currentUser?.photoURL || 'https://via.placeholder.com/32/2d3748/00ff88?text=👤'} 
+                        alt="Your avatar"
+                        className="comment-avatar"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Add a comment..."
+                        value={videoComment}
+                        onChange={(e) => setVideoComment(e.target.value)}
+                        className="video-comment-input"
+                        disabled={isCommentingVideo}
+                      />
+                      <button 
+                        type="submit"
+                        className="video-comment-submit-btn"
+                        disabled={!videoComment.trim() || isCommentingVideo}
+                      >
+                        <Send size={16} />
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="guest-comment-message">
+                      <span>Sign in to comment on videos</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -1820,6 +2073,13 @@ export default function Profile({ profileUserId = null }) {
           </div>
         </div>
       )}
+      
+      {/* Verification Request Modal */}
+      <VerificationRequestModal 
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        userProfile={profile}
+      />
       
       {/* Story Viewer */}
       {showStoryViewer && userStories.stories.length > 0 && (

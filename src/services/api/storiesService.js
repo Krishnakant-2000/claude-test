@@ -15,7 +15,7 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from './firebase';
+import { db, storage } from '../../lib/firebase';
 
 // Stories Collection Operations
 export class StoriesService {

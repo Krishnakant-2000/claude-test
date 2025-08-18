@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../services/api/firebase';
+import { db } from '../../lib/firebase';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc, collection, query, where, getDocs, deleteDoc, increment } from 'firebase/firestore';
 import { Heart, MessageCircle, ArrowLeft, Share, Send, Trash2, Download, User } from 'lucide-react';
 import ThemeToggle from '../../components/common/ui/ThemeToggle';

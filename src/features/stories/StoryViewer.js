@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { StoriesService } from '../../services/api/storiesService';
 import { X, Share, Heart, MessageCircle, MoreVertical, Download, Send, Volume2, VolumeX, Trash2 } from 'lucide-react';
 import StoryProgress from './StoryProgress';
-import { db } from '../../services/api/firebase';
+import { db } from '../../lib/firebase';
 import { addDoc, collection, query, where, getDocs, deleteDoc, doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import notificationService from '../../services/notificationService';
 import { SafeCommentsList } from '../../components/common/safety/SafeComment';

@@ -1,5 +1,5 @@
 // Cleanup utility to remove corrupted notification data
-import { db } from '../../services/api/firebase';
+import { db } from '../../lib/firebase';
 import { collection, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
 
 export const cleanupCorruptedNotifications = async (userId) => {

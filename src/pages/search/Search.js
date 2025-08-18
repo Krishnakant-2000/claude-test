@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../services/api/firebase';
+import { db } from '../../lib/firebase';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { Search as SearchIcon, UserPlus, Check, X, Filter, MapPin, User, Award, Target, Calendar } from 'lucide-react';
 import FooterNav from '../../components/layout/FooterNav';

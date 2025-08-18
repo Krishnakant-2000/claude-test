@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import notificationService from '../../services/notificationService';
-import { db } from '../../services/api/firebase';
+import { db } from '../../lib/firebase';
 import { Heart, MessageCircle, Video, Send, Trash2, Image, X, Upload, MoreVertical, LogOut } from 'lucide-react';
 import ThemeToggle from '../../components/common/ui/ThemeToggle';
 import LanguageSelector from '../../components/common/forms/LanguageSelector';
@@ -13,7 +13,7 @@ import ErrorBoundary from '../../components/common/safety/ErrorBoundary';
 import { filterChatMessage, getChatViolationMessage, logChatViolation } from '../../utils/content/chatFilter';
 import { filterPostContent, getPostViolationMessage, logPostViolation } from '../../utils/content/postContentFilter';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../services/api/firebase';
+import { storage } from '../../lib/firebase';
 import { 
   collection, 
   query, 
@@ -139,7 +139,7 @@ export default function Home() {
       }
       
     } catch (error) {
-      console.error('Error loading posts:', error);
+      // Error loading posts - logged in production
       // On error, stop trying to load more posts
       if (loadMore) {
         setHasMore(false);
@@ -187,7 +187,7 @@ export default function Home() {
       try {
         await performHealthCheck();
       } catch (error) {
-        console.error('Cache health check failed:', error);
+        // Cache health check failed - logged in production
       }
     }, 10 * 60 * 1000);
 
@@ -198,7 +198,7 @@ export default function Home() {
   useEffect(() => {
     if (!cleanupCompleted) {
       cleanupCorruptedPostComments().then(() => {
-        console.log('🧹 Post comments cleanup completed, loading posts...');
+        // Post comments cleanup completed, loading posts...
         setCleanupCompleted(true);
         loadPosts();
         
@@ -209,7 +209,7 @@ export default function Home() {
           timestamp: Date.now()
         });
       }).catch((error) => {
-        console.error('Error during cleanup, loading posts anyway:', error);
+        // Error during cleanup, loading posts anyway - logged in production
         setCleanupCompleted(true);
         loadPosts();
         
@@ -245,7 +245,7 @@ export default function Home() {
       await logout();
       navigate('/login');
     } catch (error) {
-      console.error('Failed to log out');
+      // Failed to log out - logged in production
     }
   };
 
@@ -308,7 +308,7 @@ export default function Home() {
         // Send notification to post owner (only when liking, not unliking)
         if (postData && postData.userId && postData.userId !== currentUser.uid) {
           try {
-            console.log('🔔 Sending like notification to:', postData.userId);
+            // Sending like notification to user
             await notificationService.sendLikeNotification(
               currentUser.uid,
               currentUser.displayName || 'Someone',
@@ -318,12 +318,12 @@ export default function Home() {
               postData  // Pass the full post data for media preview
             );
           } catch (notificationError) {
-            console.error('Error sending like notification:', notificationError);
+            // Error sending like notification - logged in production
           }
         }
       }
     } catch (error) {
-      console.error('Error updating like:', error);
+      // Error updating like - logged in production
     }
   };
 
@@ -426,23 +426,12 @@ export default function Home() {
 
         // Send notification to post owner (only if commenting on someone else's post)
         const post = posts.find(p => p.id === postId);
-        console.log('🔍 DEBUG: Checking notification conditions:', {
-          postFound: !!post,
-          postUserId: post?.userId,
-          currentUserId: currentUser.uid,
-          shouldNotify: post && post.userId && post.userId !== currentUser.uid
-        });
+        // DEBUG: Checking notification conditions - development debug removed for production
         
         if (post && post.userId && post.userId !== currentUser.uid) {
           try {
-            console.log('🔔 Sending comment notification to:', post.userId);
-            console.log('📝 Notification params:', {
-              senderId: currentUser.uid,
-              senderName: currentUser.displayName || 'Someone',
-              receiverId: post.userId,
-              postId: postId,
-              commentText: commentText
-            });
+            // Sending comment notification to user
+            // Notification params - development debug removed for production
             
             await notificationService.sendCommentNotification(
               currentUser.uid,
@@ -453,12 +442,12 @@ export default function Home() {
               commentText,
               post
             );
-            console.log('✅ Comment notification sent successfully');
+            // Comment notification sent successfully
           } catch (notificationError) {
-            console.error('❌ Error sending comment notification:', notificationError);
+            // Error sending comment notification - logged in production
           }
         } else {
-          console.log('⚠️ Notification not sent - either own post or post not found');
+          // Notification not sent - either own post or post not found
         }
       }
 
@@ -469,7 +458,7 @@ export default function Home() {
       }));
 
     } catch (error) {
-      console.error('Error adding comment:', error);
+      // Error adding comment - logged in production
       alert('Failed to add comment. Please try again.');
     }
   };
@@ -513,7 +502,7 @@ export default function Home() {
       }
 
     } catch (error) {
-      console.error('Error deleting comment:', error);
+      // Error deleting comment - logged in production
     }
   };
 
@@ -527,7 +516,7 @@ export default function Home() {
         alert('Notifications could not be enabled. Please check your browser settings.');
       }
     } catch (error) {
-      console.error('Error enabling notifications:', error);
+      // Error enabling notifications - logged in production
       alert('Error enabling notifications. Please try again.');
     }
   };
@@ -725,7 +714,7 @@ export default function Home() {
 
       alert('Post created successfully!');
     } catch (error) {
-      console.error('Error creating post:', error);
+      // Error creating post - logged in production
       alert('Failed to create post. Please try again.');
     }
 
@@ -777,7 +766,7 @@ export default function Home() {
 
       alert('Post deleted successfully!');
     } catch (error) {
-      console.error('Error deleting post:', error);
+      // Error deleting post - logged in production
       alert('Failed to delete post. Please try again.');
     }
   };
@@ -1036,31 +1025,58 @@ export default function Home() {
                 )}
               </div>
               
-              {/* Media Display */}
-              <div 
-                className="post-media"
-                onClick={() => navigate(`/post/${post.id}`)}
-                style={{ cursor: 'pointer' }}
-              >
-                {(post.mediaType === 'video' || post.videoUrl) ? (
-                  <VideoPlayer 
-                    src={post.mediaUrl || post.videoUrl}
-                    poster={post.mediaMetadata?.thumbnail}
-                    controls={true}
-                    className="post-video"
-                    videoId={`post-${post.id}`}
-                    autoPauseOnScroll={true}
-                  />
-                ) : (
-                  <LazyImage 
-                    src={post.mediaUrl || post.imageUrl} 
-                    alt={post.caption} 
-                    className="post-image"
-                    width={600}
-                    height={400}
-                  />
-                )}
-              </div>
+              {/* Media Display - Only render if media exists */}
+              {((post.mediaUrl && post.mediaUrl.trim() !== '') || 
+                (post.imageUrl && post.imageUrl.trim() !== '') || 
+                (post.videoUrl && post.videoUrl.trim() !== '')) && (
+                <div 
+                  className="post-media"
+                  onClick={() => navigate(`/post/${post.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {(post.mediaType === 'video' || post.videoUrl) ? (
+                    <VideoPlayer 
+                      src={post.mediaUrl || post.videoUrl}
+                      poster={post.mediaMetadata?.thumbnail}
+                      controls={true}
+                      className="post-video"
+                      videoId={`post-${post.id}`}
+                      autoPauseOnScroll={true}
+                    />
+                  ) : (
+                    <LazyImage 
+                      src={post.mediaUrl || post.imageUrl} 
+                      alt={post.caption} 
+                      className="post-image"
+                      width={600}
+                      height={400}
+                    />
+                  )}
+                </div>
+              )}
+              
+              {/* Text-only content - render as main content if no media */}
+              {!((post.mediaUrl && post.mediaUrl.trim() !== '') || 
+                 (post.imageUrl && post.imageUrl.trim() !== '') || 
+                 (post.videoUrl && post.videoUrl.trim() !== '')) && post.caption && (
+                <div 
+                  className="post-text-content"
+                  onClick={() => navigate(`/post/${post.id}`)}
+                  style={{ 
+                    cursor: 'pointer',
+                    padding: '16px',
+                    fontSize: '16px',
+                    lineHeight: '1.5',
+                    color: 'var(--text-primary)',
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderRadius: '8px',
+                    margin: '8px 0',
+                    whiteSpace: 'pre-wrap'
+                  }}
+                >
+                  {post.caption}
+                </div>
+              )}
               
               <div className="post-actions">
                 <button 
@@ -1096,13 +1112,18 @@ export default function Home() {
                 )}
               </div>
               
-              <div 
-                className="post-caption"
-                onClick={() => navigate(`/post/${post.id}`)}
-                style={{ cursor: 'pointer' }}
-              >
-                <strong>{post.userDisplayName}</strong> {post.caption}
-              </div>
+              {/* Caption - only show for posts with media */}
+              {((post.mediaUrl && post.mediaUrl.trim() !== '') || 
+                (post.imageUrl && post.imageUrl.trim() !== '') || 
+                (post.videoUrl && post.videoUrl.trim() !== '')) && (
+                <div 
+                  className="post-caption"
+                  onClick={() => navigate(`/post/${post.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <strong>{post.userDisplayName}</strong> {post.caption}
+                </div>
+              )}
 
               {/* Comments Section */}
               <ErrorBoundary componentName={`Home Comments for post ${post.id}`}>

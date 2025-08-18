@@ -26,6 +26,7 @@ const Events = React.lazy(() => import('./pages/events/Events'));
 const PostDetail = React.lazy(() => import('./pages/postdetail/PostDetail'));
 const StoryDetail = React.lazy(() => import('./features/stories/StoryDetail'));
 const StorySharePage = React.lazy(() => import('./features/stories/StorySharePage'));
+const VerificationPage = React.lazy(() => import('./pages/verification/VerificationPage'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -116,6 +117,7 @@ function AppContent() {
                 </PrivateRoute>
               } />
               <Route path="/story-share/:storyId" element={<StorySharePage />} />
+              <Route path="/verify/:verificationId" element={<VerificationPage />} />
               </Routes>
       </Suspense>
       

@@ -1,5 +1,5 @@
 // Base service class for Firebase operations
-import { db } from './firebase';
+import { db } from '../../lib/firebase';
 import { 
   collection, 
   doc, 

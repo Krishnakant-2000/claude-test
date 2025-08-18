@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { db, storage } from '../../services/api/firebase';
+import { db, storage } from '../../lib/firebase';
 import { Image, Video, Upload, ArrowLeft, Wifi, WifiOff } from 'lucide-react';
 import VideoUpload from '../../components/common/forms/VideoUpload';
 import { useLanguage } from '../../contexts/LanguageContext';

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../services/api/firebase';
+import { db } from '../../lib/firebase';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { Heart, MessageCircle, ArrowLeft, Video, Send, Trash2 } from 'lucide-react';
 import ThemeToggle from '../../components/common/ui/ThemeToggle';
@@ -345,36 +345,40 @@ export default function PostDetail() {
               </span>
             </div>
             
-            {/* Media Display */}
-            <div className="post-media">
-              {(post.mediaType === 'video' || post.videoUrl) ? (
-                <div className="post-video-container">
-                  <VideoPlayer 
-                    src={post.mediaUrl || post.videoUrl}
-                    poster={post.mediaMetadata?.thumbnail}
-                    controls={true}
-                    className="post-video"
-                    videoId={`post-${post.id}`}
-                    autoPauseOnScroll={false}
-                  />
-                </div>
-              ) : (
-                <div className="post-image-container">
-                  <LazyImage 
-                    src={post.mediaUrl || post.imageUrl} 
-                    alt={post.caption || 'Post image'} 
-                    className="post-image"
-                    style={{
-                      maxWidth: '100%',
-                      maxHeight: '70vh',
-                      width: 'auto',
-                      height: 'auto',
-                      objectFit: 'contain'
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+            {/* Media Display - Only render if media exists */}
+            {((post.mediaUrl && post.mediaUrl.trim() !== '') || 
+              (post.imageUrl && post.imageUrl.trim() !== '') || 
+              (post.videoUrl && post.videoUrl.trim() !== '')) && (
+              <div className="post-media">
+                {(post.mediaType === 'video' || post.videoUrl) ? (
+                  <div className="post-video-container">
+                    <VideoPlayer 
+                      src={post.mediaUrl || post.videoUrl}
+                      poster={post.mediaMetadata?.thumbnail}
+                      controls={true}
+                      className="post-video"
+                      videoId={`post-${post.id}`}
+                      autoPauseOnScroll={false}
+                    />
+                  </div>
+                ) : (
+                  <div className="post-image-container">
+                    <LazyImage 
+                      src={post.mediaUrl || post.imageUrl} 
+                      alt={post.caption || 'Post image'} 
+                      className="post-image"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '70vh',
+                        width: 'auto',
+                        height: 'auto',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
             
             <div className="post-actions">
               <button 
@@ -407,9 +411,36 @@ export default function PostDetail() {
               )}
             </div>
             
-            <div className="post-caption">
-              <strong>{post.userDisplayName}</strong> {post.caption}
-            </div>
+            {/* Text-only content - render as main content if no media */}
+            {!((post.mediaUrl && post.mediaUrl.trim() !== '') || 
+               (post.imageUrl && post.imageUrl.trim() !== '') || 
+               (post.videoUrl && post.videoUrl.trim() !== '')) && post.caption && (
+              <div 
+                className="post-text-content"
+                style={{ 
+                  padding: '20px',
+                  fontSize: '18px',
+                  lineHeight: '1.6',
+                  color: 'var(--text-primary)',
+                  backgroundColor: 'var(--bg-secondary)',
+                  borderRadius: '12px',
+                  margin: '16px 0',
+                  whiteSpace: 'pre-wrap',
+                  border: '1px solid var(--border-color)'
+                }}
+              >
+                {post.caption}
+              </div>
+            )}
+            
+            {/* Caption - only show for posts with media */}
+            {((post.mediaUrl && post.mediaUrl.trim() !== '') || 
+              (post.imageUrl && post.imageUrl.trim() !== '') || 
+              (post.videoUrl && post.videoUrl.trim() !== '')) && (
+              <div className="post-caption">
+                <strong>{post.userDisplayName}</strong> {post.caption}
+              </div>
+            )}
 
             {/* Comments Section */}
             <div className="comments-section">

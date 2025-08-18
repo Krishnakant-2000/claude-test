@@ -1,7 +1,7 @@
 // Notification Manager - Handles multiple in-app notifications
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { db } from '../../../services/api/firebase';
+import { db } from '../../../lib/firebase';
 import { collection, query, where, onSnapshot, orderBy, limit, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import NotificationToast from './NotificationToast';
 import notificationService from '../../../services/notificationService';

@@ -1,5 +1,5 @@
 // Cleanup utility to remove corrupted post comment data
-import { db } from '../../services/api/firebase';
+import { db } from '../../lib/firebase';
 import { collection, getDocs, updateDoc, doc, getDoc } from 'firebase/firestore';
 
 export const cleanupCorruptedPostComments = async () => {

@@ -1,6 +1,6 @@
 // Push Notification Service for AmaPlayer
-import { messaging, getToken, onMessage } from './api/firebase';
-import { db } from './api/firebase';
+import { messaging, getToken, onMessage } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { doc, setDoc, addDoc, collection, serverTimestamp, getDoc } from 'firebase/firestore';
 
 class NotificationService {

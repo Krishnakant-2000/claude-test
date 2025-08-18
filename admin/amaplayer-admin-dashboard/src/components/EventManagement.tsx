@@ -11,9 +11,13 @@ import {
   Trash2, 
   MoreVertical,
   CheckCircle,
-  XCircle
+  XCircle,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import { eventsService, Event } from '../services/eventsService';
+import { storage } from '../firebase/config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const EventManagement: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -89,54 +93,129 @@ const EventManagement: React.FC = () => {
       location: event?.location || '',
       category: event?.category || 'other',
       maxParticipants: event?.maxParticipants || 0,
-      isActive: event?.isActive ?? true
+      isActive: event?.isActive ?? true,
+      imageUrl: event?.imageUrl || ''
     });
     const [submitting, setSubmitting] = useState(false);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string>('');
+    const [uploadingImage, setUploadingImage] = useState(false);
+
+    // Handle image file selection
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        setImageFile(file);
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setImagePreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    // Upload image to Firebase Storage
+    const uploadImage = async (file: File): Promise<string> => {
+      setUploadingImage(true);
+      try {
+        console.log('Uploading file:', file.name, 'Size:', file.size);
+        
+        // Validate file
+        if (!file || file.size === 0) {
+          throw new Error('Invalid file selected');
+        }
+
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+          throw new Error('File size must be less than 10MB');
+        }
+
+        const timestamp = Date.now();
+        const fileName = `events/${timestamp}-${file.name}`;
+        const storageRef = ref(storage, fileName);
+        
+        console.log('Uploading to path:', fileName);
+        const snapshot = await uploadBytes(storageRef, file);
+        console.log('Upload snapshot:', snapshot);
+        
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        console.log('Download URL obtained:', downloadURL);
+        
+        return downloadURL;
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        setUploadingImage(false); // Reset state on error
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(`Image upload failed: ${errorMessage}`);
+      } finally {
+        setUploadingImage(false);
+      }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setSubmitting(true);
 
       try {
-        if (event) {
-          await eventsService.updateEvent(event.id!, {
-            ...formData,
-            organizer: 'Admin',
-            contactEmail: 'admin@amaplayer.com'
-          });
-        } else {
-          await eventsService.createEvent({
-            ...formData,
-            organizer: 'Admin',
-            contactEmail: 'admin@amaplayer.com'
-          });
+        let finalImageUrl = formData.imageUrl;
+
+        // Upload new image if selected
+        if (imageFile) {
+          console.log('Starting image upload...');
+          finalImageUrl = await uploadImage(imageFile);
+          console.log('Image upload completed:', finalImageUrl);
         }
+
+        const eventData = {
+          ...formData,
+          imageUrl: finalImageUrl,
+          organizer: 'Admin',
+          contactEmail: 'admin@amaplayer.com'
+        };
+
+        console.log('Creating/updating event with data:', eventData);
+
+        if (event) {
+          await eventsService.updateEvent(event.id!, eventData);
+          console.log('Event updated successfully');
+        } else {
+          const eventId = await eventsService.createEvent(eventData);
+          console.log('Event created successfully with ID:', eventId);
+        }
+        
         await loadEvents();
+        // Reset form state
+        setImageFile(null);
+        setImagePreview('');
         onClose();
       } catch (error) {
         console.error('Error saving event:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        alert(`Error saving event: ${errorMessage}`);
       } finally {
         setSubmitting(false);
+        // Ensure uploadingImage is reset
+        setUploadingImage(false);
       }
     };
 
     return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-90vh overflow-y-auto">
-          <div className="p-6">
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-xl font-bold text-gray-900">
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto">
+          <div className="p-4">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-lg font-bold text-gray-900">
                 {event ? 'Edit Event' : 'Create New Event'}
               </h2>
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <XCircle className="w-6 h-6" />
+                <XCircle className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Event Title *
@@ -207,6 +286,60 @@ const EventManagement: React.FC = () => {
                 />
               </div>
 
+              {/* Event Image Upload */}
+              <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  📸 Event Image (Optional)
+                </label>
+                
+                {/* Current Image Preview */}
+                {(formData.imageUrl || imagePreview) && (
+                  <div className="mb-3">
+                    <img
+                      src={imagePreview || formData.imageUrl}
+                      alt="Event preview"
+                      className="w-full h-32 object-cover rounded border border-gray-300"
+                    />
+                    <p className="text-xs text-green-600 mt-1">
+                      {imagePreview ? '✨ New image ready to upload' : '✅ Current event image'}
+                    </p>
+                  </div>
+                )}
+                
+                {/* File Input */}
+                <div className="flex items-center justify-center w-full">
+                  <label className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded cursor-pointer transition-colors ${
+                    uploadingImage 
+                      ? 'border-blue-400 bg-blue-50' 
+                      : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                  }`}>
+                    <div className="flex flex-col items-center justify-center py-2">
+                      {uploadingImage ? (
+                        <>
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mb-1"></div>
+                          <p className="text-xs text-blue-600">Uploading...</p>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-6 h-6 mb-1 text-gray-400" />
+                          <p className="text-xs text-gray-500">
+                            <span className="font-semibold">Click</span> to upload image
+                          </p>
+                          <p className="text-xs text-gray-400">PNG, JPG, GIF (up to 10MB)</p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      disabled={uploadingImage}
+                    />
+                  </label>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -257,20 +390,28 @@ const EventManagement: React.FC = () => {
                 </label>
               </div>
 
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200"
+                  className="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                  disabled={submitting || uploadingImage}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                  disabled={submitting || uploadingImage}
+                  className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors duration-200 flex items-center space-x-2"
                 >
-                  {submitting ? 'Saving...' : (event ? 'Update Event' : 'Create Event')}
+                  {submitting || uploadingImage ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>{uploadingImage ? 'Uploading Image...' : 'Saving Event...'}</span>
+                    </>
+                  ) : (
+                    <span>{event ? '✏️ Update Event' : '➕ Create Event'}</span>
+                  )}
                 </button>
               </div>
             </form>

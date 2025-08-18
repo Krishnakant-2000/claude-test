@@ -55,7 +55,7 @@ import { configure } from '@testing-library/react';
 configure({ testIdAttribute: 'data-testid' });
 
 // Mock Firebase
-jest.mock('./services/api/firebase', () => ({
+jest.mock(../lib/firebase', () => ({
   auth: {
     currentUser: null,
     signInWithEmailAndPassword: jest.fn(),

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '../services/api/firebase';
+import { auth } from '../lib/firebase';
 import notificationService from '../services/notificationService';
 import { 
   createUserWithEmailAndPassword, 

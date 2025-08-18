@@ -1,4 +1,4 @@
-import { db } from '../../services/api/firebase';
+import { db } from '../../lib/firebase';
 import { collection, doc, setDoc, Timestamp } from 'firebase/firestore';
 import { sampleStories, sampleHighlights } from '../../data/sampleStories';
 

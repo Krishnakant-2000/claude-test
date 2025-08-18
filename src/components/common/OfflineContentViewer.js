@@ -133,7 +133,7 @@ const OfflineContentViewer = () => {
         </div>
       </div>
 
-      {post.mediaUrl && (
+      {post.mediaUrl && post.mediaUrl.trim() !== '' && (
         <div className="post-media">
           {post.mediaType === 'video' ? (
             <video controls>

@@ -1,5 +1,5 @@
 import { ref, uploadBytes, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
-import { storage } from './firebase';
+import { storage } from '../../lib/firebase';
 
 // Supported video file types
 export const SUPPORTED_VIDEO_TYPES = [
