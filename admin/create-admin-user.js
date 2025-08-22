@@ -3,14 +3,17 @@ const { createUserWithEmailAndPassword, getAuth } = require('firebase/auth');
 const { initializeApp } = require('firebase/app');
 const { getFirestore, doc, setDoc } = require('firebase/firestore');
 
-// Firebase config
+// Load environment variables
+require('dotenv').config();
+
+// Firebase config - using environment variables for security
 const firebaseConfig = {
-  apiKey: "AIzaSyBrFpknzO0LwmCKzRbIznQE3erVY0teo80",
-  authDomain: "my-react-firebase-app-69fcd.firebaseapp.com",
-  projectId: "my-react-firebase-app-69fcd",
-  storageBucket: "my-react-firebase-app-69fcd.firebasestorage.app",
-  messagingSenderId: "333629247601",
-  appId: "1:333629247601:web:c7d83b6270eb66083f8bd0"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
