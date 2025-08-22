@@ -1,7 +1,8 @@
 {
   "short_name": "AmaPlayer",
-  "name": "AmaPlayer - Sports Social Media",
-  "description": "Connect with athletes, share your talent, and discover amazing sports content",
+  "name": "AmaPlayer - Sports Social Media v2.1",
+  "description": "Connect with athletes, share your talent, and discover amazing sports content - Updated Landing Page",
+  "version": "2.1.0",
   "icons": [
     {
       "src": "favicon.ico",

@@ -6,6 +6,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import PrivateRoute from './features/auth/PrivateRoute';
 import NetworkStatus from './components/common/NetworkStatus';
+import CacheDetector from './components/CacheDetector';
 import { registerSW } from './utils/serviceWorkerRegistration';
 import { queryClient } from './lib/queryClient';
 import './styles/global.css';
@@ -14,7 +15,8 @@ import './App.css';
 import './performance.css';
 
 // Lazy load components for better performance
-const LandingPage3D = React.lazy(() => import('./pages/landingpage3d/LandingPage3D'));
+const NewLanding = React.lazy(() => import('./pages/newlanding/NewLanding'));
+const LandingPage = React.lazy(() => import('./pages/landingpage/LandingPage'));
 const Login = React.lazy(() => import('./features/auth/Login'));
 const Signup = React.lazy(() => import('./features/auth/Signup'));
 const Home = React.lazy(() => import('./pages/home/Home'));
@@ -51,6 +53,38 @@ const LoadingSpinner = () => (
 
 function AppContent() {
   useEffect(() => {
+    // Conservative cache management - prevent infinite reload
+    const manageCache = () => {
+      const currentVersion = '2.1.0';
+      
+      console.log('APP: Starting conservative cache management...');
+      
+      // Set document title
+      document.title = 'AmaPlayer - Sports Social Media Platform v2.1';
+      
+      // Set version in localStorage (don't clear everything)
+      try {
+        const storedVersion = localStorage.getItem('amaplayer-version');
+        if (!storedVersion || storedVersion !== currentVersion) {
+          localStorage.setItem('amaplayer-version', currentVersion);
+          console.log('APP: Updated version to', currentVersion);
+        }
+      } catch (e) {}
+      
+      // Only clear service workers if they exist
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          if (registrations.length > 0) {
+            console.log('APP: Clearing service workers...');
+            registrations.forEach(registration => registration.unregister());
+          }
+        });
+      }
+    };
+    
+    // Run cache management
+    manageCache();
+    
     // Register service worker for offline functionality - Phase 1
     registerSW({
       onSuccess: () => {
@@ -64,11 +98,13 @@ function AppContent() {
 
   return (
     <div className="App">
+      <CacheDetector />
       <NetworkStatus />
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
-              <Route path="/" element={<LandingPage3D />} />
-              <Route path="/landing" element={<LandingPage3D />} />
+              <Route path="/" element={<NewLanding />} />
+              <Route path="/app-landing" element={<LandingPage />} />
+              <Route path="/landing" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/home" element={

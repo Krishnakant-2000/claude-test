@@ -1,20 +1,72 @@
 /* Verification Request Modal Styles */
 .verification-modal-overlay {
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
 }
 
 .verification-modal-content {
+  background: var(--bg-primary);
+  border-radius: 16px;
+  width: 100%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
 }
 
 .verification-modal-body {
   padding: 0;
+}
+
+/* Modal Header */
+.verification-modal-content .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-primary);
+}
+
+.verification-modal-content .modal-header h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.verification-modal-content .close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.verification-modal-content .close-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.verification-modal-content .close-btn:active {
+  transform: scale(0.95);
 }
 
 /* Review Step */
@@ -67,7 +119,7 @@
 
 .role-badge {
   display: inline-block;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--accent-primary);
   color: white;
   padding: 2px 8px;
   border-radius: 12px;
@@ -157,10 +209,10 @@
 
 /* Verification Info */
 .verification-info {
-  background: linear-gradient(135deg, #667eea22, #764ba222);
+  background: var(--bg-secondary);
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid var(--border-primary);
+  border: 1px solid var(--border-color);
 }
 
 .verification-info h3 {
@@ -352,14 +404,14 @@
 }
 
 .btn-share.primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--accent-primary);
   color: white;
 }
 
 .btn-share.primary:hover {
-  background: linear-gradient(135deg, #5a6fd8, #6a4190);
+  background: var(--accent-secondary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Next Steps */
@@ -491,7 +543,7 @@
 
 /* Dark theme adjustments */
 [data-theme="dark"] .verification-info {
-  background: linear-gradient(135deg, #667eea15, #764ba215);
+  background: var(--bg-tertiary);
 }
 
 [data-theme="dark"] .error-message {
