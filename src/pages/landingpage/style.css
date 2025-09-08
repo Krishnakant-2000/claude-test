@@ -1108,18 +1108,20 @@
     height: 15px;
     left: 204px;
     position: absolute;
-    top: 425px;
+    top: 440px;
     width: 48px;
     transform: rotate(90deg);
+    z-index: 10;
 }
 
 .landing-page .arrow-2 {
     height: 15px;
     left: 204px;
     position: absolute;
-    top: 888px;
+    top: 892px;
     width: 48px;
     transform: rotate(90deg);
+    z-index: 10;
 }
 
 /* Core Values Styling */
@@ -1316,7 +1318,8 @@
     .landing-page .arrow,
     .landing-page .arrow-2 {
         left: 50%;
-        transform: translateX(-50%);
+        transform: translateX(-50%) rotate(90deg);
+        z-index: 10;
     }
 
     /* Adjust frame-4 positioning */
