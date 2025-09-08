@@ -658,18 +658,16 @@ export const AmaPlayerHomePage = () => {
                 <MoreHorizontal size={16} />
               </div>
 
-              {/* Post Image */}
-              <div className="post-media">
-                {post.imageUrl ? (
+              {/* Post Image - Only show if there's actually media */}
+              {post.imageUrl && (
+                <div className="post-media">
                   <img 
                     src={post.imageUrl} 
                     alt="Post" 
                     className="post-image"
                   />
-                ) : (
-                  <PlaceholderImage />
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Post Caption */}
               {post.caption && (
