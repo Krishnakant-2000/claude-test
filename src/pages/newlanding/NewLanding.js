@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { setPageBodyClass } from '../../utils/cssCleanup';
 import './NewLanding.css';
 
+// Import images
+
 const NewLanding = () => {
   // Handle smooth scrolling to sections
   const scrollToSection = (sectionId) => {
@@ -48,79 +50,15 @@ const NewLanding = () => {
     setPageBodyClass('new-landing-page-loaded');
     
     console.log('NEW LANDING: Setup complete');
-    
-    // Load external scripts after component mounts
-    const loadScript = (src) => {
-      return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = src;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.body.appendChild(script);
-      });
-    };
 
-    // Load all required scripts in sequence
-    const loadScripts = async () => {
-      try {
-        await loadScript('/newlanding/assets/js/jquery.min.js');
-        await loadScript('/newlanding/assets/js/jquery.scrollex.min.js');
-        await loadScript('/newlanding/assets/js/skel.min.js');
-        await loadScript('/newlanding/assets/js/util.js');
-        await loadScript('/newlanding/assets/js/main.js');
-        
-        console.log('NEW LANDING: All scripts loaded successfully');
-        
-        // Remove loading class after scripts are loaded
-        setTimeout(() => {
-          document.body.classList.remove('is-loading');
-        }, 100);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.warn('NEW LANDING: Some scripts failed to load:', error);
-        // Even if scripts fail, remove loading class
-        document.body.classList.remove('is-loading');
-      }
-    };
-
-    // Add loading class initially
-    document.body.classList.add('is-loading');
-    
-    // Add a fallback timeout to ensure loading class is removed
-    let fallbackTimeout;
-    fallbackTimeout = setTimeout(() => {
-      console.log('NEW LANDING: Fallback timeout - removing loading class');
-      document.body.classList.remove('is-loading');
-    }, 5000); // 5 second fallback
-    
-    loadScripts().then(() => {
-      if (fallbackTimeout) {
-        clearTimeout(fallbackTimeout);
-      }
-    });
-
-    // Cleanup function to remove scripts and styles when component unmounts
+    // Cleanup function to remove styles when component unmounts
     return () => {
-      // Remove all newlanding scripts
-      const scripts = document.querySelectorAll('script[src*="/newlanding/"]');
-      scripts.forEach(script => {
-        if (script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
-      });
-      
       // Remove all body classes added by newlanding
-      document.body.classList.remove('is-loading');
       document.body.classList.remove('new-landing-page-loaded');
       document.body.classList.remove('landingpage3d-loaded');
       
       // Remove any inline styles that might have been added by scripts
       document.body.removeAttribute('style');
-      
-      // Clear any timeouts
-      if (fallbackTimeout) {
-        clearTimeout(fallbackTimeout);
-      }
       
       console.log('NEW LANDING: Cleanup completed on unmount');
     };
@@ -150,7 +88,16 @@ const NewLanding = () => {
       {/* Banner */}
       <section className="banner full">
         <article>
-          <img src="/newlanding/images/slide01.jpg" alt="" width="1440" height="961" />
+          <div style={{
+            backgroundImage: `url('/newlanding/images/pic01.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0
+          }} />
           <div className="inner">
             <header>
               <p>We Welcome you to <span>Platform</span></p>
@@ -164,7 +111,16 @@ const NewLanding = () => {
         </article>
         
         <article>
-          <img src="/newlanding/images/stadium.jpg" alt="" width="1440" height="961" />
+          <div style={{
+            backgroundImage: `url('/newlanding/images/pic02.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0
+          }} />
           <div className="inner">
             <header>
               <h2>Where Talent Meets Opportunity</h2>
@@ -173,7 +129,16 @@ const NewLanding = () => {
         </article>
         
         <article data-position="center bottom">
-          <img src="/newlanding/images/action.jpg" alt="" width="1440" height="962" />
+          <div style={{
+            backgroundImage: `url('/newlanding/images/pic03.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0
+          }} />
           <div className="inner">
             <header>
               <p>Your Journey, Our Stage.</p>
@@ -297,31 +262,7 @@ const NewLanding = () => {
             
           </div>
           
-          <div className="values-section">
-            <h4>Core Values</h4>
-            <div className="values-grid">
-              <div className="value-item">
-                <span className="value-icon">🏆</span>
-                <strong>Excellence</strong>
-                <small>Pursuit of sporting greatness</small>
-              </div>
-              <div className="value-item">
-                <span className="value-icon">🤝</span>
-                <strong>Community</strong>
-                <small>Supporting each other's journey</small>
-              </div>
-              <div className="value-item">
-                <span className="value-icon">🌟</span>
-                <strong>Opportunity</strong>
-                <small>Creating paths to success</small>
-              </div>
-              <div className="value-item">
-                <span className="value-icon">⚡</span>
-                <strong>Innovation</strong>
-                <small>Leading sports technology</small>
-              </div>
-            </div>
-          </div>
+          
           
           <footer className="align-center">
             <Link to="/search" className="button special">Find Athletes</Link>
@@ -368,7 +309,14 @@ const NewLanding = () => {
           <div className="process-cards">
             <div className="process-card">
               <div className="card-image">
-                <img src="/newlanding/images/upload.jpg" alt="Upload" />
+                <div style={{
+                  backgroundImage: `url('/newlanding/images/pic01.jpg')`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  width: '100%',
+                  height: '200px',
+                  borderRadius: '8px'
+                }} />
               </div>
               <div className="card-content">
                 <h3>UPLOAD</h3>
@@ -378,7 +326,14 @@ const NewLanding = () => {
             <div className="process-arrow">→</div>
             <div className="process-card">
               <div className="card-image">
-                <img src="/newlanding/images/connect.jpg" alt="Connect" />
+                <div style={{
+                  backgroundImage: `url('/newlanding/images/pic02.jpg')`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  width: '100%',
+                  height: '200px',
+                  borderRadius: '8px'
+                }} />
               </div>
               <div className="card-content">
                 <h3>CONNECT</h3>
@@ -388,7 +343,14 @@ const NewLanding = () => {
             <div className="process-arrow">→</div>
             <div className="process-card">
               <div className="card-image">
-                <img src="/newlanding/images/medals.jpg" alt="Get Recognized" />
+                <div style={{
+                  backgroundImage: `url('/newlanding/images/pic03.jpg')`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  width: '100%',
+                  height: '200px',
+                  borderRadius: '8px'
+                }} />
               </div>
               <div className="card-content">
                 <h3>GET RECOGNIZED</h3>
@@ -415,9 +377,9 @@ const NewLanding = () => {
                 <div className="card-overlay"></div>
               </div>
               <div className="card-content">
-                <h3>Explore Athletes</h3>
-                <p>Browse inspiring profiles, achievements, and highlight reels from athletes across all sports. Connect, compete, and get noticed! Dive into a world of talent ready to be recognized.</p>
-                <Link to="/search" className="button special">See Athletes</Link>
+                <h3>Athlete </h3>
+                <p>Join as a player to showcase your skills and connect with coaches. Create your profile, share your achievements, and get discovered by teams and organizations.</p>
+                <Link to="/login?type=athlete" className="button special">Join as Athlete</Link>
               </div>
             </div>
             <div className="explore-card coach-card">
@@ -425,9 +387,9 @@ const NewLanding = () => {
                 <div className="card-overlay"></div>
               </div>
               <div className="card-content">
-                <h3>Meet the Coaches</h3>
-                <p>Discover top coaches, mentors, and trainers driving athlete progress. Find coaching tips, connect for guidance, or partner for professional development—all inside a supportive sports network.</p>
-                <a href="/newlanding/coaches.html" target="_blank" rel="noopener noreferrer" className="button special">View Coaches</a>
+                <h3>Coaches </h3>
+                <p>Join as a coach to train and mentor athletes. Share your expertise, connect with talented players, and help shape the next generation of sports stars.</p>
+                <Link to="/login?type=coach" className="button special">Join as Coach</Link>
               </div>
             </div>
             <div className="explore-card organization-card">
@@ -435,9 +397,9 @@ const NewLanding = () => {
                 <div className="card-overlay"></div>
               </div>
               <div className="card-content">
-                <h3>Join Clubs & Organizations</h3>
-                <p>Explore sports clubs, academies, and organizations scouting new talent and hosting competitions. Find your local club, stay updated on events, or get recruited for the next big opportunity.</p>
-                <a href="/newlanding/organizations.html" target="_blank" rel="noopener noreferrer" className="button special">Explore Clubs</a>
+                <h3>Organization 🏢</h3>
+                <p>Join as an organization to manage teams, host events, and discover talent. Connect with athletes and coaches to build your sports community.</p>
+                <Link to="/login?type=organization" className="button special">Join as Organization</Link>
               </div>
             </div>
           </div>
