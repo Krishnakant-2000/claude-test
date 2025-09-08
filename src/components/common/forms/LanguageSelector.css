@@ -59,10 +59,65 @@
   border-radius: 12px;
   box-shadow: var(--shadow-primary);
   backdrop-filter: blur(15px);
-  min-width: 280px;
-  z-index: 1000;
+  min-width: 250px;
+  max-width: 280px;
+  z-index: 3000;
   overflow: hidden;
   animation: dropdownSlide 0.3s ease-out;
+}
+
+/* Backdrop overlay for settings */
+.language-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  z-index: 4999;
+  animation: backdropFadeIn 0.2s ease-out;
+  cursor: pointer;
+}
+
+/* Overlay dropdown style */
+.language-dropdown.dropdown-overlay {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  right: auto !important;
+  bottom: auto !important;
+  min-width: 280px;
+  max-width: 90vw;
+  max-height: 70vh;
+  z-index: 5000;
+  border: 2px solid var(--accent-primary);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4), 0 15px 40px rgba(0, 255, 136, 0.3);
+  backdrop-filter: blur(20px);
+  animation: overlayZoomIn 0.3s ease-out;
+  margin: 20px;
+  box-sizing: border-box;
+}
+
+/* When inside settings menu, always use overlay style */
+.settings-dropdown .language-selector .language-dropdown {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  right: auto !important;
+  bottom: auto !important;
+  min-width: 280px;
+  max-width: 90vw;
+  max-height: 70vh;
+  z-index: 5000;
+  border: 2px solid var(--accent-primary);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4), 0 15px 40px rgba(0, 255, 136, 0.3);
+  backdrop-filter: blur(20px);
+  animation: overlayZoomIn 0.3s ease-out;
+  margin: 20px;
+  box-sizing: border-box;
 }
 
 @keyframes dropdownSlide {
@@ -73,6 +128,37 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes dropdownSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes overlayZoomIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -194,9 +280,45 @@
   }
 }
 
+@media (max-width: 768px) {
+  .language-dropdown.dropdown-overlay,
+  .settings-dropdown .language-selector .language-dropdown {
+    min-width: 260px;
+    max-width: 95vw;
+    max-height: 80vh;
+    margin: 10px;
+  }
+}
+
 @media (max-width: 480px) {
   .language-dropdown {
     min-width: 220px;
     right: -20px;
+  }
+  
+  .language-dropdown.dropdown-overlay,
+  .settings-dropdown .language-selector .language-dropdown {
+    min-width: 240px;
+    max-width: 98vw;
+    max-height: 85vh;
+    margin: 5px;
+    top: 45% !important;
+  }
+  
+  .language-dropdown-header {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  
+  .language-option {
+    padding: 10px 14px;
+  }
+  
+  .language-name {
+    font-size: 13px;
+  }
+  
+  .language-native {
+    font-size: 12px;
   }
 }

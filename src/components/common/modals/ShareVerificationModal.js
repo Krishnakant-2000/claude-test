@@ -1,7 +1,7 @@
 // Share Verification Modal - Allow users to re-share their verification link
 import React, { useState } from 'react';
 import { X, Share2, Copy, CheckCircle } from 'lucide-react';
-import VerificationService from '../../../services/api/verificationService';
+import VerificationService from '../../../pages/verification/verificationService';
 import './ShareVerificationModal.css';
 
 const ShareVerificationModal = ({ isOpen, onClose, verificationRequest }) => {
@@ -67,8 +67,8 @@ const ShareVerificationModal = ({ isOpen, onClose, verificationRequest }) => {
   const remaining = Math.max(0, goal - progress);
 
   return (
-    <div className="modal-overlay share-verification-modal-overlay">
-      <div className="modal-content share-verification-modal-content">
+    <div className="modal-overlay share-verification-modal-overlay" onClick={onClose}>
+      <div className="modal-content share-verification-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Share Your Verification</h2>
           <button className="close-btn" onClick={onClose}>
@@ -87,12 +87,6 @@ const ShareVerificationModal = ({ isOpen, onClose, verificationRequest }) => {
               </div>
             </div>
             
-            <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{ width: `${Math.min(100, (progress / goal) * 100)}%` }}
-              ></div>
-            </div>
             
             <div className="progress-text">
               {progress >= goal ? (
@@ -147,6 +141,9 @@ const ShareVerificationModal = ({ isOpen, onClose, verificationRequest }) => {
           </div>
 
           <div className="modal-actions">
+            <button className="btn-secondary" onClick={onClose}>
+              Minimize
+            </button>
             <button className="btn-primary" onClick={onClose}>
               Done
             </button>

@@ -275,10 +275,6 @@ export default function VideoUpload({
                         className="progress-bar"
                         onClick={handleSeek}
                       >
-                        <div 
-                          className="progress-fill"
-                          style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
-                        />
                       </div>
                       <div className="time-display">
                         <span>{formatTime(currentTime)}</span>

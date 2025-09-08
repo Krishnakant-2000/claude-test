@@ -1,3 +1,10 @@
+/* Tailwind CSS */
+@tailwind base;
+@import './tailwind.css';
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700&family=Quattrocento:wght@400;700&family=Poppins:wght@400;700&family=Teachers:wght@400;500&family=Puritan:wght@400&display=swap');
+
 /* Index styles - Most styles moved to global.css for consolidation */
 
 code {

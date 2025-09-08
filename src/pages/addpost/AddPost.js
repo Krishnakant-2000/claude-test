@@ -8,16 +8,12 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { uploadVideoFile, generateVideoMetadata, VIDEO_PATHS } from '../../services/api/videoService';
-import ThemeToggle from '../../components/common/ui/ThemeToggle';
-import LanguageSelector from '../../components/common/forms/LanguageSelector';
 import FooterNav from '../../components/layout/FooterNav';
+import AppHeader from '../../components/layout/AppHeader';
 import { errorTracker, getErrorSolution } from '../../utils/debug/errorTracker';
 import { filterPostContent, getPostViolationMessage, logPostViolation } from '../../utils/content/postContentFilter';
 import { validateImageContent } from '../../utils/content/imageContentFilter';
-// Phase 3: Offline functionality imports
-import { createOfflinePost } from '../../utils/caching/offlinePostManager';
 import NetworkStatus from '../../components/common/NetworkStatus';
-import OfflinePostCreator from '../../components/common/OfflinePostCreator';
 import './AddPost.css';
 
 export default function AddPost() {
@@ -33,10 +29,8 @@ export default function AddPost() {
   const [imageAnalysis, setImageAnalysis] = useState(null);
   const [showImageWarning, setShowImageWarning] = useState(false);
   const [analyzingImage, setAnalyzingImage] = useState(false);
-  // Phase 3: Offline mode state
+  // Offline mode state
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [showOfflineCreator, setShowOfflineCreator] = useState(false);
-  const [offlinePostCreated, setOfflinePostCreated] = useState(null);
   const navigate = useNavigate();
 
   // Cleanup effect for image preview
@@ -191,50 +185,12 @@ export default function AddPost() {
     }
   };
 
-  // Phase 3: Handle offline post creation
-  const handleOfflinePost = async () => {
-    if (!currentUser) {
-      alert('You must be logged in to create posts.');
-      return;
-    }
-
-    if (isGuest()) {
-      if (window.confirm('Please sign up or log in to create posts. Guest accounts have read-only access.\n\nWould you like to go to the login page?')) {
-        navigate('/login');
-      }
-      return;
-    }
-
-    // Use offline post creator for better UX
-    setShowOfflineCreator(true);
-  };
 
   // Phase 3: Handle offline post creation callback
-  const handleOfflinePostCreated = (offlinePost) => {
-    setOfflinePostCreated(offlinePost);
-    setShowOfflineCreator(false);
-    
-    // Show success message and option to continue
-    setTimeout(() => {
-      if (window.confirm('Post saved offline! It will sync when you\'re back online.\n\nWould you like to create another post?')) {
-        // Reset form for another post
-        setNewPost({ caption: '', image: null, video: null, mediaType: 'image' });
-        setImagePreview(null);
-        setOfflinePostCreated(null);
-      } else {
-        navigate('/home');
-      }
-    }, 1000);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Phase 3: Check if offline and handle accordingly
-    if (isOffline || !navigator.onLine) {
-      await handleOfflineSubmit();
-      return;
-    }
     
     // Start error tracking for this upload session
     errorTracker.startRecording();
@@ -491,79 +447,6 @@ export default function AddPost() {
     setUploading(false);
   };
 
-  // Phase 3: Handle offline form submission
-  const handleOfflineSubmit = async () => {
-    if (!newPost.caption.trim()) {
-      alert('Please enter a caption for your post.');
-      return;
-    }
-    
-    if (!newPost.image && !newPost.video) {
-      alert('Please select an image or video to upload.');
-      return;
-    }
-
-    if (!currentUser) {
-      alert('You must be logged in to create posts.');
-      return;
-    }
-
-    if (isGuest()) {
-      if (window.confirm('Please sign up or log in to create posts. Guest accounts have read-only access.\n\nWould you like to go to the login page?')) {
-        navigate('/login');
-      }
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      let mediaUrl = null;
-      let mediaType = null;
-
-      // Handle media file for offline storage
-      const mediaFile = newPost.image || newPost.video;
-      if (mediaFile) {
-        // Convert file to base64 for offline storage
-        const base64Data = await convertFileToBase64(mediaFile);
-        mediaUrl = base64Data;
-        mediaType = mediaFile.type.startsWith('video/') ? 'video' : 'image';
-      }
-
-      const postData = {
-        caption: newPost.caption.trim(),
-        mediaUrl,
-        mediaType,
-        originalFileName: mediaFile?.name || null,
-        originalFileSize: mediaFile?.size || null
-      };
-
-      // Create offline post
-      const offlinePost = await createOfflinePost(postData, currentUser.uid);
-
-      // Reset form
-      setNewPost({ caption: '', image: null, video: null, mediaType: 'image' });
-      setMediaType('image');
-      
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-        setImagePreview(null);
-      }
-      
-      if (document.getElementById('file-input')) {
-        document.getElementById('file-input').value = '';
-      }
-
-      alert('Post saved offline! It will sync automatically when you\'re back online.');
-      navigate('/home');
-
-    } catch (error) {
-      console.error('Failed to create offline post:', error);
-      alert('Failed to save post offline. Please try again.');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   // Helper function to convert file to base64
   const convertFileToBase64 = (file) => {
@@ -575,76 +458,20 @@ export default function AddPost() {
     });
   };
 
-  // Phase 3: Show offline creator modal when requested
-  if (showOfflineCreator) {
-    return (
-      <div className="add-post">
-        <nav className="nav-bar">
-          <div className="nav-content">
-            <button onClick={() => setShowOfflineCreator(false)} className="back-btn">
-              <ArrowLeft size={20} />
-              Cancel
-            </button>
-            <h1>Create Post (Offline)</h1>
-            <div className="nav-controls">
-              <LanguageSelector />
-              <ThemeToggle />
-            </div>
-          </div>
-        </nav>
-
-        <div className="main-content add-post-content">
-          <OfflinePostCreator 
-            onPostCreated={handleOfflinePostCreated}
-            onCancel={() => setShowOfflineCreator(false)}
-            showOfflineIndicator={true}
-          />
-        </div>
-        
-        <FooterNav />
-      </div>
-    );
-  }
 
   return (
     <div className="add-post">
-      <nav className="nav-bar">
-        <div className="nav-content">
-          <button onClick={() => navigate('/home')} className="back-btn">
-            <ArrowLeft size={20} />
-            Cancel
-          </button>
-          <h1>
-            {t('createPost')}
-            {isOffline && (
-              <span className="offline-indicator">
-                <WifiOff size={16} /> Offline Mode
-              </span>
-            )}
-          </h1>
-          <div className="nav-controls">
-            <LanguageSelector />
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <AppHeader 
+        title={isOffline ? `${t('createPost')} - Offline Mode` : t('createPost')} 
+        showBackButton={true}
+         
+        showThemeToggle={true} 
+      />
 
       {/* Phase 3: Network Status Component */}
       <NetworkStatus />
 
       <div className="main-content add-post-content">
-        {/* Phase 3: Offline success message */}
-        {offlinePostCreated && (
-          <div className="offline-success-banner">
-            <div className="success-content">
-              <span className="success-icon">✅</span>
-              <div className="success-text">
-                <strong>Post saved offline!</strong>
-                <p>Your post will sync automatically when you're back online.</p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {isGuest() && (
           <div className="guest-post-restriction">
@@ -661,25 +488,6 @@ export default function AddPost() {
           </div>
         )}
 
-        {/* Phase 3: Offline mode notice */}
-        {isOffline && (
-          <div className="offline-mode-notice">
-            <div className="offline-notice-content">
-              <WifiOff size={20} />
-              <div className="offline-text">
-                <strong>You're offline</strong>
-                <p>Posts will be saved locally and synced when you reconnect.</p>
-              </div>
-              <button 
-                className="offline-create-btn"
-                onClick={handleOfflinePost}
-                disabled={isGuest()}
-              >
-                Create Offline Post
-              </button>
-            </div>
-          </div>
-        )}
         <div className="create-post">
           
           {/* Media Type Toggle */}
@@ -823,7 +631,7 @@ export default function AddPost() {
               </div>
             )}
             
-            <button type="submit" disabled={uploading || (isOffline && !showOfflineCreator)}>
+            <button type="submit" disabled={uploading}>
               {uploading ? (
                 <>
                   <Upload size={20} />
@@ -842,18 +650,6 @@ export default function AddPost() {
               )}
             </button>
 
-            {/* Phase 3: Alternative offline creation button */}
-            {isOffline && (
-              <button 
-                type="button" 
-                className="offline-alternative-btn"
-                onClick={handleOfflinePost}
-                disabled={isGuest()}
-              >
-                <WifiOff size={20} />
-                Use Offline Creator
-              </button>
-            )}
           </form>
         </div>
       </div>

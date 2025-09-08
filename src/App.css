@@ -1,3 +1,19 @@
 /* App-specific styles - Global styles are in global.css */
 
 /* App container styles moved to global.css for consolidation */
+
+/* Prevent horizontal scrolling globally */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.App {
+  overflow-x: hidden;
+  max-width: 100vw;
+}

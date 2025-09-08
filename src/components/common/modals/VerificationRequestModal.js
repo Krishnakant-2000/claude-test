@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { db } from '../../../lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import VerificationService from '../../../services/api/verificationService';
+import VerificationService from '../../../pages/verification/verificationService';
 import { X, Share2, Copy, CheckCircle, Video, User } from 'lucide-react';
 import './VerificationRequestModal.css';
 
@@ -130,8 +130,8 @@ const VerificationRequestModal = ({ isOpen, onClose, userProfile }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay verification-modal-overlay">
-      <div className="modal-content verification-modal-content">
+    <div className="modal-overlay verification-modal-overlay" onClick={onClose}>
+      <div className="modal-content verification-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>
             {step === 1 && 'Request Verification'}

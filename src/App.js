@@ -4,25 +4,32 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import PrivateRoute from './features/auth/PrivateRoute';
 import NetworkStatus from './components/common/NetworkStatus';
-import CacheDetector from './components/CacheDetector';
+import CacheProvider from './components/common/cache/CacheProvider';
 import { registerSW } from './utils/serviceWorkerRegistration';
 import { queryClient } from './lib/queryClient';
+import { bustCSSCache } from './utils/cssCleanup';
 import './styles/global.css';
 import './styles/themes.css';
+import './styles/cache-bust.css';
 import './App.css';
 import './performance.css';
+
 
 // Lazy load components for better performance
 const NewLanding = React.lazy(() => import('./pages/newlanding/NewLanding'));
 const LandingPage = React.lazy(() => import('./pages/landingpage/LandingPage'));
+const NewLandingPage = React.lazy(() => import('./pages/landingpage/NewLandingPage'));
+const LandingPageNew = React.lazy(() => import('./pages/landingpage/index').then(module => ({ default: module.LandingPage })));
 const Login = React.lazy(() => import('./features/auth/Login'));
 const Signup = React.lazy(() => import('./features/auth/Signup'));
 const Home = React.lazy(() => import('./pages/home/Home'));
 const Profile = React.lazy(() => import('./pages/profile/Profile'));
 const Search = React.lazy(() => import('./pages/search/Search'));
 const AddPost = React.lazy(() => import('./pages/addpost/AddPost'));
+const AddStory = React.lazy(() => import('./pages/addstory/AddStory'));
 const Messages = React.lazy(() => import('./pages/messages/Messages'));
 const Events = React.lazy(() => import('./pages/events/Events'));
 const PostDetail = React.lazy(() => import('./pages/postdetail/PostDetail'));
@@ -53,37 +60,22 @@ const LoadingSpinner = () => (
 
 function AppContent() {
   useEffect(() => {
-    // Conservative cache management - prevent infinite reload
-    const manageCache = () => {
-      const currentVersion = '2.1.0';
-      
-      console.log('APP: Starting conservative cache management...');
-      
-      // Set document title
-      document.title = 'AmaPlayer - Sports Social Media Platform v2.1';
-      
-      // Set version in localStorage (don't clear everything)
-      try {
-        const storedVersion = localStorage.getItem('amaplayer-version');
-        if (!storedVersion || storedVersion !== currentVersion) {
-          localStorage.setItem('amaplayer-version', currentVersion);
-          console.log('APP: Updated version to', currentVersion);
-        }
-      } catch (e) {}
-      
-      // Only clear service workers if they exist
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-          if (registrations.length > 0) {
-            console.log('APP: Clearing service workers...');
-            registrations.forEach(registration => registration.unregister());
-          }
-        });
-      }
-    };
+    // Set document title
+    document.title = 'AmaPlayer - Sports Social Media Platform v2.1';
     
-    // Run cache management
-    manageCache();
+    // Global CSS cache busting on app start
+    bustCSSCache();
+    console.log('APP: Global CSS cache busted on startup');
+    
+    // Only clear service workers if they exist (keep this for now)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        if (registrations.length > 0) {
+          console.log('APP: Clearing service workers...');
+          registrations.forEach(registration => registration.unregister());
+        }
+      });
+    }
     
     // Register service worker for offline functionality - Phase 1
     registerSW({
@@ -98,13 +90,12 @@ function AppContent() {
 
   return (
     <div className="App">
-      <CacheDetector />
       <NetworkStatus />
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
               <Route path="/" element={<NewLanding />} />
-              <Route path="/app-landing" element={<LandingPage />} />
               <Route path="/landing" element={<LandingPage />} />
+              <Route path="/app" element={<LandingPageNew />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/home" element={
@@ -120,6 +111,11 @@ function AppContent() {
               <Route path="/add-post" element={
                 <PrivateRoute>
                   <AddPost />
+                </PrivateRoute>
+              } />
+              <Route path="/add-story" element={
+                <PrivateRoute>
+                  <AddStory />
                 </PrivateRoute>
               } />
               <Route path="/messages" element={
@@ -165,13 +161,17 @@ function App() {
   return (
     <Router>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <LanguageProvider>
-            <AuthProvider>
-              <AppContent />
-            </AuthProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+        <CacheProvider>
+          <ThemeProvider>
+            <LanguageProvider>
+              <AuthProvider>
+                <SettingsProvider>
+                  <AppContent />
+                </SettingsProvider>
+              </AuthProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </CacheProvider>
       </QueryClientProvider>
     </Router>
   );

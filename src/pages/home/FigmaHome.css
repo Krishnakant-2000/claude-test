@@ -1,0 +1,784 @@
+/* Import the styleguide variables */
+:root {
+  --body-pargraph-bold-font-family: "Poppins", Helvetica;
+  --body-pargraph-bold-font-size: 16px;
+  --body-pargraph-bold-font-style: normal;
+  --body-pargraph-bold-font-weight: 700;
+  --body-pargraph-bold-letter-spacing: 0px;
+  --body-pargraph-bold-line-height: normal;
+  --follower-typography-font-family: "Teachers", Helvetica;
+  --follower-typography-font-size: 24px;
+  --follower-typography-font-style: normal;
+  --follower-typography-font-weight: 500;
+  --follower-typography-letter-spacing: 0px;
+  --follower-typography-line-height: normal;
+  --heading-new: rgba(0, 0, 0, 1);
+  --new-apply-font-family: "Puritan", Helvetica;
+  --new-apply-font-size: 24px;
+  --new-apply-font-style: normal;
+  --new-apply-font-weight: 400;
+  --new-apply-letter-spacing: 0px;
+  --new-apply-line-height: normal;
+  --new-bold-text: rgba(255, 254, 253, 1);
+  --new-style: rgba(255, 254, 253, 1);
+  --primary-color: rgba(27, 84, 218, 1);
+}
+
+/* Your Figma CSS */
+.ama-player-home-page {
+    align-items: start;
+    background-color: #ffffff;
+    display: grid;
+    justify-items: center;
+    width: 100vw;
+    min-height: 100vh;
+}
+
+.ama-player-home-page .div {
+    background-color: #ffffff;
+    height: 1829px;
+    overflow: hidden;
+    position: relative;
+    width: 440px;
+}
+
+.ama-player-home-page .overlap {
+    background-color: #ffffff;
+    border: 0.3px solid;
+    border-color: #000000;
+    border-radius: 5px;
+    height: 14px;
+    left: 142px;
+    position: absolute;
+    top: 313px;
+    width: 34px;
+}
+
+.ama-player-home-page .text-wrapper {
+    color: #000000;
+    font-family: "Teachers-Regular", Helvetica;
+    font-size: 11px;
+    font-weight: 400;
+    left: 3px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 0;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .overlap-group {
+    background-color: #ffffff;
+    border: 0.3px solid;
+    border-color: #000000;
+    border-radius: 5px;
+    height: 14px;
+    left: 138px;
+    position: absolute;
+    top: 706px;
+    width: 34px;
+}
+
+.ama-player-home-page .text-wrapper-2 {
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent;
+    background: linear-gradient(
+        90deg,
+        rgba(40, 62, 160, 1) 0%,
+        rgba(56, 14, 58, 1) 100%
+    );
+    background-clip: text;
+    color: transparent;
+    font-family: "Teachers-ExtraBold", Helvetica;
+    font-size: 32px;
+    font-weight: 800;
+    left: 14px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    text-fill-color: transparent;
+    top: 54px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .frame {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    left: 396px;
+    position: absolute;
+    top: 58px;
+    width: 28px;
+}
+
+.ama-player-home-page .line {
+    align-self: stretch;
+    height: 5px;
+    margin-top: -5.00px;
+    position: relative;
+    width: 100%;
+}
+
+.ama-player-home-page .img {
+    align-self: stretch;
+    height: 5px;
+    position: relative;
+    width: 100%;
+}
+
+.ama-player-home-page .ellipse {
+    height: 60px;
+    left: 11px;
+    object-fit: cover;
+    position: absolute;
+    top: 104px;
+    width: 60px;
+}
+
+.ama-player-home-page .ellipse-2 {
+    height: 40px;
+    left: 4px;
+    object-fit: cover;
+    position: absolute;
+    top: 309px;
+    width: 40px;
+}
+
+.ama-player-home-page .what-s-on-your-mind-wrapper {
+    background-color: #ffffff;
+    border: 1px solid;
+    border-color: #000000;
+    border-radius: 15px;
+    height: 52px;
+    left: 88px;
+    position: absolute;
+    top: 112px;
+    width: 246px;
+    cursor: pointer;
+}
+
+.ama-player-home-page .what-s-on-your-mind {
+    color: #000000;
+    font-family: "Teachers-Regular", Helvetica;
+    font-size: 20px;
+    font-weight: 400;
+    left: 29px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 12px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .streamline-plump {
+    aspect-ratio: 1;
+    height: 40px;
+    left: 367px;
+    position: absolute;
+    top: 118px;
+    width: 40px;
+    cursor: pointer;
+}
+
+.ama-player-home-page .group {
+    height: 38px;
+    left: 1px;
+    position: relative;
+    top: 1px;
+    width: 38px;
+}
+
+.ama-player-home-page .overlap-group-2 {
+    height: 38px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .overlap-2 {
+    background-image: url('./assets/Rectangle 8.png');
+    background-position: 50% 50%;
+    background-size: cover;
+    height: 84px;
+    left: 17px;
+    position: absolute;
+    top: 178px;
+    width: 54px;
+}
+
+.ama-player-home-page .text-wrapper-3 {
+    color: #ffffff;
+    font-family: "Teachers-Regular", Helvetica;
+    font-size: 8px;
+    font-weight: 400;
+    left: 7px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 70px;
+}
+
+.ama-player-home-page .ellipse-3 {
+    height: 15px;
+    left: 5px;
+    object-fit: cover;
+    position: absolute;
+    top: 5px;
+    width: 15px;
+}
+
+.ama-player-home-page .overlap-3 {
+    background-image: url('./assets/Rectangle 9.png');
+    background-position: 50% 50%;
+    background-size: cover;
+    height: 84px;
+    left: 76px;
+    position: absolute;
+    top: 178px;
+    width: 54px;
+}
+
+.ama-player-home-page .text-wrapper-4 {
+    color: #ffffff;
+    font-family: "Teachers-Regular", Helvetica;
+    font-size: 6px;
+    font-weight: 400;
+    left: 10px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 73px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .ellipse-4 {
+    height: 15px;
+    left: 3px;
+    object-fit: cover;
+    position: absolute;
+    top: 7px;
+    width: 15px;
+}
+
+.ama-player-home-page .overlap-4 {
+    background-image: url('./assets/Rectangle 10.png');
+    background-position: 50% 50%;
+    background-size: cover;
+    height: 84px;
+    left: 135px;
+    position: absolute;
+    top: 178px;
+    width: 54px;
+}
+
+.ama-player-home-page .text-wrapper-5 {
+    color: #ffffff;
+    font-family: "Teachers-Regular", Helvetica;
+    font-size: 6px;
+    font-weight: 400;
+    left: 10px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 72px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .ellipse-5 {
+    height: 15px;
+    left: 3px;
+    object-fit: cover;
+    position: absolute;
+    top: 5px;
+    width: 15px;
+}
+
+.ama-player-home-page .overlap-5 {
+    background-image: url('./assets/Rectangle 11.png');
+    background-position: 50% 50%;
+    background-size: cover;
+    height: 84px;
+    left: 194px;
+    position: absolute;
+    top: 178px;
+    width: 54px;
+}
+
+.ama-player-home-page .text-wrapper-6 {
+    color: #ffffff;
+    font-family: "Teachers-Regular", Helvetica;
+    font-size: 6px;
+    font-weight: 400;
+    left: 9px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 72px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .ellipse-6 {
+    height: 15px;
+    left: 7px;
+    object-fit: cover;
+    position: absolute;
+    top: 5px;
+    width: 15px;
+}
+
+.ama-player-home-page .overlap-6 {
+    background-image: url('./assets/Rectangle 12.png');
+    background-position: 50% 50%;
+    background-size: cover;
+    height: 84px;
+    left: 253px;
+    position: absolute;
+    top: 178px;
+    width: 54px;
+}
+
+.ama-player-home-page .overlap-7 {
+    background-image: url('./assets/Rectangle 13.png');
+    background-position: 50% 50%;
+    background-size: cover;
+    height: 84px;
+    left: 312px;
+    position: absolute;
+    top: 178px;
+    width: 54px;
+}
+
+.ama-player-home-page .text-wrapper-7 {
+    color: #ffffff;
+    font-family: "Teachers-Regular", Helvetica;
+    font-size: 6px;
+    font-weight: 400;
+    left: 11px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 72px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .overlap-8 {
+    background-image: url('./assets/Rectangle 14.png');
+    background-position: 50% 50%;
+    background-size: cover;
+    height: 84px;
+    left: 370px;
+    position: absolute;
+    top: 178px;
+    width: 54px;
+}
+
+.ama-player-home-page .ellipse-7 {
+    height: 15px;
+    left: 6px;
+    object-fit: cover;
+    position: absolute;
+    top: 5px;
+    width: 15px;
+}
+
+.ama-player-home-page .mdi-search {
+    aspect-ratio: 1;
+    background-color: #ffffff;
+    height: 39px;
+    left: 280px;
+    position: absolute;
+    top: 49px;
+    width: 39px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .group-wrapper {
+    aspect-ratio: 1;
+    height: 32px;
+    left: 334px;
+    position: absolute;
+    top: 49px;
+    width: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .rectangle-2 {
+    background-color: #d9d9d9;
+    height: 22px;
+    left: 0;
+    position: absolute;
+    top: 281px;
+    width: 440px;
+}
+
+.ama-player-home-page .text-wrapper-10 {
+    color: #000000;
+    font-family: "Teachers-SemiBold", Helvetica;
+    font-size: 11px;
+    font-weight: 600;
+    left: 46px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 313px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .text-wrapper-11 {
+    color: #000000;
+    font-family: "Teachers-SemiBold", Helvetica;
+    font-size: 11px;
+    font-weight: 600;
+    left: 44px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 706px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .text-wrapper-12 {
+    color: #000000;
+    font-family: "Teachers-Regular", Helvetica;
+    font-size: 11px;
+    font-weight: 400;
+    left: 46px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 328px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .text-wrapper-13 {
+    color: #000000;
+    font-family: "Teachers-Regular", Helvetica;
+    font-size: 11px;
+    font-weight: 400;
+    left: 44px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 719px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .ph-dots-three {
+    aspect-ratio: 1;
+    height: 16px;
+    left: 402px;
+    position: absolute;
+    top: 310px;
+    width: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .vector-wrapper {
+    aspect-ratio: 1;
+    height: 16px;
+    left: 398px;
+    position: absolute;
+    top: 703px;
+    width: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .rectangle-3 {
+    height: 262px;
+    left: 0;
+    object-fit: cover;
+    position: absolute;
+    top: 360px;
+    width: 440px;
+}
+
+.ama-player-home-page .rectangle-4 {
+    height: 262px;
+    left: 0;
+    object-fit: cover;
+    position: absolute;
+    top: 753px;
+    width: 440px;
+}
+
+.ama-player-home-page .frame-2 {
+    height: 30px;
+    left: 17px;
+    position: absolute;
+    top: 655px;
+    width: 406px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.ama-player-home-page .frame-3 {
+    height: 30px;
+    left: 13px;
+    position: absolute;
+    top: 1048px;
+    width: 406px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.ama-player-home-page .material-symbols {
+    aspect-ratio: 1;
+    height: 30px;
+    width: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .text-wrapper-14 {
+    color: #000000;
+    font-family: "Teachers-Medium", Helvetica;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: normal;
+    cursor: pointer;
+}
+
+.ama-player-home-page .material-symbols-2 {
+    aspect-ratio: 1;
+    height: 30px;
+    width: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .text-wrapper-15 {
+    color: #000000;
+    font-family: "Teachers-Medium", Helvetica;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: normal;
+    cursor: pointer;
+}
+
+.ama-player-home-page .bitcoin-icons-share {
+    aspect-ratio: 1;
+    height: 24px;
+    width: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .text-wrapper-16 {
+    color: #000000;
+    font-family: "Teachers-Medium", Helvetica;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: normal;
+    cursor: pointer;
+}
+
+.ama-player-home-page .rectangle-6 {
+    background-color: #d9d9d9;
+    height: 9px;
+    left: 0;
+    position: absolute;
+    top: 690px;
+    width: 440px;
+}
+
+.ama-player-home-page .rectangle-7 {
+    background-color: #d9d9d9;
+    height: 9px;
+    left: 0;
+    position: absolute;
+    top: 1470px;
+    width: 440px;
+}
+
+.ama-player-home-page .overlap-11 {
+    height: 24px;
+    left: 3px;
+    position: absolute;
+    top: 631px;
+    width: 37px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .overlap-12 {
+    height: 24px;
+    left: -1px;
+    position: absolute;
+    top: 1024px;
+    width: 37px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .text-wrapper-17,
+.ama-player-home-page .text-wrapper-18,
+.ama-player-home-page .text-wrapper-19,
+.ama-player-home-page .text-wrapper-20,
+.ama-player-home-page .text-wrapper-21,
+.ama-player-home-page .text-wrapper-22,
+.ama-player-home-page .text-wrapper-23,
+.ama-player-home-page .text-wrapper-24,
+.ama-player-home-page .text-wrapper-25,
+.ama-player-home-page .text-wrapper-26,
+.ama-player-home-page .text-wrapper-27,
+.ama-player-home-page .text-wrapper-28 {
+    color: #000000;
+    font-family: "Teachers-Medium", Helvetica;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+}
+
+.ama-player-home-page .text-wrapper-17 { left: 40px; top: 634px; }
+.ama-player-home-page .text-wrapper-18 { left: 36px; top: 1027px; }
+.ama-player-home-page .text-wrapper-20 { left: 65px; top: 633px; }
+.ama-player-home-page .text-wrapper-21 { left: 61px; top: 1026px; }
+.ama-player-home-page .text-wrapper-23 { left: 159px; top: 633px; }
+.ama-player-home-page .text-wrapper-24 { left: 155px; top: 1026px; }
+.ama-player-home-page .text-wrapper-26 { left: 333px; top: 638px; }
+.ama-player-home-page .text-wrapper-27 { left: 329px; top: 1031px; }
+
+.ama-player-home-page .bi-camera-reels-fill {
+    aspect-ratio: 1;
+    height: 26px;
+    left: 6px;
+    position: absolute;
+    top: 1490px;
+    width: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ama-player-home-page .text-wrapper-29 {
+    color: #000000;
+    font-family: "Teachers-SemiBold", Helvetica;
+    font-size: 20px;
+    font-weight: 600;
+    left: 41px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 1495px;
+    white-space: nowrap;
+}
+
+.ama-player-home-page .rectangle-9,
+.ama-player-home-page .rectangle-10,
+.ama-player-home-page .rectangle-11,
+.ama-player-home-page .rectangle-12 {
+    object-fit: cover;
+    position: absolute;
+    top: 1527px;
+}
+
+.ama-player-home-page .rectangle-9 { height: 217px; left: 8px; width: 112px; }
+.ama-player-home-page .rectangle-10 { height: 217px; left: 128px; width: 112px; }
+.ama-player-home-page .rectangle-11 { height: 217px; left: 248px; width: 112px; }
+.ama-player-home-page .rectangle-12 { height: 217px; left: 372px; width: 68px; }
+
+.ama-player-home-page .rectangle-8 {
+    background-color: #d9d9d9;
+    height: 9px;
+    left: 0;
+    position: absolute;
+    top: 1753px;
+    width: 440px;
+}
+
+/* Placeholder styles */
+.placeholder-avatar {
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder-image {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+/* Interactive hover effects */
+.ama-player-home-page .material-symbols:hover,
+.ama-player-home-page .bitcoin-icons-share:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+.ama-player-home-page .text-wrapper-14:hover,
+.ama-player-home-page .text-wrapper-15:hover,
+.ama-player-home-page .text-wrapper-16:hover {
+    color: var(--primary-color);
+    transition: color 0.2s ease;
+}
+
+/* Reels container styling */
+.reels-container {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    justify-content: flex-start;
+    margin-top: 20px;
+    padding: 0 20px;
+    position: absolute;
+    top: 1600px;
+    left: 20px;
+    width: 400px;
+}
+
+.reel-thumbnail {
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.reel-thumbnail video {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.reel-thumbnail video:hover {
+    transform: scale(1.05);
+}
+
+/* Improve layout spacing */
+.ama-player-home-page .div {
+    height: auto;
+    min-height: 1829px;
+    padding-bottom: 50px;
+}
+
+/* Fix overlapping by adjusting z-index */
+.ama-player-home-page .overlap,
+.ama-player-home-page .overlap-group,
+.ama-player-home-page [class*="overlap-"] {
+    z-index: 2;
+}

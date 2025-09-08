@@ -5,8 +5,7 @@ import { db } from '../../lib/firebase';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { Search as SearchIcon, UserPlus, Check, X, Filter, MapPin, User, Award, Target, Calendar } from 'lucide-react';
 import FooterNav from '../../components/layout/FooterNav';
-import ThemeToggle from '../../components/common/ui/ThemeToggle';
-import LanguageSelector from '../../components/common/forms/LanguageSelector';
+import AppHeader from '../../components/layout/AppHeader';
 import './Search.css';
 
 export default function Search() {
@@ -445,15 +444,7 @@ export default function Search() {
   if (isGuest()) {
     return (
       <div className="search">
-        <nav className="nav-bar">
-          <div className="nav-content">
-            <h1>Search</h1>
-            <div className="nav-controls">
-              <LanguageSelector />
-              <ThemeToggle />
-            </div>
-          </div>
-        </nav>
+        <AppHeader title="Search"  showThemeToggle={true} />
 
         <div className="main-content search-content">
           <div className="guest-restriction">
@@ -479,15 +470,7 @@ export default function Search() {
 
   return (
     <div className="search">
-      <nav className="nav-bar">
-        <div className="nav-content">
-          <h1>Search</h1>
-          <div className="nav-controls">
-            <LanguageSelector />
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <AppHeader title="Search"  showThemeToggle={true} />
 
       <div className="main-content search-content">
         <div className="search-bar">

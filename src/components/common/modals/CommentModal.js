@@ -2,6 +2,18 @@
 import React, { memo, useState, useCallback, useEffect } from 'react';
 import { X, Send, Heart, MoreHorizontal, User } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
+import { db } from '../../../lib/firebase';
+import { 
+  collection, 
+  addDoc, 
+  query, 
+  where, 
+  orderBy, 
+  onSnapshot,
+  serverTimestamp,
+  doc,
+  getDoc
+} from 'firebase/firestore';
 import LazyImage from '../ui/LazyImage';
 import './Modal.css';
 
@@ -12,85 +24,128 @@ const CommentModal = memo(({ post, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Mock API functions (replace with real API calls)
-  const fetchComments = useCallback(async (postId) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const mockComments = Array.from({ length: 15 }, (_, index) => ({
-      id: `comment-${index}`,
-      postId,
-      userId: `user-${Math.floor(Math.random() * 20)}`,
-      userDisplayName: `User ${Math.floor(Math.random() * 20)}`,
-      userPhotoURL: `https://picsum.photos/40/40?random=${index}`,
-      text: [
-        'Great post! 🔥',
-        'Amazing content, keep it up!',
-        'This is exactly what I needed to see today',
-        'Incredible work! How did you do this?',
-        'Thanks for sharing this with us',
-        'This deserves more views',
-        'Absolutely love this! Can\'t wait to see more',
-        'Perfect timing for this post',
-        'This made my day! Thank you',
-        'Outstanding quality as always'
-      ][Math.floor(Math.random() * 10)],
-      createdAt: new Date(Date.now() - Math.random() * 86400000 * 3),
-      likesCount: Math.floor(Math.random() * 20),
-      isLiked: Math.random() > 0.7
-    }));
+  // Firebase functions for real-time comments
+  const fetchComments = useCallback((postId) => {
+    if (!postId) return;
 
-    return mockComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Temporary: Use simple query while index is building  
+    const q = query(
+      collection(db, 'comments'),
+      where('postId', '==', postId)
+    );
+
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const commentsData = [];
+      
+      for (const docSnap of snapshot.docs) {
+        const commentData = { id: docSnap.id, ...docSnap.data() };
+        
+        // Fetch user data for each comment if not already included
+        if (!commentData.userPhotoURL && commentData.userId) {
+          try {
+            const userDoc = await getDoc(doc(db, 'users', commentData.userId));
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              commentData.userPhotoURL = userData.photoURL;
+              commentData.userDisplayName = userData.displayName || commentData.userDisplayName;
+            }
+          } catch (error) {
+            console.log('Could not fetch user data for comment');
+          }
+        }
+        
+        commentsData.push(commentData);
+      }
+      
+      // Sort comments by timestamp in memory while index is building
+      commentsData.sort((a, b) => {
+        const timeA = a.timestamp?.toDate?.()?.getTime() || 0;
+        const timeB = b.timestamp?.toDate?.()?.getTime() || 0;
+        return timeB - timeA; // Descending order (newest first)
+      });
+      
+      setComments(commentsData);
+      setLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
   const submitComment = useCallback(async (postId, text) => {
-    await new Promise(resolve => setTimeout(resolve, 800));
+    if (!currentUser || !text.trim()) return;
     
-    return {
-      id: `comment-${Date.now()}`,
-      postId,
-      userId: currentUser?.uid || 'guest',
-      userDisplayName: currentUser?.displayName || 'Guest User',
-      userPhotoURL: currentUser?.photoURL || '/default-avatar.jpg',
-      text,
-      createdAt: new Date(),
-      likesCount: 0,
-      isLiked: false
-    };
-  }, [currentUser]);
+    try {
+      const newCommentRef = await addDoc(collection(db, 'comments'), {
+        postId: postId,
+        userId: currentUser.uid,
+        userDisplayName: currentUser.displayName || 'Anonymous User',
+        userPhotoURL: currentUser.photoURL || '',
+        text: text.trim(),
+        timestamp: serverTimestamp(),
+        likes: [],
+        likesCount: 0
+      });
+
+      // Notify post author if it's not their own comment
+      if (currentUser.uid !== post?.userId) {
+        try {
+          await addDoc(collection(db, 'notifications'), {
+            type: 'comment',
+            senderId: currentUser.uid,
+            senderName: currentUser.displayName || 'Anonymous User',
+            receiverId: post?.userId,
+            postId: postId,
+            message: `${currentUser.displayName || 'Someone'} commented on your post`,
+            timestamp: serverTimestamp(),
+            read: false
+          });
+        } catch (error) {
+          console.log('Could not send notification');
+        }
+      }
+
+        userId: currentUser.uid,
+        userDisplayName: currentUser.displayName || 'Anonymous User',
+        userPhotoURL: currentUser.photoURL || '',
+        text: text.trim(),
+        timestamp: serverTimestamp(),
+        likes: [],
+        likesCount: 0
+      };
+      
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      throw error;
+    }
+  }, [currentUser, post]);
 
   const likeComment = useCallback(async (commentId, liked) => {
     await new Promise(resolve => setTimeout(resolve, 300));
     return { success: true, liked };
   }, []);
 
-  // Load comments
+  // Load comments with real-time updates
   useEffect(() => {
-    const loadComments = async () => {
-      try {
-        setLoading(true);
-        const commentsData = await fetchComments(post.id);
-        setComments(commentsData);
-      } catch (error) {
-        console.error('Error loading comments:', error);
-      } finally {
-        setLoading(false);
+    if (!post?.id) return;
+    
+    setLoading(true);
+    const unsubscribe = fetchComments(post.id);
+    
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
       }
     };
-
-    if (post?.id) {
-      loadComments();
-    }
   }, [post?.id, fetchComments]);
 
   // Handle comment submission
   const handleSubmitComment = useCallback(async (e) => {
     e.preventDefault();
-    if (!newComment.trim() || submitting) return;
+    if (!newComment.trim() || submitting || !currentUser) return;
 
     try {
       setSubmitting(true);
-      const comment = await submitComment(post.id, newComment.trim());
-      setComments(prev => [comment, ...prev]);
+      await submitComment(post.id, newComment.trim());
       setNewComment('');
     } catch (error) {
       console.error('Error submitting comment:', error);
@@ -98,7 +153,7 @@ const CommentModal = memo(({ post, onClose }) => {
     } finally {
       setSubmitting(false);
     }
-  }, [newComment, submitting, post.id, submitComment]);
+  }, [newComment, submitting, post.id, submitComment, currentUser]);
 
   // Handle comment like
   const handleLikeComment = useCallback(async (commentId) => {
@@ -128,14 +183,17 @@ const CommentModal = memo(({ post, onClose }) => {
   }, [comments, likeComment]);
 
   const formatTime = useCallback((timestamp) => {
+    if (!timestamp) return 'Now';
+    
     const now = new Date();
-    const time = new Date(timestamp);
+    const time = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     const diff = now - time;
     
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
     
+    if (minutes < 1) return 'Now';
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     return `${days}d ago`;
@@ -163,7 +221,7 @@ const CommentModal = memo(({ post, onClose }) => {
             />
             <div className="user-details">
               <h4>{post.userDisplayName}</h4>
-              <span className="post-time">{formatTime(post.createdAt)}</span>
+              <span className="post-time">{formatTime(post.timestamp)}</span>
             </div>
           </div>
           {post.caption && <p className="post-caption">{post.caption}</p>}
@@ -196,7 +254,7 @@ const CommentModal = memo(({ post, onClose }) => {
                   <div className="comment-content">
                     <div className="comment-header">
                       <h5 className="comment-author">{comment.userDisplayName}</h5>
-                      <span className="comment-time">{formatTime(comment.createdAt)}</span>
+                      <span className="comment-time">{formatTime(comment.timestamp)}</span>
                       <button className="comment-options">
                         <MoreHorizontal size={16} />
                       </button>

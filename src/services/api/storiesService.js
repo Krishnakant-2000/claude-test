@@ -75,10 +75,26 @@ export class StoriesService {
   // Upload story media to Firebase Storage
   static async uploadStoryMedia(mediaFile, userId, mediaType) {
     try {
-      const safeFileName = mediaFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const storageRef = ref(storage, `stories/${mediaType}s/${userId}/${Date.now()}-${safeFileName}`);
+      console.log('🔍 uploadStoryMedia called with:', { userId, mediaType, fileName: mediaFile.name });
       
-      console.log('📤 Uploading story media...', { path: storageRef.fullPath });
+      if (!userId) {
+        throw new Error('User ID is required for story upload');
+      }
+      
+      const safeFileName = mediaFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const timestamp = Date.now();
+      const storagePath = `stories/${mediaType}s/${userId}/${timestamp}-${safeFileName}`;
+      
+      console.log('📁 Constructing storage path:', storagePath);
+      
+      const storageRef = ref(storage, storagePath);
+      
+      console.log('📤 Uploading story media...', { 
+        path: storageRef.fullPath,
+        userId,
+        mediaType,
+        fileName: `${timestamp}-${safeFileName}`
+      });
       
       const uploadResult = await uploadBytes(storageRef, mediaFile);
       const downloadUrl = await getDownloadURL(uploadResult.ref);
@@ -88,6 +104,7 @@ export class StoriesService {
       
     } catch (error) {
       console.error('❌ Error uploading story media:', error);
+      console.error('Parameters received:', { userId, mediaType, fileName: mediaFile?.name });
       throw error;
     }
   }
@@ -192,7 +209,7 @@ export class StoriesService {
           viewers: [...viewers, viewerId]
         });
         
-        // Log view for analytics
+        // Log story view
         await addDoc(collection(db, 'storyViews'), {
           storyId,
           viewerId,

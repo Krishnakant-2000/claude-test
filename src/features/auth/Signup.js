@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../../components/common/ui/ThemeToggle';
+import { resetPageStyles, bustCSSCache } from '../../utils/cssCleanup';
 import './Auth.css';
 
 export default function Signup() {
@@ -13,6 +14,39 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const { signup, googleLogin, appleLogin } = useAuth();
   const navigate = useNavigate();
+
+  // Ultra-aggressive CSS cleanup and cache busting
+  useEffect(() => {
+    // Immediate complete reset
+    resetPageStyles('signup');
+    
+    // Additional cache busting after delays to catch lazy-loaded styles
+    const timers = [
+      setTimeout(() => bustCSSCache(), 100),
+      setTimeout(() => resetPageStyles('signup'), 200),
+      setTimeout(() => bustCSSCache(), 500)
+    ];
+    
+    // Set page title
+    document.title = 'AmaPlayer - Sign Up';
+    
+    console.log('SIGNUP: Ultra-aggressive CSS cleanup and cache busting completed');
+    
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+    };
+  }, []);
+
+  // Cache busting on every render to handle repeated navigation
+  useEffect(() => {
+    bustCSSCache();
+    
+    const timer = setTimeout(() => {
+      resetPageStyles('signup');
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  });
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -69,8 +103,8 @@ export default function Signup() {
       <div className="auth-header">
         <button 
           className="homepage-btn"
-          onClick={() => navigate('/')}
-          title="Go to Homepage"
+          onClick={() => navigate('/app')}
+          title="Go to App"
         >
           🏠 <span>Home</span>
         </button>

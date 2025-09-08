@@ -10,3 +10,5 @@ export * from './admin';
 export * from './moderation';
 // Notification functions (for existing notification service)
 export * from './notifications';
+// Redis Cache Management functions (Phase 2 implementation)
+export * from './cache';

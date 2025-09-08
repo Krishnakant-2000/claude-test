@@ -4,15 +4,19 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { db, storage } from '../../lib/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, setDoc, addDoc, serverTimestamp, onSnapshot, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { updateProfile } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { uploadVideoFile, generateVideoMetadata } from '../../services/api/videoService';
 import { filterContent, getViolationMessage } from '../../utils/content/contentFilter';
 import { filterChatMessage, getChatViolationMessage, logChatViolation } from '../../utils/content/chatFilter';
+import { SPORTS_CATEGORIES, searchSports } from '../../data/sportsData';
+import { 
+  COACHING_LEVELS, ORGANIZATION_TYPES, 
+  AGE_GROUPS, EMPLOYMENT_TYPES,
+  getSpecializationsBySport, getAllCertifications
+} from '../../data/coachingData';
 import { Edit2, Camera, Plus, X, Save, Users, UserPlus, Check, Video, Trash2, Play, MoreVertical, Heart, MessageCircle, Send } from 'lucide-react';
 import FooterNav from '../../components/layout/FooterNav';
-import ThemeToggle from '../../components/common/ui/ThemeToggle';
-import LanguageSelector from '../../components/common/forms/LanguageSelector';
+import AppHeader from '../../components/layout/AppHeader';
 import VerificationBadge from '../../components/common/ui/VerificationBadge';
 import VerificationRequestModal from '../../components/common/modals/VerificationRequestModal';
 import StoryViewer from '../../features/stories/StoryViewer';
@@ -64,6 +68,31 @@ export default function Profile({ profileUserId = null }) {
   const [isCommentingVideo, setIsCommentingVideo] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   
+  // Sports selection state
+  const [selectedSports, setSelectedSports] = useState([]);
+  const [showSportsDropdown, setShowSportsDropdown] = useState(false);
+  const [sportsSearchTerm, setSportsSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  
+  // Coaching profile state
+  const [showCoachingForm, setShowCoachingForm] = useState(false);
+  const [coachingProfile, setCoachingProfile] = useState({
+    organization: '',
+    organizationType: '',
+    position: '',
+    employmentType: '',
+    yearsAtOrganization: '',
+    primarySport: '',
+    secondarySports: [],
+    specializations: [],
+    ageGroups: [],
+    licenseLevel: '',
+    certifications: [],
+    totalExperience: '',
+    achievements: [],
+    philosophyStatement: ''
+  });
+  
   // Determine which user's profile we're viewing
   const targetUserId = urlUserId || profileUserId || currentUser?.uid;
   const isOwnProfile = targetUserId === currentUser?.uid;
@@ -104,6 +133,44 @@ export default function Profile({ profileUserId = null }) {
     };
   }, [showProfileImageMenu]);
 
+  // Helper function to get video section configuration based on role
+  const getVideoSectionConfig = (userRole) => {
+    switch(userRole) {
+      case 'athlete':
+        return {
+          title: 'Talent Showcase',
+          description: 'Show your athletic skills and performances',
+          uploadLabel: 'Upload Performance Video',
+          emptyMessage: 'No performance videos uploaded yet',
+          icon: '🏆' // Trophy for athletes
+        };
+      case 'coach':
+        return {
+          title: 'Coaching Portfolio',
+          description: 'Share your coaching techniques and training methods',
+          uploadLabel: 'Upload Coaching Video',
+          emptyMessage: 'No coaching videos uploaded yet',
+          icon: '👨‍🏫' // Coach/teacher icon
+        };
+      case 'organisation':
+        return {
+          title: 'Facility Showcase',
+          description: 'Highlight your facilities, events, and programs',
+          uploadLabel: 'Upload Facility Video',
+          emptyMessage: 'No facility videos uploaded yet',
+          icon: '🏢' // Building for organizations
+        };
+      default:
+        return {
+          title: 'Video Showcase',
+          description: 'Share your videos',
+          uploadLabel: 'Upload Video',
+          emptyMessage: 'No videos uploaded yet',
+          icon: '🎥' // Camera for general
+        };
+    }
+  };
+
   const fetchProfile = async () => {
     try {
       const docRef = doc(db, 'users', targetUserId);
@@ -113,6 +180,23 @@ export default function Profile({ profileUserId = null }) {
         setProfile(profileData);
         setCertificates(profileData.certificates || []);
         setAchievements(profileData.achievements || []);
+        setSelectedSports(profileData.sports || []);
+        setCoachingProfile(profileData.coachingProfile || {
+          organization: '',
+          organizationType: '',
+          position: '',
+          employmentType: '',
+          yearsAtOrganization: '',
+          primarySport: '',
+          secondarySports: [],
+          specializations: [],
+          ageGroups: [],
+          licenseLevel: '',
+          certifications: [],
+          totalExperience: '',
+          achievements: [],
+          philosophyStatement: ''
+        });
       } else if (isOwnProfile) {
         // Create default profile data only for own profile
         const defaultProfile = {
@@ -129,7 +213,24 @@ export default function Profile({ profileUserId = null }) {
           sex: '',
           role: 'athlete',
           certificates: [],
-          achievements: []
+          achievements: [],
+          sports: [],
+          coachingProfile: {
+            organization: '',
+            organizationType: '',
+            position: '',
+            employmentType: '',
+            yearsAtOrganization: '',
+            primarySport: '',
+            secondarySports: [],
+            specializations: [],
+            ageGroups: [],
+            licenseLevel: '',
+            certifications: [],
+            totalExperience: '',
+            achievements: [],
+            philosophyStatement: ''
+          }
         };
         
         setProfile(defaultProfile);
@@ -231,7 +332,7 @@ export default function Profile({ profileUserId = null }) {
 
   const handleVideoUpload = async (e) => {
     if (isGuest()) {
-      if (window.confirm('Please sign up or log in to upload talent videos. Guest accounts have read-only access.\n\nWould you like to go to the login page?')) {
+      if (window.confirm(`Please sign up or log in to upload videos. Guest accounts have read-only access.\n\nWould you like to go to the login page?`)) {
         navigate('/login');
       }
       return;
@@ -242,7 +343,8 @@ export default function Profile({ profileUserId = null }) {
 
     // Check if user already has 7 videos
     if (talentVideos.length >= 7) {
-      alert('You can only upload a maximum of 7 talent videos. Please delete some videos to upload new ones.');
+      const videoConfig = getVideoSectionConfig(profile?.role || 'athlete');
+      alert(`You can only upload a maximum of 7 videos in your ${videoConfig.title.toLowerCase()}. Please delete some videos to upload new ones.`);
       return;
     }
 
@@ -294,7 +396,8 @@ export default function Profile({ profileUserId = null }) {
       // Refresh the videos list
       fetchTalentVideos();
       
-      alert('Talent video uploaded successfully! Your video will be reviewed by our admin team before it appears on your public profile. You can still view it in your own profile.');
+      const videoConfig = getVideoSectionConfig(profile?.role || 'athlete');
+      alert(`Video uploaded successfully to your ${videoConfig.title.toLowerCase()}! Your video will be reviewed by our admin team before it appears on your public profile. You can still view it in your own profile.`);
     } catch (error) {
       // Error uploading video - logged in production
       alert('Failed to upload video. Please try again.');
@@ -736,6 +839,12 @@ export default function Profile({ profileUserId = null }) {
     }
     setIsEditing(true);
     setEditedProfile({ ...profile });
+    // Initialize dropdown states based on role
+    if (profile?.role === 'athlete') {
+      setShowSportsDropdown(true);
+    } else if (profile?.role === 'coach') {
+      setShowCoachingForm(true);
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -744,11 +853,17 @@ export default function Profile({ profileUserId = null }) {
       const updatedProfile = {
         ...editedProfile,
         certificates,
-        achievements
+        achievements,
+        sports: selectedSports,
+        coachingProfile: coachingProfile
       };
       await setDoc(userRef, updatedProfile, { merge: true });
       setProfile(updatedProfile);
       setIsEditing(false);
+      setShowSportsDropdown(false);
+      setShowCoachingForm(false);
+      setSportsSearchTerm('');
+      setSelectedCategory('');
     } catch (error) {
       // Error saving profile - logged in production
     }
@@ -756,6 +871,83 @@ export default function Profile({ profileUserId = null }) {
 
   const handleInputChange = (field, value) => {
     setEditedProfile(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Sports selection handlers
+  const handleRoleChange = (role) => {
+    handleInputChange('role', role);
+    if (role === 'athlete') {
+      setShowSportsDropdown(true);
+      setShowCoachingForm(false);
+    } else if (role === 'coach') {
+      setShowCoachingForm(true);
+      setShowSportsDropdown(false);
+      setSelectedSports([]);
+      handleInputChange('sports', []);
+    } else {
+      setShowSportsDropdown(false);
+      setShowCoachingForm(false);
+      setSelectedSports([]);
+      handleInputChange('sports', []);
+    }
+  };
+
+  const handleSportAdd = (sport) => {
+    if (!selectedSports.includes(sport) && selectedSports.length < 5) {
+      const newSports = [...selectedSports, sport];
+      setSelectedSports(newSports);
+      handleInputChange('sports', newSports);
+    }
+    setSportsSearchTerm('');
+  };
+
+  const handleSportRemove = (sportToRemove) => {
+    const newSports = selectedSports.filter(sport => sport !== sportToRemove);
+    setSelectedSports(newSports);
+    handleInputChange('sports', newSports);
+  };
+
+  const getFilteredSports = () => {
+    if (selectedCategory === '') {
+      return searchSports(sportsSearchTerm);
+    }
+    
+    const categoryData = SPORTS_CATEGORIES[selectedCategory];
+    if (!categoryData) return [];
+    
+    let categorysSports = [];
+    if (typeof categoryData === 'object' && !Array.isArray(categoryData)) {
+      Object.values(categoryData).forEach(subcategory => {
+        categorysSports.push(...subcategory);
+      });
+    } else {
+      categorysSports = [...categoryData];
+    }
+    
+    if (sportsSearchTerm) {
+      categorysSports = categorysSports.filter(sport => 
+        sport.toLowerCase().includes(sportsSearchTerm.toLowerCase())
+      );
+    }
+    
+    return categorysSports.sort();
+  };
+
+  // Coaching profile handlers
+  const handleCoachingInputChange = (field, value) => {
+    setCoachingProfile(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCoachingArrayAdd = (field, item) => {
+    if (!coachingProfile[field].includes(item)) {
+      const newArray = [...coachingProfile[field], item];
+      setCoachingProfile(prev => ({ ...prev, [field]: newArray }));
+    }
+  };
+
+  const handleCoachingArrayRemove = (field, itemToRemove) => {
+    const newArray = coachingProfile[field].filter(item => item !== itemToRemove);
+    setCoachingProfile(prev => ({ ...prev, [field]: newArray }));
   };
 
   const handleCertificateUpload = async (e) => {
@@ -1160,15 +1352,7 @@ export default function Profile({ profileUserId = null }) {
   if (isGuest()) {
     return (
       <div className="profile">
-        <nav className="nav-bar">
-          <div className="nav-content">
-            <h1>{t('profile')}</h1>
-            <div className="nav-controls">
-              <LanguageSelector />
-              <ThemeToggle />
-            </div>
-          </div>
-        </nav>
+        <AppHeader title={t('profile')} showThemeToggle={true} />
 
         <div className="main-content profile-container">
           <div className="guest-profile">
@@ -1182,7 +1366,6 @@ export default function Profile({ profileUserId = null }) {
               </div>
               <div className="guest-info">
                 <h1>Guest User</h1>
-                <p className="guest-id">Guest ID: {currentUser.uid}</p>
                 <div className="guest-limitation">
                   <p>🔒 Guest Account - Read Only Access</p>
                   <p>Sign up to unlock full features!</p>
@@ -1227,15 +1410,7 @@ export default function Profile({ profileUserId = null }) {
 
   return (
     <div className="profile">
-      <nav className="nav-bar">
-        <div className="nav-content">
-          <h1>{t('profile')}</h1>
-          <div className="nav-controls">
-            <LanguageSelector />
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <AppHeader title={t('profile')} showThemeToggle={true} />
 
       <div className="main-content profile-container">
         <div className="profile-header">
@@ -1441,20 +1616,475 @@ export default function Profile({ profileUserId = null }) {
             <div className="detail-item">
               <label>{t('role')}</label>
               {isEditing ? (
-                <select 
-                  value={editedProfile.role || 'athlete'} 
-                  onChange={(e) => handleInputChange('role', e.target.value)}
-                >
-                  <option value="athlete">{t('athlete')}</option>
-                  <option value="coach">{t('coach')}</option>
-                  <option value="organisation">{t('organisation')}</option>
-                </select>
+                <div className="role-selection-container">
+                  <select 
+                    value={editedProfile.role || 'athlete'} 
+                    onChange={(e) => handleRoleChange(e.target.value)}
+                    className="role-select"
+                  >
+                    <option value="athlete">{t('athlete')}</option>
+                    <option value="coach">{t('coach')}</option>
+                    <option value="organisation">{t('organisation')}</option>
+                  </select>
+                  
+                  {/* Cascading Sports Selection for Athletes */}
+                  {(showSportsDropdown || editedProfile.role === 'athlete') && (
+                    <div className="sports-selection-container">
+                      <div className="sports-header">
+                        <label>Sports/Games</label>
+                        <span className="sports-help-text">Select the sports you play (max 5)</span>
+                      </div>
+                      
+                      {/* Selected Sports Display */}
+                      {selectedSports.length > 0 && (
+                        <div className="selected-sports">
+                          {selectedSports.map((sport, index) => (
+                            <div key={index} className="sport-tag selected">
+                              <span>{sport}</span>
+                              <button 
+                                type="button"
+                                className="remove-sport"
+                                onClick={() => handleSportRemove(sport)}
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Sports Search */}
+                      <div className="sports-search">
+                        <input
+                          type="text"
+                          placeholder="Search for your sport..."
+                          value={sportsSearchTerm}
+                          onChange={(e) => setSportsSearchTerm(e.target.value)}
+                          className="sports-search-input"
+                        />
+                      </div>
+                      
+                      {/* Sports Categories */}
+                      <div className="sports-categories">
+                        <div className="category-tabs">
+                          <button 
+                            className={`category-tab ${selectedCategory === '' ? 'active' : ''}`}
+                            onClick={() => setSelectedCategory('')}
+                          >
+                            All Sports
+                          </button>
+                          {Object.keys(SPORTS_CATEGORIES).map(category => (
+                            <button 
+                              key={category}
+                              className={`category-tab ${selectedCategory === category ? 'active' : ''}`}
+                              onClick={() => setSelectedCategory(category)}
+                            >
+                              {category}
+                            </button>
+                          ))}
+                        </div>
+                        
+                        {/* Sports List */}
+                        <div className="sports-list">
+                          {selectedCategory === '' ? (
+                            // All sports filtered by search
+                            getFilteredSports().map(sport => (
+                              <button
+                                key={sport}
+                                type="button"
+                                className={`sport-option ${selectedSports.includes(sport) ? 'selected' : ''}`}
+                                onClick={() => handleSportAdd(sport)}
+                                disabled={selectedSports.includes(sport) || selectedSports.length >= 5}
+                              >
+                                {sport}
+                                {selectedSports.includes(sport) && <Check size={16} />}
+                              </button>
+                            ))
+                          ) : (
+                            // Category-specific sports
+                            (() => {
+                              const categoryData = SPORTS_CATEGORIES[selectedCategory];
+                              if (typeof categoryData === 'object' && !Array.isArray(categoryData)) {
+                                return Object.entries(categoryData).map(([subcategory, sports]) => (
+                                  <div key={subcategory} className="sports-subcategory">
+                                    <h4 className="subcategory-title">{subcategory}</h4>
+                                    <div className="sports-grid">
+                                      {sports.filter(sport => 
+                                        sport.toLowerCase().includes(sportsSearchTerm.toLowerCase())
+                                      ).map(sport => (
+                                        <button
+                                          key={sport}
+                                          type="button"
+                                          className={`sport-option ${selectedSports.includes(sport) ? 'selected' : ''}`}
+                                          onClick={() => handleSportAdd(sport)}
+                                          disabled={selectedSports.includes(sport) || selectedSports.length >= 5}
+                                        >
+                                          {sport}
+                                          {selectedSports.includes(sport) && <Check size={16} />}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ));
+                              } else {
+                                return (
+                                  <div className="sports-grid">
+                                    {categoryData.filter(sport => 
+                                      sport.toLowerCase().includes(sportsSearchTerm.toLowerCase())
+                                    ).map(sport => (
+                                      <button
+                                        key={sport}
+                                        type="button"
+                                        className={`sport-option ${selectedSports.includes(sport) ? 'selected' : ''}`}
+                                        onClick={() => handleSportAdd(sport)}
+                                        disabled={selectedSports.includes(sport) || selectedSports.length >= 5}
+                                      >
+                                        {sport}
+                                        {selectedSports.includes(sport) && <Check size={16} />}
+                                      </button>
+                                    ))}
+                                  </div>
+                                );
+                              }
+                            })()
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Comprehensive Coaching Profile Form */}
+                  {(showCoachingForm || editedProfile.role === 'coach') && (
+                    <div className="coaching-form-container">
+                      <div className="coaching-header">
+                        <label>Coaching Profile</label>
+                        <span className="coaching-help-text">Complete your professional coaching information</span>
+                      </div>
+
+                      {/* Organization Details */}
+                      <div className="coaching-section">
+                        <h4>Organization & Position</h4>
+                        <div className="coaching-fields">
+                          <input
+                            type="text"
+                            placeholder="Organization/Club/Academy name"
+                            value={coachingProfile.organization}
+                            onChange={(e) => handleCoachingInputChange('organization', e.target.value)}
+                            className="coaching-input"
+                          />
+                          <select
+                            value={coachingProfile.organizationType}
+                            onChange={(e) => handleCoachingInputChange('organizationType', e.target.value)}
+                            className="coaching-select"
+                          >
+                            <option value="">Select Organization Type</option>
+                            {ORGANIZATION_TYPES.map((type, index) => (
+                              <option key={index} value={type}>{type}</option>
+                            ))}
+                          </select>
+                          <select
+                            value={coachingProfile.position}
+                            onChange={(e) => handleCoachingInputChange('position', e.target.value)}
+                            className="coaching-select"
+                          >
+                            <option value="">Select Position</option>
+                            {COACHING_LEVELS["Coaching Positions"].map((pos, index) => (
+                              <option key={index} value={pos}>{pos}</option>
+                            ))}
+                          </select>
+                          <select
+                            value={coachingProfile.employmentType}
+                            onChange={(e) => handleCoachingInputChange('employmentType', e.target.value)}
+                            className="coaching-select"
+                          >
+                            <option value="">Employment Type</option>
+                            {EMPLOYMENT_TYPES.map((type, index) => (
+                              <option key={index} value={type}>{type}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="number"
+                            placeholder="Years at current organization"
+                            value={coachingProfile.yearsAtOrganization}
+                            onChange={(e) => handleCoachingInputChange('yearsAtOrganization', e.target.value)}
+                            className="coaching-input"
+                            min="0"
+                            max="50"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Sports & Specializations */}
+                      <div className="coaching-section">
+                        <h4>Sports & Specializations</h4>
+                        <div className="coaching-fields">
+                          <select
+                            value={coachingProfile.primarySport}
+                            onChange={(e) => handleCoachingInputChange('primarySport', e.target.value)}
+                            className="coaching-select"
+                          >
+                            <option value="">Select Primary Sport</option>
+                            {searchSports('').map((sport, index) => (
+                              <option key={index} value={sport}>{sport}</option>
+                            ))}
+                          </select>
+                          
+                          {/* Specializations based on selected sport */}
+                          {coachingProfile.primarySport && (
+                            <div className="specializations-section">
+                              <label>Specializations</label>
+                              <div className="specializations-grid">
+                                {getSpecializationsBySport(coachingProfile.primarySport).map((spec, index) => (
+                                  <button
+                                    key={index}
+                                    type="button"
+                                    className={`specialization-option ${coachingProfile.specializations.includes(spec) ? 'selected' : ''}`}
+                                    onClick={() => 
+                                      coachingProfile.specializations.includes(spec)
+                                        ? handleCoachingArrayRemove('specializations', spec)
+                                        : handleCoachingArrayAdd('specializations', spec)
+                                    }
+                                  >
+                                    {spec}
+                                    {coachingProfile.specializations.includes(spec) && <Check size={14} />}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Age Groups */}
+                          <div className="age-groups-section">
+                            <label>Age Groups Coached</label>
+                            {coachingProfile.ageGroups.length > 0 && (
+                              <div className="selected-age-groups">
+                                {coachingProfile.ageGroups.map((ageGroup, index) => (
+                                  <div key={index} className="age-group-tag">
+                                    <span>{ageGroup}</span>
+                                    <button 
+                                      type="button"
+                                      className="remove-age-group"
+                                      onClick={() => handleCoachingArrayRemove('ageGroups', ageGroup)}
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <select
+                              onChange={(e) => {
+                                if (e.target.value && !coachingProfile.ageGroups.includes(e.target.value)) {
+                                  handleCoachingArrayAdd('ageGroups', e.target.value);
+                                  e.target.value = '';
+                                }
+                              }}
+                              className="coaching-select"
+                            >
+                              <option value="">Add Age Group</option>
+                              {AGE_GROUPS.map((ageGroup, index) => (
+                                <option key={index} value={ageGroup}>{ageGroup}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Credentials & Experience */}
+                      <div className="coaching-section">
+                        <h4>Credentials & Experience</h4>
+                        <div className="coaching-fields">
+                          <select
+                            value={coachingProfile.licenseLevel}
+                            onChange={(e) => handleCoachingInputChange('licenseLevel', e.target.value)}
+                            className="coaching-select"
+                          >
+                            <option value="">Select License Level</option>
+                            {COACHING_LEVELS["License Levels"].map((license, index) => (
+                              <option key={index} value={license}>{license}</option>
+                            ))}
+                          </select>
+                          
+                          <input
+                            type="number"
+                            placeholder="Total years of coaching experience"
+                            value={coachingProfile.totalExperience}
+                            onChange={(e) => handleCoachingInputChange('totalExperience', e.target.value)}
+                            className="coaching-input"
+                            min="0"
+                            max="50"
+                          />
+
+                          {/* Certifications */}
+                          <div className="certifications-section">
+                            <label>Certifications</label>
+                            <div className="certifications-list">
+                              {coachingProfile.certifications.length > 0 && (
+                                <div className="selected-certifications">
+                                  {coachingProfile.certifications.map((cert, index) => (
+                                    <div key={index} className="certification-tag">
+                                      <span>{cert}</span>
+                                      <button 
+                                        type="button"
+                                        className="remove-certification"
+                                        onClick={() => handleCoachingArrayRemove('certifications', cert)}
+                                      >
+                                        <X size={12} />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <select
+                                onChange={(e) => {
+                                  if (e.target.value && !coachingProfile.certifications.includes(e.target.value)) {
+                                    handleCoachingArrayAdd('certifications', e.target.value);
+                                    e.target.value = '';
+                                  }
+                                }}
+                                className="coaching-select"
+                              >
+                                <option value="">Add Certification</option>
+                                {getAllCertifications().map((cert, index) => (
+                                  <option key={index} value={cert}>{cert}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Philosophy Statement */}
+                      <div className="coaching-section">
+                        <h4>Coaching Philosophy</h4>
+                        <textarea
+                          placeholder="Describe your coaching philosophy and approach..."
+                          value={coachingProfile.philosophyStatement}
+                          onChange={(e) => handleCoachingInputChange('philosophyStatement', e.target.value)}
+                          className="coaching-textarea"
+                          rows="4"
+                          maxLength="500"
+                        />
+                        <span className="character-count">{coachingProfile.philosophyStatement.length}/500</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ) : (
-                <span>{t(profile?.role || 'athlete')}</span>
+                <div className="role-display">
+                  <span className="role-text">{t(profile?.role || 'athlete')}</span>
+                </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Role & Sports Information Section */}
+        {!isEditing && (
+          <div className="profile-section">
+            <div className="section-header">
+              <h2>Role & Sports Information</h2>
+            </div>
+            
+            <div className="role-sports-content">
+              <div className="detail-item">
+                <label>Role</label>
+                <span className="role-text">{t(profile?.role || 'athlete')}</span>
+              </div>
+              
+              {profile?.sports && profile.sports.length > 0 && (
+                <div className="detail-item">
+                  <label>Sports</label>
+                  <div className="profile-sports-display">
+                    {profile.sports.map((sport, index) => (
+                      <span key={index} className="sport-tag display">{sport}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {profile?.role === 'coach' && profile.coachingProfile && (
+                <div className="coaching-profile-display">
+                  {profile.coachingProfile.organization && (
+                    <div className="detail-item">
+                      <label>Organization</label>
+                      <div className="coaching-info-item">
+                        <span className="coaching-value">{profile.coachingProfile.organization}</span>
+                        {profile.coachingProfile.position && (
+                          <span className="coaching-position"> - {profile.coachingProfile.position}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {profile.coachingProfile.primarySport && (
+                    <div className="detail-item">
+                      <label>Primary Sport</label>
+                      <span className="coaching-value">{profile.coachingProfile.primarySport}</span>
+                    </div>
+                  )}
+                  
+                  {profile.coachingProfile.totalExperience && (
+                    <div className="detail-item">
+                      <label>Experience</label>
+                      <span className="coaching-value">{profile.coachingProfile.totalExperience} years</span>
+                    </div>
+                  )}
+                  
+                  {profile.coachingProfile.licenseLevel && (
+                    <div className="detail-item">
+                      <label>License Level</label>
+                      <span className="coaching-license">{profile.coachingProfile.licenseLevel}</span>
+                    </div>
+                  )}
+                  
+                  {profile.coachingProfile.specializations && profile.coachingProfile.specializations.length > 0 && (
+                    <div className="detail-item">
+                      <label>Specializations</label>
+                      <div className="specializations-tags">
+                        {profile.coachingProfile.specializations.map((spec, index) => (
+                          <span key={index} className="specialization-tag">{spec}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {profile.coachingProfile.organizationType && (
+                    <div className="detail-item">
+                      <label>Organization Type</label>
+                      <span className="coaching-value">{profile.coachingProfile.organizationType}</span>
+                    </div>
+                  )}
+                  
+                  {profile.coachingProfile.employmentType && (
+                    <div className="detail-item">
+                      <label>Employment Type</label>
+                      <span className="coaching-value">{profile.coachingProfile.employmentType}</span>
+                    </div>
+                  )}
+                  
+                  {profile.coachingProfile.ageGroups && profile.coachingProfile.ageGroups.length > 0 && (
+                    <div className="detail-item">
+                      <label>Age Groups Coached</label>
+                      <div className="age-groups-tags">
+                        {profile.coachingProfile.ageGroups.map((ageGroup, index) => (
+                          <span key={index} className="age-group-tag">{ageGroup}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {profile.coachingProfile.philosophyStatement && (
+                    <div className="detail-item">
+                      <label>Coaching Philosophy</label>
+                      <p className="coaching-philosophy">{profile.coachingProfile.philosophyStatement}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Certificates Section */}
         <div className="profile-section">
@@ -1645,10 +2275,24 @@ export default function Profile({ profileUserId = null }) {
           </div>
         </div>
         
-        {/* Talent Showcase Section */}
+        {/* Dynamic Video Section Based on Role */}
         <div className="profile-section">
           <div className="section-header">
-            <h2><Video size={24} /> Talent Showcase ({talentVideos.length}/7)</h2>
+            <h2>
+              <Video size={24} /> 
+              <span style={{marginLeft: '8px', marginRight: '4px'}}>
+                {getVideoSectionConfig(profile?.role || 'athlete').icon}
+              </span>
+              {getVideoSectionConfig(profile?.role || 'athlete').title} ({talentVideos.length}/7)
+            </h2>
+            <p style={{
+              margin: '8px 0 0 0', 
+              fontSize: '14px', 
+              color: 'var(--text-muted)', 
+              fontStyle: 'italic'
+            }}>
+              {getVideoSectionConfig(profile?.role || 'athlete').description}
+            </p>
             {isOwnProfile && !isGuest() && (
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 {talentVideos.length < 7 && (
@@ -1662,7 +2306,7 @@ export default function Profile({ profileUserId = null }) {
                     />
                     <label htmlFor="talent-video-upload" className="upload-video-btn">
                       <Plus size={16} />
-                      {uploadingVideo ? 'Uploading...' : 'Upload Video'}
+                      {uploadingVideo ? 'Uploading...' : getVideoSectionConfig(profile?.role || 'athlete').uploadLabel}
                     </label>
                   </div>
                 )}
@@ -1674,10 +2318,6 @@ export default function Profile({ profileUserId = null }) {
           {uploadingVideo && (
             <div className="upload-progress">
               <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
-                  style={{ width: `${videoUploadProgress}%` }}
-                ></div>
               </div>
               <div className="progress-info">
                 <span>{Math.round(videoUploadProgress)}% uploaded</span>
@@ -1770,9 +2410,9 @@ export default function Profile({ profileUserId = null }) {
             {talentVideos.length === 0 && (
               <div className="empty-state">
                 <Video size={48} />
-                <p>No talent videos yet</p>
+                <p>{getVideoSectionConfig(profile?.role || 'athlete').emptyMessage}</p>
                 {isOwnProfile && !isGuest() && (
-                  <span>Upload videos to showcase your talent!</span>
+                  <span>{getVideoSectionConfig(profile?.role || 'athlete').description}</span>
                 )}
               </div>
             )}

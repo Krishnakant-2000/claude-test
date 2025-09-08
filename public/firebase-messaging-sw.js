@@ -6,7 +6,7 @@ importScripts('https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-com
 
 // Initialize Firebase in the service worker
 const firebaseConfig = {
-  apiKey: ,
+  apiKey: "AIzaSyBrFpknzO0LwmCKzRbIznQE3erVY0teo80",
   authDomain: "my-react-firebase-app-69fcd.firebaseapp.com",
   projectId: "my-react-firebase-app-69fcd",
   storageBucket: "my-react-firebase-app-69fcd.firebasestorage.app",
@@ -24,29 +24,45 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
   
+  // Ensure we have a valid payload
+  if (!payload) {
+    console.warn('[firebase-messaging-sw.js] Empty payload received');
+    return;
+  }
+  
   const notificationTitle = payload.notification?.title || 'AmaPlayer Notification';
   const notificationOptions = {
     body: payload.notification?.body || 'You have a new notification',
     icon: '/logo192.png',
     badge: '/logo192.png',
     tag: 'amaplayer-notification',
+    requireInteraction: false,
+    silent: false,
     data: {
       url: payload.data?.url || '/',
+      timestamp: Date.now(),
       ...payload.data
     },
     actions: [
       {
         action: 'view',
-        title: 'View'
+        title: '👀 View'
       },
       {
         action: 'dismiss',
-        title: 'Dismiss'
+        title: '✖️ Dismiss'
       }
     ]
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // Show notification with error handling
+  self.registration.showNotification(notificationTitle, notificationOptions)
+    .then(() => {
+      console.log('[firebase-messaging-sw.js] Notification displayed successfully');
+    })
+    .catch((error) => {
+      console.error('[firebase-messaging-sw.js] Error displaying notification:', error);
+    });
 });
 
 // Handle notification clicks

@@ -3,6 +3,7 @@
   background: var(--bg-primary);
   background-attachment: fixed;
   overflow-y: auto;
+  padding-top: 70px; /* Account for fixed header */
 }
 
 /* Logout button styling */
@@ -1598,4 +1599,3 @@
     max-height: 250px;
   }
 }
-

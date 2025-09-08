@@ -5,8 +5,7 @@ import { db } from '../../lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, getDoc, getDocs, deleteDoc } from 'firebase/firestore';
 import { MessageSquare, UserPlus, Check, X, Send, Users, Edit3, Trash2, Save, XCircle, AlertTriangle, Bell, Heart, Play } from 'lucide-react';
 import FooterNav from '../../components/layout/FooterNav';
-import ThemeToggle from '../../components/common/ui/ThemeToggle';
-import LanguageSelector from '../../components/common/forms/LanguageSelector';
+import AppHeader from '../../components/layout/AppHeader';
 import { filterChatMessage, getChatViolationMessage, logChatViolation } from '../../utils/content/chatFilter';
 import './Messages.css';
 
@@ -368,15 +367,6 @@ export default function Messages() {
       
       snapshot.forEach((doc) => {
         const notificationData = { id: doc.id, ...doc.data() };
-        console.log('📋 Processing notification:', {
-          id: doc.id,
-          type: notificationData.type,
-          senderName: notificationData.senderName,
-          message: notificationData.message,
-          read: notificationData.read,
-          receiverId: notificationData.receiverId,
-          timestamp: notificationData.timestamp
-        });
         notificationsList.push(notificationData);
         
         if (!notificationData.read) {
@@ -386,14 +376,7 @@ export default function Messages() {
       
       console.log('📱 Notifications processed:', {
         total: notificationsList.length,
-        unread: unreadCount,
-        notifications: notificationsList.map(n => ({ 
-          id: n.id, 
-          type: n.type, 
-          read: n.read,
-          senderName: n.senderName,
-          message: n.message
-        }))
+        unread: unreadCount
       });
       
       // Sort by timestamp (newest first)
@@ -824,15 +807,7 @@ export default function Messages() {
   if (isGuest()) {
     return (
       <div className="messages">
-        <nav className="nav-bar">
-          <div className="nav-content">
-            <h1>Messages</h1>
-            <div className="nav-controls">
-              <LanguageSelector />
-              <ThemeToggle />
-            </div>
-          </div>
-        </nav>
+        <AppHeader title="Messages"  showThemeToggle={true} />
 
         <div className="main-content messages-content">
           <div className="guest-restriction">
@@ -859,11 +834,7 @@ export default function Messages() {
   if (loading) {
     return (
       <div className="messages">
-        <nav className="nav-bar">
-          <div className="nav-content">
-            <h1>Messages</h1>
-          </div>
-        </nav>
+        <AppHeader title="Messages"  showThemeToggle={true} />
         <div className="main-content">
           <div className="loading">Loading messages...</div>
         </div>
@@ -874,15 +845,7 @@ export default function Messages() {
 
   return (
     <div className="messages">
-      <nav className="nav-bar">
-        <div className="nav-content">
-          <h1>Messages</h1>
-          <div className="nav-controls">
-            <LanguageSelector />
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <AppHeader title="Messages"  showThemeToggle={true} />
 
       <div className="main-content messages-content">
         {/* Tab Navigation */}
@@ -892,21 +855,18 @@ export default function Messages() {
             onClick={() => setActiveTab('friends')}
           >
             <Users size={20} />
-            Friends
           </button>
           <button
             className={`tab-btn ${activeTab === 'messages' ? 'active' : ''}`}
             onClick={() => setActiveTab('messages')}
           >
             <MessageSquare size={20} />
-            Messages
           </button>
           <button
             className={`tab-btn ${activeTab === 'requests' ? 'active' : ''}`}
             onClick={() => setActiveTab('requests')}
           >
             <UserPlus size={20} />
-            Requests
             {friendRequests.length > 0 && <span className="badge">{friendRequests.length}</span>}
           </button>
           <button
@@ -914,7 +874,6 @@ export default function Messages() {
             onClick={() => setActiveTab('notifications')}
           >
             <Bell size={20} />
-            Notifications
             {notifications.filter(n => !n.read).length > 0 && (
               <span className="badge">{notifications.filter(n => !n.read).length}</span>
             )}
@@ -1074,14 +1033,12 @@ export default function Messages() {
                                       onClick={() => startEdit(message)}
                                     >
                                       <Edit3 size={14} />
-                                      Edit
                                     </button>
                                     <button 
                                       className="option-item delete-option"
                                       onClick={() => handleDeleteMessage(message.id, 'me')}
                                     >
                                       <Trash2 size={14} />
-                                      Delete for me
                                     </button>
                                     <button 
                                       className="option-item delete-everyone-option"
@@ -1092,7 +1049,6 @@ export default function Messages() {
                                       }}
                                     >
                                       <Trash2 size={14} />
-                                      Delete for everyone
                                     </button>
                                   </div>
                                 )}
@@ -1207,14 +1163,12 @@ export default function Messages() {
                           onClick={() => handleAcceptRequest(request.id, request.senderId)}
                         >
                           <Check size={16} />
-                          Accept
                         </button>
                         <button
                           className="reject-btn"
                           onClick={() => handleRejectRequest(request.id)}
                         >
                           <X size={16} />
-                          Decline
                         </button>
                       </div>
                     </div>

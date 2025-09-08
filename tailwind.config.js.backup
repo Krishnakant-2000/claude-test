@@ -1,0 +1,20 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./src/**/*.{html,js,ts,jsx,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        "heading-new": "var(--heading-new)",
+        "new-bold-text": "var(--new-bold-text)",
+        "new-style": "var(--new-style)",
+        "primary-color": "var(--primary-color)",
+      },
+      fontFamily: {
+        "body-pargraph-bold": "var(--body-pargraph-bold-font-family)",
+        "follower-typography": "var(--follower-typography-font-family)",
+        "new-apply": "var(--new-apply-font-family)",
+      },
+    },
+  },
+  plugins: [],
+};

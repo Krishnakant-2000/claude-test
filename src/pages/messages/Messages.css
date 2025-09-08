@@ -1,9 +1,15 @@
 /* Messages Page Styles */
 .messages {
   min-height: 100vh;
-  background: var(--bg-primary);
+  background-color: #ffffff;
   background-attachment: fixed;
   overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 70px; /* Account for fixed header */
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .nav-bar {
@@ -724,14 +730,15 @@
 .fixed-message-input {
   position: fixed;
   bottom: 80px; /* Height of footer nav (10px padding + ~50px content + 10px padding) */
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
   display: flex;
-  gap: 10px;
-  padding: 15px 20px;
-  background: var(--bg-navbar);
-  border-top: 1px solid var(--border-primary);
-  backdrop-filter: blur(15px);
+  gap: 8px;
+  padding: 12px 15px;
+  background-color: #ffffff;
+  border-top: 1px solid #f0f0f0;
   z-index: 999;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
@@ -746,11 +753,11 @@
 
 .fixed-message-input input {
   flex: 1;
-  padding: 12px 15px;
-  border: 2px solid var(--border-secondary);
-  border-radius: 25px;
-  background: var(--bg-card);
-  color: var(--text-primary);
+  padding: 10px 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 20px;
+  background-color: #ffffff;
+  color: #000;
   font-size: 14px;
   outline: none;
   transition: all 0.3s ease;
@@ -769,8 +776,8 @@
 }
 
 .fixed-message-input input:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .message-input input:focus {
@@ -779,10 +786,10 @@
 }
 
 .fixed-message-input button {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  background-color: #007bff;
   color: white;
   border: none;
-  padding: 12px 15px;
+  padding: 10px 12px;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -806,7 +813,7 @@
 
 .fixed-message-input button:hover:not(:disabled) {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
 }
 
 .message-input button:hover:not(:disabled) {

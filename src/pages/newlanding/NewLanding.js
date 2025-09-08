@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { setPageBodyClass } from '../../utils/cssCleanup';
 import './NewLanding.css';
 
 const NewLanding = () => {
@@ -43,9 +44,8 @@ const NewLanding = () => {
       document.head.appendChild(meta);
     }
     
-    // Add body class to identify new landing page
-    document.body.classList.add('new-landing-page-loaded');
-    document.body.classList.remove('landingpage3d-loaded');
+    // Set page class using the utility
+    setPageBodyClass('new-landing-page-loaded');
     
     console.log('NEW LANDING: Setup complete');
     
@@ -69,13 +69,15 @@ const NewLanding = () => {
         await loadScript('/newlanding/assets/js/util.js');
         await loadScript('/newlanding/assets/js/main.js');
         
+        console.log('NEW LANDING: All scripts loaded successfully');
+        
         // Remove loading class after scripts are loaded
         setTimeout(() => {
           document.body.classList.remove('is-loading');
         }, 100);
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.warn('Some scripts failed to load:', error);
+        console.warn('NEW LANDING: Some scripts failed to load:', error);
         // Even if scripts fail, remove loading class
         document.body.classList.remove('is-loading');
       }
@@ -84,17 +86,43 @@ const NewLanding = () => {
     // Add loading class initially
     document.body.classList.add('is-loading');
     
-    loadScripts();
+    // Add a fallback timeout to ensure loading class is removed
+    let fallbackTimeout;
+    fallbackTimeout = setTimeout(() => {
+      console.log('NEW LANDING: Fallback timeout - removing loading class');
+      document.body.classList.remove('is-loading');
+    }, 5000); // 5 second fallback
+    
+    loadScripts().then(() => {
+      if (fallbackTimeout) {
+        clearTimeout(fallbackTimeout);
+      }
+    });
 
-    // Cleanup function to remove scripts when component unmounts
+    // Cleanup function to remove scripts and styles when component unmounts
     return () => {
+      // Remove all newlanding scripts
       const scripts = document.querySelectorAll('script[src*="/newlanding/"]');
       scripts.forEach(script => {
         if (script.parentNode) {
           script.parentNode.removeChild(script);
         }
       });
+      
+      // Remove all body classes added by newlanding
       document.body.classList.remove('is-loading');
+      document.body.classList.remove('new-landing-page-loaded');
+      document.body.classList.remove('landingpage3d-loaded');
+      
+      // Remove any inline styles that might have been added by scripts
+      document.body.removeAttribute('style');
+      
+      // Clear any timeouts
+      if (fallbackTimeout) {
+        clearTimeout(fallbackTimeout);
+      }
+      
+      console.log('NEW LANDING: Cleanup completed on unmount');
     };
   }, []);
 
@@ -112,9 +140,10 @@ const NewLanding = () => {
       <nav id="menu">
         <ul className="links">
           <li><a href="#home">Home</a></li>
+          <li><button onClick={() => scrollToSection('vision-mission')}>About Us</button></li>
           <li><a href="/newlanding/coaches.html" target="_blank" rel="noopener noreferrer">View Coaches</a></li>
           <li><a href="/newlanding/organizations.html" target="_blank" rel="noopener noreferrer">View Organizations</a></li>
-          <li><Link to="/app-landing">App</Link></li>
+          <li><Link to="/profile">Profile</Link></li>
         </ul>
       </nav>
       
@@ -128,7 +157,7 @@ const NewLanding = () => {
               <h2>AmaPlayer</h2>
               <div className="hero-buttons">
                 <button onClick={() => scrollToSection('explore')} className="button special">Explore</button>
-                <Link to="/app-landing" className="button alt">App</Link>
+                <Link to="/app" className="button alt">App</Link>
               </div>
             </header>
           </div>
@@ -154,28 +183,150 @@ const NewLanding = () => {
         </article>
       </section>
       
-      {/* One */}
-      <section id="one" className="wrapper style2">
+      {/* Vision & Mission Section */}
+      <section id="vision-mission" className="wrapper style2">
         <div className="inner">
-          <div className="grid-style">
-            <div>
-              <div className="box">
-                <div className="image fit">
-                  <img src="/newlanding/images/weight.jpg" alt="" width="300" height="50" />
-                </div>
-                <div className="content">
-                  <header className="align-center">
-                    <p>How I Got Discovered with Talent Hunt</p>
-                    <h2>Sports-Only Community Forum</h2>
-                  </header>
-                  <p>Success in sports is built on consistent training, discipline, and the right opportunities. At AmaPlayer, we connect aspiring athletes with the resources they need to excel. Whether you're a player looking to showcase your talent or a coach seeking promising athletes, our platform bridges the gap between potential and opportunity. Share your journey, track your progress, and get discovered by organizations looking for talent just like yours.</p>
-                  <footer className="align-center">
-                    <Link to="/app-landing" className="button alt">Learn More</Link>
-                  </footer>
-                </div>
+          <header className="align-center">
+            <p className="special">Empowering Every Athlete's Journey</p>
+            <h2>Our Vision & Mission</h2>
+          </header>
+          
+          <div style={{
+            display: 'grid', 
+            gridTemplateColumns: '1fr 1fr', 
+            gap: '3rem', 
+            margin: '3rem 0',
+            padding: '2rem 0'
+          }}>
+            
+            {/* Vision Section */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+              border: '2px solid rgba(76, 175, 80, 0.3)',
+              borderRadius: '20px',
+              padding: '2.5rem 2rem',
+              textAlign: 'center',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+              backdropFilter: 'blur(15px)'
+            }}>
+              <div style={{fontSize: '4rem', marginBottom: '1.5rem'}}>👁️</div>
+              
+              <h2 style={{
+                color: '#4CAF50',
+                fontSize: '1.8rem',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '3px',
+                marginBottom: '2rem',
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+              }}>
+                OUR VISION
+              </h2>
+              
+              <h3 style={{
+                fontSize: '1.2rem',
+                lineHeight: '1.8',
+                fontWeight: '400',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                textAlign: 'center',
+                margin: '2rem 0 0 0',
+                padding: '1.5rem',
+                position: 'relative'
+              }}>
+                <span style={{
+                  color: '#2c3e50',
+                  fontSize: '1.2rem',
+                  fontWeight: '500',
+                  lineHeight: '1.8',
+                  letterSpacing: '0.5px',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                  display: 'inline-block'
+                }}>
+                  "AmaPlayer envisions an India where every hidden talent gets a global stage, fueling the journey from playgrounds to podiums, and bringing home Olympic Gold and World Championship glory."
+                </span>
+              </h3>
+            </div>
+            
+            {/* Mission Section */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+              border: '2px solid rgba(76, 175, 80, 0.3)',
+              borderRadius: '20px',
+              padding: '2.5rem 2rem',
+              textAlign: 'center',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+              backdropFilter: 'blur(15px)'
+            }}>
+              <div style={{fontSize: '4rem', marginBottom: '1.5rem'}}>🎯</div>
+              
+              <h2 style={{
+                color: '#4CAF50',
+                fontSize: '1.8rem',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '3px',
+                marginBottom: '2rem',
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+              }}>
+                OUR MISSION
+              </h2>
+              
+              <h3 style={{
+                fontSize: '1.2rem',
+                lineHeight: '1.8',
+                fontWeight: '400',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                textAlign: 'center',
+                margin: '2rem 0 0 0',
+                padding: '1.5rem',
+                position: 'relative'
+              }}>
+                <span style={{
+                  color: '#2c3e50',
+                  fontSize: '1.2rem',
+                  fontWeight: '500',
+                  lineHeight: '1.8',
+                  letterSpacing: '0.5px',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                  display: 'inline-block'
+                }}>
+                  "Our mission is to build a trusted sports ecosystem where players, coaches, academies, brands, and fans come together to discover, nurture, and celebrate talent, fueling India's journey to Olympic Golds and World Championships."
+                </span>
+              </h3>
+            </div>
+            
+          </div>
+          
+          <div className="values-section">
+            <h4>Core Values</h4>
+            <div className="values-grid">
+              <div className="value-item">
+                <span className="value-icon">🏆</span>
+                <strong>Excellence</strong>
+                <small>Pursuit of sporting greatness</small>
+              </div>
+              <div className="value-item">
+                <span className="value-icon">🤝</span>
+                <strong>Community</strong>
+                <small>Supporting each other's journey</small>
+              </div>
+              <div className="value-item">
+                <span className="value-icon">🌟</span>
+                <strong>Opportunity</strong>
+                <small>Creating paths to success</small>
+              </div>
+              <div className="value-item">
+                <span className="value-icon">⚡</span>
+                <strong>Innovation</strong>
+                <small>Leading sports technology</small>
               </div>
             </div>
           </div>
+          
+          <footer className="align-center">
+            <Link to="/search" className="button special">Find Athletes</Link>
+            <button onClick={() => scrollToSection('explore')} className="button alt">Learn More</button>
+          </footer>
         </div>
       </section>
       
@@ -193,7 +344,7 @@ const NewLanding = () => {
               </div>
               <h3>Daily Challenges</h3>
               <p>Test your skills with new challenges every day and win exclusive sport kits and gear.</p>
-              <Link to="/app-landing" className="button alt">Join Today's Challenge</Link>
+              <Link to="/events" className="button alt">Join Today's Challenge</Link>
             </div>
             <div className="challenge-card">
               <div className="challenge-icon">
@@ -201,7 +352,7 @@ const NewLanding = () => {
               </div>
               <h3>Weekly Tournaments</h3>
               <p>Compete against athletes nationwide in our weekly tournaments with amazing prizes.</p>
-              <Link to="/app-landing" className="button alt">View Leaderboard</Link>
+              <Link to="/events" className="button alt">View Leaderboard</Link>
             </div>
           </div>
         </div>
@@ -246,7 +397,7 @@ const NewLanding = () => {
             </div>
           </div>
           <div className="process-footer">
-            <p>Motivated? <Link to="/app-landing">Join Talent Hunt Today!</Link></p>
+            <p>Motivated? <Link to="/add-post">Share Your Talent Today!</Link></p>
           </div>
         </div>
       </section>
@@ -266,7 +417,7 @@ const NewLanding = () => {
               <div className="card-content">
                 <h3>Explore Athletes</h3>
                 <p>Browse inspiring profiles, achievements, and highlight reels from athletes across all sports. Connect, compete, and get noticed! Dive into a world of talent ready to be recognized.</p>
-                <Link to="/app-landing" className="button special">See Athletes</Link>
+                <Link to="/search" className="button special">See Athletes</Link>
               </div>
             </div>
             <div className="explore-card coach-card">
