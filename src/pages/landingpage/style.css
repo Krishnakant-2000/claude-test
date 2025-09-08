@@ -1105,19 +1105,21 @@
 }
 
 .landing-page .arrow {
-    height: 48px;
+    height: 15px;
     left: 204px;
     position: absolute;
     top: 425px;
-    width: 15px;
+    width: 48px;
+    transform: rotate(90deg);
 }
 
 .landing-page .arrow-2 {
-    height: 48px;
+    height: 15px;
     left: 204px;
     position: absolute;
     top: 888px;
-    width: 15px;
+    width: 48px;
+    transform: rotate(90deg);
 }
 
 /* Core Values Styling */
@@ -1158,7 +1160,7 @@
 /* Register Now Button */
 .landing-page .register-now-section {
     position: absolute;
-    top: 5950px;
+    top: 5900px;
     left: 0;
     width: 100%;
     max-width: 440px;
@@ -1395,7 +1397,7 @@
 
     /* Register Now button responsive */
     .landing-page .register-now-section {
-        top: 5900px !important;
+        top: 5850px !important;
         padding: 30px 15px !important;
     }
 

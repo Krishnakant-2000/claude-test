@@ -316,10 +316,10 @@ export const LandingPage = () => {
                     <div className="overlap-20">
                         <img className="rectangle-5" alt="Rectangle" src={rectangle147} />
 
-                        <div className="text-wrapper-24">UPLOAD</div>
+                        <div className="text-wrapper-24">GET DISCOVERED</div>
 
                         <p className="share-your-best-2">
-                            Share your best moments, stats, &amp; achievements
+                            Get noticed by scouts, coaches, and talent hunters worldwide
                         </p>
                     </div>
 
