@@ -1123,10 +1123,10 @@
 /* Core Values Styling */
 .landing-page .core-values-container {
     position: absolute;
-    top: 4370px;
+    top: 4350px;
     left: 20px;
     width: 400px;
-    height: 60px;
+    height: 80px;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -1382,8 +1382,9 @@
         left: 10px !important;
         width: calc(100vw - 20px) !important;
         max-width: 420px !important;
-        top: 4370px !important;
+        top: 4350px !important;
         z-index: 10 !important;
+        height: 80px !important;
     }
 
     .landing-page .core-value-icon {
