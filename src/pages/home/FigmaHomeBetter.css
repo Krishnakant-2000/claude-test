@@ -11,6 +11,7 @@
   position: relative;
   overflow-x: hidden;
   box-sizing: border-box;
+  padding-bottom: 90px; /* Space for fixed footer navigation */
 }
 
 /* Header */
@@ -448,6 +449,7 @@
 @media (max-width: 480px) {
   .figma-home-container {
     max-width: 100%;
+    padding-bottom: 75px; /* Smaller footer height on mobile */
   }
   
   .home-header,
