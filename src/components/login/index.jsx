@@ -1,235 +1,263 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../../contexts/LanguageContext";
+import UserTypeSelection from "./UserTypeSelection";
 import "./style.css";
 import "./styleguide.css";
+import "./UserTypeSelection.css";
 import vector5 from "./vector-5.svg";
 
+// User type specific forms
+const AthleteForm = () => (
+  <div className="user-type-form">
+    <h3>Athlete Information</h3>
+    <div className="form-group">
+      <label>Sport/Game</label>
+      <select name="sport" required>
+        <option value="">Select your sport</option>
+        <option value="cricket">Cricket</option>
+        <option value="football">Football</option>
+        <option value="basketball">Basketball</option>
+        <option value="tennis">Tennis</option>
+        <option value="badminton">Badminton</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div className="form-group">
+      <label>Experience Level</label>
+      <select name="experience" required>
+        <option value="">Select experience level</option>
+        <option value="beginner">Beginner</option>
+        <option value="amateur">Amateur</option>
+        <option value="semi-pro">Semi-Professional</option>
+        <option value="professional">Professional</option>
+      </select>
+    </div>
+  </div>
+);
+
+const CoachForm = () => (
+  <div className="user-type-form">
+    <h3>Coach Information</h3>
+    <div className="form-group">
+      <label>Sports/Games You Coach</label>
+      <select multiple name="sports" required>
+        <option value="cricket">Cricket</option>
+        <option value="football">Football</option>
+        <option value="basketball">Basketball</option>
+        <option value="tennis">Tennis</option>
+        <option value="badminton">Badminton</option>
+        <option value="other">Other</option>
+      </select>
+      <small>Hold Ctrl/Cmd to select multiple</small>
+    </div>
+    <div className="form-group">
+      <label>Certification Level</label>
+      <input type="text" name="certification" required placeholder="E.g., BCCI Level 2" />
+    </div>
+    <div className="form-group">
+      <label>Years of Experience</label>
+      <input type="number" name="experience" min="0" required />
+    </div>
+  </div>
+);
+
+const OrganizationForm = () => (
+  <div className="user-type-form">
+    <h3>Organization Information</h3>
+    <div className="form-group">
+      <label>Organization Type</label>
+      <select name="orgType" required>
+        <option value="">Select organization type</option>
+        <option value="academy">Sports Academy</option>
+        <option value="club">Sports Club</option>
+        <option value="school">School/College</option>
+        <option value="university">University</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div className="form-group">
+      <label>Sports/Games Offered</label>
+      <select multiple name="sportsOffered" required>
+        <option value="cricket">Cricket</option>
+        <option value="football">Football</option>
+        <option value="basketball">Basketball</option>
+        <option value="tennis">Tennis</option>
+        <option value="badminton">Badminton</option>
+      </select>
+      <small>Hold Ctrl/Cmd to select multiple</small>
+    </div>
+    <div className="form-group">
+      <label>Organization Size</label>
+      <select name="orgSize" required>
+        <option value="">Select size</option>
+        <option value="small">1-10 members</option>
+        <option value="medium">11-50 members</option>
+        <option value="large">51-200 members</option>
+        <option value="xlarge">200+ members</option>
+      </select>
+    </div>
+  </div>
+);
+
 export const LoginPageScreen = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const { login, guestLogin, googleLogin, facebookLogin, appleLogin } = useAuth();
-    const { t } = useLanguage();
-    const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState('type'); // 'type', 'details', 'login'
+  const [userType, setUserType] = useState(null);
+  const [searchParams] = useSearchParams();
+  const { login, guestLogin, googleLogin, facebookLogin, appleLogin } = useAuth();
+  const { t } = useLanguage();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        document.title = 'Amaplayer - Login';
-    }, []);
+  // Check for user type in URL params
+  useEffect(() => {
+    const type = searchParams.get('type');
+    if (type && ['athlete', 'coach', 'organization'].includes(type)) {
+      setUserType(type);
+      setStep('details');
+    }
+  }, [searchParams]);
 
-    async function handleEmailLogin(e) {
-        if (e) e.preventDefault();
-        if (!email.trim() || !password.trim()) {
-            setError('Please enter both email and password');
-            return;
-        }
+  const handleSelectUserType = (type) => {
+    setUserType(type);
+    setStep('details');
+    // Update URL without reload
+    navigate(`/login?type=${type}`, { replace: true });
+  };
 
-        try {
-            setError('');
-            setLoading(true);
-            await login(email, password);
-            navigate('/home');
-        } catch (error) {
-            setError('Failed to log in. Please check your credentials.');
-            console.error('Email login error:', error);
-        }
-        setLoading(false);
+  const handleEmailLogin = async (e) => {
+    if (e) e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password');
+      return;
     }
 
-    async function handleGuestLogin() {
-        try {
-            setError('');
-            setLoading(true);
-            await guestLogin();
-            navigate('/home');
-        } catch (error) {
-            setError('Failed to log in as guest');
-            console.error('Guest login error:', error);
-        }
-        setLoading(false);
+    try {
+      setError('');
+      setLoading(true);
+      await login(email, password);
+      navigate('/home');
+    } catch (error) {
+      setError('Failed to log in. Please check your credentials.');
+      console.error('Email login error:', error);
     }
+    setLoading(false);
+  };
 
-    async function handleGoogleLogin() {
-        try {
-            setError('');
-            setLoading(true);
-            await googleLogin();
-            navigate('/home');
-        } catch (error) {
-            setError('Failed to log in with Google');
-            console.error('Google login error:', error);
-        }
-        setLoading(false);
+  const handleGuestLogin = async () => {
+    try {
+      setError('');
+      setLoading(true);
+      await guestLogin();
+      navigate('/home');
+    } catch (error) {
+      setError('Failed to log in as guest');
+      console.error('Guest login error:', error);
     }
+    setLoading(false);
+  };
 
-    async function handleFacebookLogin() {
-        try {
-            setError('');
-            setLoading(true);
-            await facebookLogin();
-            navigate('/home');
-        } catch (error) {
-            console.error('Facebook login error:', error);
-            if (error.code === 'auth/operation-not-allowed') {
-                setError('Facebook Sign-in configuration issue. Please contact support.');
-            } else if (error.code === 'auth/cancelled-popup-request') {
-                setError('Sign-in was cancelled');
-            } else if (error.code === 'auth/popup-blocked') {
-                setError('Pop-up was blocked by your browser. Please allow pop-ups and try again.');
-            } else {
-                setError('Failed to log in with Facebook. Please try again.');
-            }
-        }
-        setLoading(false);
+  const handleGoogleLogin = async () => {
+    try {
+      setError('');
+      setLoading(true);
+      await googleLogin();
+      navigate('/home');
+    } catch (error) {
+      setError('Failed to log in with Google');
+      console.error('Google login error:', error);
     }
+    setLoading(false);
+  };
 
-    async function handleAppleLogin() {
-        try {
-            setError('');
-            setLoading(true);
-            await appleLogin();
-            navigate('/home');
-        } catch (error) {
-            console.error('Apple login error:', error);
-            if (error.code === 'auth/operation-not-allowed') {
-                setError('Apple Sign-in is not enabled. Please contact support.');
-            } else if (error.code === 'auth/cancelled-popup-request') {
-                setError('Sign-in was cancelled');
-            } else {
-                setError('Failed to log in with Apple');
-            }
-        }
-        setLoading(false);
+  const handleFacebookLogin = async () => {
+    try {
+      setError('');
+      setLoading(true);
+      await facebookLogin();
+      navigate('/home');
+    } catch (error) {
+      console.error('Facebook login error:', error);
+      if (error.code === 'auth/operation-not-allowed') {
+        setError('Facebook Sign-in configuration issue. Please contact support.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        setError('Sign-in was cancelled');
+      } else if (error.code === 'auth/popup-blocked') {
+        setError('Pop-up was blocked by your browser. Please allow pop-ups and try again.');
+      } else {
+        setError('Failed to log in with Facebook. Please try again.');
+      }
     }
+    setLoading(false);
+  };
 
-    function handleSignup() {
-        navigate('/signup');
+  const handleAppleLogin = async () => {
+    try {
+      setError('');
+      setLoading(true);
+      await appleLogin();
+      navigate('/home');
+    } catch (error) {
+      console.error('Apple login error:', error);
+      if (error.code === 'auth/operation-not-allowed') {
+        setError('Apple Sign-in is not enabled. Please contact support.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        setError('Sign-in was cancelled');
+      } else {
+        setError('Failed to log in with Apple');
+      }
     }
+    setLoading(false);
+  };
 
-    function handleCoachRegister() {
-        // Navigate to coach registration or show coming soon
-        alert('Coach registration coming soon!');
-    }
+  const handleSignup = () => {
+    navigate('/signup');
+  };
 
-    function handleBackClick() {
-        navigate('/app');
-    }
+  const handleCoachRegister = () => {
+    // Navigate to coach registration or show coming soon
+    alert('Coach registration coming soon!');
+  };
 
-    return (
-        <div className="login-page-screen">
-            <div className="overlap-wrapper">
-                <div className="overlap">
-                    <div className="rectangle" />
+  const handleBackClick = () => {
+    navigate('/app');
+  };
 
-                    <div className="text-wrapper">Amaplayer</div>
-
-                    {/* Back button */}
-                    <button
-                        onClick={handleBackClick}
-                        style={{
-                            position: 'absolute',
-                            top: '2px',
-                            left: '2px',
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
-                            borderRadius: '6px',
-                            color: 'white',
-                            padding: '4px 8px',
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '3px',
-                            transition: 'all 0.2s ease',
-                            zIndex: 20
-                        }}
-                        onMouseEnter={(e) => {
-                            e.target.style.background = 'rgba(255, 255, 255, 0.2)';
-                            e.target.style.transform = 'scale(1.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                            e.target.style.transform = 'scale(1)';
-                        }}
-                    >
-                        ← Back
-                    </button>
-
-                    {error && (
-                        <div style={{
-                            position: 'absolute',
-                            top: '60px',
-                            left: '34px',
-                            right: '34px',
-                            background: 'rgba(239, 68, 68, 0.9)',
-                            color: 'white',
-                            padding: '10px',
-                            borderRadius: '8px',
-                            fontSize: '14px',
-                            textAlign: 'center',
-                            zIndex: 10
-                        }}>
-                            {error}
-                        </div>
-                    )}
-
-                    <form onSubmit={handleEmailLogin} style={{ position: 'relative' }}>
-                        <input
-                            className="email"
-                            type="email"
-                            placeholder="Enter your email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            disabled={loading}
-                            style={{
-                                border: 'none',
-                                outline: 'none',
-                                padding: '15px 16px',
-                                fontSize: '16px',
-                                color: '#ffffff',
-                                background: 'rgba(43, 32, 32, 0.45)',
-                                borderRadius: '12px',
-                                width: '218px',
-                                height: '20px',
-                                boxSizing: 'border-box'
-                            }}
-                        />
-
-                        <input
-                            className="password"
-                            type="password"
-                            placeholder="Enter your password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            disabled={loading}
-                            style={{
-                                border: 'none',
-                                outline: 'none',
-                                padding: '15px 16px',
-                                fontSize: '16px',
-                                color: '#ffffff',
-                                background: 'rgba(45, 34, 31, 0.45)',
-                                borderRadius: '12px',
-                                width: '218px',
-                                height: '20px',
-                                boxSizing: 'border-box'
-                            }}
-                        />
-
-                        <button
-                            className="login"
-                            type="submit"
-                            disabled={loading || !email.trim() || !password.trim()}
-                            style={{ 
-                                cursor: (loading || !email.trim() || !password.trim()) ? 'not-allowed' : 'pointer', 
-                                border: 'none',
-                                opacity: (loading || !email.trim() || !password.trim()) ? 0.6 : 1,
-                                background: 'linear-gradient(233deg, rgba(48, 97, 39, 1) 0%, rgba(97, 199, 79, 1) 100%)'
-                            }}
-                        />
-
+  const renderStep = () => {
+    switch (step) {
+      case 'type':
+        return <UserTypeSelection onSelectType={handleSelectUserType} />;
+      
+      case 'details':
+        return (
+          <div className="login-page">
+            <div className="login-container">
+              <div className="login-form">
+                <h2>Complete Your {userType.charAt(0).toUpperCase() + userType.slice(1)} Profile</h2>
+                
+                {userType === 'athlete' && <AthleteForm />}
+                {userType === 'coach' && <CoachForm />}
+                {userType === 'organization' && <OrganizationForm />}
+                
+                <div className="form-navigation">
+                  <button 
+                    type="button" 
+                    className="btn-secondary"
+                    onClick={() => setStep('type')}
+                  >
+                    Back
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn-primary"
+                    onClick={() => setStep('login')}
+                  >
+                    Continue to Login
+                  </button>
                         <div className="text-wrapper-4">Email</div>
 
                         <div className="text-wrapper-5">Password</div>
@@ -240,7 +268,7 @@ export const LoginPageScreen = () => {
                         >
                             {loading ? 'Loading...' : 'Login'}
                         </div>
-                    </form>
+                        </form> 
 
                     <button
                         className="continue-as-a-guest"

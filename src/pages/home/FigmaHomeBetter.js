@@ -25,7 +25,13 @@ import './FigmaHomeBetter.css';
 
 // User Avatar component that handles both real images and placeholders
 const UserAvatar = ({ src, size = 40, userName = 'User' }) => {
-  if (src) {
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
+  if (src && !imageError) {
     return (
       <img 
         src={src} 
@@ -37,11 +43,7 @@ const UserAvatar = ({ src, size = 40, userName = 'User' }) => {
           borderRadius: '50%',
           objectFit: 'cover'
         }}
-        onError={(e) => {
-          // Fallback to placeholder if image fails to load
-          e.target.style.display = 'none';
-          e.target.nextSibling.style.display = 'flex';
-        }}
+        onError={handleImageError}
       />
     );
   }

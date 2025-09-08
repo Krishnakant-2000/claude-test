@@ -20,10 +20,7 @@ import './performance.css';
 
 // Lazy load components for better performance
 const NewLanding = React.lazy(() => import('./pages/newlanding/NewLanding'));
-const LandingPage = React.lazy(() => import('./pages/landingpage/LandingPage'));
-const NewLandingPage = React.lazy(() => import('./pages/landingpage/NewLandingPage'));
-const LandingPageNew = React.lazy(() => import('./pages/landingpage/index').then(module => ({ default: module.LandingPage })));
-const Login = React.lazy(() => import('./features/auth/Login'));
+const Login = React.lazy(() => import('./components/login/NewLoginFlow'));
 const Signup = React.lazy(() => import('./features/auth/Signup'));
 const Home = React.lazy(() => import('./pages/home/Home'));
 const Profile = React.lazy(() => import('./pages/profile/Profile'));
@@ -36,6 +33,7 @@ const PostDetail = React.lazy(() => import('./pages/postdetail/PostDetail'));
 const StoryDetail = React.lazy(() => import('./features/stories/StoryDetail'));
 const StorySharePage = React.lazy(() => import('./features/stories/StorySharePage'));
 const VerificationPage = React.lazy(() => import('./pages/verification/VerificationPage'));
+const CompleteProfile = React.lazy(() => import('./pages/profile/CompleteProfile'));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
@@ -94,8 +92,6 @@ function AppContent() {
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
               <Route path="/" element={<NewLanding />} />
-              <Route path="/landing" element={<LandingPage />} />
-              <Route path="/app" element={<LandingPageNew />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/home" element={
@@ -133,9 +129,14 @@ function AppContent() {
                   <Profile />
                 </PrivateRoute>
               } />
-              <Route path="/profile/:userId" element={
+                            <Route path="/profile/:userId" element={
                 <PrivateRoute>
                   <Profile />
+                </PrivateRoute>
+              } />
+              <Route path="/profile/complete" element={
+                <PrivateRoute>
+                  <CompleteProfile />
                 </PrivateRoute>
               } />
               <Route path="/post/:postId" element={

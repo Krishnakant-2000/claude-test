@@ -50,6 +50,13 @@
   background-size: cover;
 }
 
+/* Ensure the first banner article is visible by default */
+.new-landing-container .banner > article:first-child {
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 1 !important; /* Ensure it's above the overlay */
+}
+
 /* Vision & Mission Section Styles */
 .vision-mission-grid {
   display: grid;
@@ -106,61 +113,7 @@
   padding: 0 !important;
 }
 
-/* Core Values Section */
-.values-section {
-  margin-top: 4rem;
-  text-align: center;
-}
 
-.values-section h4 {
-  color: #4CAF50;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 2rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.values-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-}
-
-.value-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 1.5rem 1rem;
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-.value-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-3px);
-}
-
-.value-icon {
-  font-size: 2rem;
-  display: block;
-  margin-bottom: 0.8rem;
-}
-
-.value-item strong {
-  color: #4CAF50;
-  font-size: 1.1rem;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 0.3rem;
-}
-
-.value-item small {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-  display: block;
-}
 
 /* Responsive Design for Vision & Mission */
 @media screen and (max-width: 768px) {
@@ -181,14 +134,7 @@
     font-size: 1.2rem;
   }
   
-  .values-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
-  }
   
-  .value-item {
-    padding: 1rem 0.8rem;
-  }
 }
 
 /* Hide img tags in banner articles - they're used for JS initialization only */
