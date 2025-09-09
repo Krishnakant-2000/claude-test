@@ -5,7 +5,6 @@ export const APP_VERSION = '1.0.0';
 // Route constants
 export const ROUTES = {
   HOME: '/',
-  LANDING: '/landing',
   LOGIN: '/login',
   SIGNUP: '/signup',
   DASHBOARD: '/home',

@@ -142,9 +142,9 @@ export function AuthProvider({ children }) {
       
       // Only initialize notifications if permission is already granted and user is on authenticated pages
       if (user && !user.isAnonymous && Notification.permission === 'granted') {
-        // Check if we're on an authenticated page (not landing/login/signup)
+        // Check if we're on an authenticated page (not login/signup)
         const currentPath = window.location.pathname;
-        const isAuthenticatedPage = !['/','', '/landing', '/login', '/signup'].includes(currentPath);
+        const isAuthenticatedPage = !['/','', '/login', '/signup'].includes(currentPath);
         
         if (isAuthenticatedPage) {
           try {

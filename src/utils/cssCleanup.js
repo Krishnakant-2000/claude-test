@@ -6,9 +6,6 @@ export const cleanupPageStyles = (pageName = 'unknown') => {
   // Remove all body classes that might interfere
   const bodyClassesToRemove = [
     'is-loading',
-    'new-landing-page-loaded',
-    'landingpage3d-loaded',
-    'landing-page-active',
     'no-scroll',
     'overflow-hidden',
     'modal-open',

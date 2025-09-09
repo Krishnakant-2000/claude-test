@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { setPageBodyClass } from '../../utils/cssCleanup';
 import './NewLanding.css';
@@ -6,12 +6,28 @@ import './NewLanding.css';
 // Import images
 
 const NewLanding = () => {
+  // Carousel state management
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const totalSlides = 3;
   // Handle smooth scrolling to sections
   const scrollToSection = (sectionId) => {
     const section = document.getElementById(sectionId);
     if (section) {
       section.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  // Carousel navigation functions
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+  };
+
+  const goToSlide = (slideIndex) => {
+    setCurrentSlide(slideIndex);
   };
 
   // Handle button clicks that should do nothing
@@ -51,6 +67,11 @@ const NewLanding = () => {
     
     console.log('NEW LANDING: Setup complete');
 
+    // Set up auto-play carousel
+    const intervalId = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    }, 5000); // Change slide every 5 seconds
+
     // Cleanup function to remove styles when component unmounts
     return () => {
       // Remove all body classes added by newlanding
@@ -59,6 +80,9 @@ const NewLanding = () => {
       
       // Remove any inline styles that might have been added by scripts
       document.body.removeAttribute('style');
+      
+      // Clear carousel interval
+      clearInterval(intervalId);
       
       console.log('NEW LANDING: Cleanup completed on unmount');
     };
@@ -69,7 +93,7 @@ const NewLanding = () => {
       {/* Header */}
       <header id="header" className="alt">
         <div className="logo">
-          <a href="#home">Hello <span>by AmaPlayer</span></a>
+          <a href="#home">Hello <span>from AmaPlayer</span></a>
         </div>
         <a href="#menu">Menu</a>
       </header>
@@ -85,11 +109,22 @@ const NewLanding = () => {
         </ul>
       </nav>
       
-      {/* Banner */}
-      <section className="banner full">
-        <article>
+      {/* Banner Carousel */}
+      <section className="banner full" style={{ position: 'relative', overflow: 'hidden' }}>
+        {/* Slide 1: Stadium - Hero with buttons */}
+        <article style={{
+          opacity: currentSlide === 0 ? 1 : 0,
+          visibility: currentSlide === 0 ? 'visible' : 'hidden',
+          transition: 'opacity 0.8s ease-in-out, visibility 0.8s ease-in-out',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: currentSlide === 0 ? 2 : 1
+        }}>
           <div style={{
-            backgroundImage: `url('/newlanding/images/pic01.jpg')`,
+            backgroundImage: `url('/newlanding/images/stadium.jpg')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             width: '100%',
@@ -104,15 +139,26 @@ const NewLanding = () => {
               <h2>AmaPlayer</h2>
               <div className="hero-buttons">
                 <button onClick={() => scrollToSection('explore')} className="button special">Explore</button>
-                <Link to="/app" className="button alt">App</Link>
+                <Link to="/login" className="button alt">App</Link>
               </div>
             </header>
           </div>
         </article>
         
-        <article>
+        {/* Slide 2: Cycling - Talent */}
+        <article style={{
+          opacity: currentSlide === 1 ? 1 : 0,
+          visibility: currentSlide === 1 ? 'visible' : 'hidden',
+          transition: 'opacity 0.8s ease-in-out, visibility 0.8s ease-in-out',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: currentSlide === 1 ? 2 : 1
+        }}>
           <div style={{
-            backgroundImage: `url('/newlanding/images/pic02.jpg')`,
+            backgroundImage: `url('/newlanding/images/cycling.jpg')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             width: '100%',
@@ -124,13 +170,29 @@ const NewLanding = () => {
           <div className="inner">
             <header>
               <h2>Where Talent Meets Opportunity</h2>
+              <p>Connect with coaches, scouts, and organizations looking for your unique skills</p>
+              <div className="hero-buttons">
+                <Link to="/search" className="button special">Find Coaches</Link>
+                <Link to="/login" className="button alt">Join Now</Link>
+              </div>
             </header>
           </div>
         </article>
         
-        <article data-position="center bottom">
+        {/* Slide 3: Action - Motivation */}
+        <article style={{
+          opacity: currentSlide === 2 ? 1 : 0,
+          visibility: currentSlide === 2 ? 'visible' : 'hidden',
+          transition: 'opacity 0.8s ease-in-out, visibility 0.8s ease-in-out',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: currentSlide === 2 ? 2 : 1
+        }}>
           <div style={{
-            backgroundImage: `url('/newlanding/images/pic03.jpg')`,
+            backgroundImage: `url('/newlanding/images/action.jpg')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             width: '100%',
@@ -143,131 +205,340 @@ const NewLanding = () => {
             <header>
               <p>Your Journey, Our Stage.</p>
               <h2>Let's Conquer Together</h2>
+              <div className="hero-buttons">
+                <Link to="/events" className="button special">View Challenges</Link>
+                <Link to="/login" className="button alt">Start Journey</Link>
+              </div>
             </header>
           </div>
         </article>
+
+        {/* Carousel Navigation Arrows */}
+        <button 
+          onClick={prevSlide}
+          style={{
+            position: 'absolute',
+            left: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'rgba(255, 255, 255, 0.2)',
+            border: 'none',
+            borderRadius: '50%',
+            width: '50px',
+            height: '50px',
+            color: 'white',
+            fontSize: '20px',
+            cursor: 'pointer',
+            zIndex: 10,
+            backdropFilter: 'blur(10px)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = 'rgba(255, 255, 255, 0.4)';
+            e.target.style.transform = 'translateY(-50%) scale(1.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+            e.target.style.transform = 'translateY(-50%) scale(1)';
+          }}
+        >
+          ‹
+        </button>
+        
+        <button 
+          onClick={nextSlide}
+          style={{
+            position: 'absolute',
+            right: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'rgba(255, 255, 255, 0.2)',
+            border: 'none',
+            borderRadius: '50%',
+            width: '50px',
+            height: '50px',
+            color: 'white',
+            fontSize: '20px',
+            cursor: 'pointer',
+            zIndex: 10,
+            backdropFilter: 'blur(10px)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = 'rgba(255, 255, 255, 0.4)';
+            e.target.style.transform = 'translateY(-50%) scale(1.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+            e.target.style.transform = 'translateY(-50%) scale(1)';
+          }}
+        >
+          ›
+        </button>
+
       </section>
       
       {/* Vision & Mission Section */}
-      <section id="vision-mission" className="wrapper style2">
-        <div className="inner">
-          <header className="align-center">
-            <p className="special">Empowering Every Athlete's Journey</p>
-            <h2>Our Vision & Mission</h2>
+      <section id="vision-mission" className="wrapper style2" style={{ 
+        background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Background Pattern */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='m36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          opacity: 0.1
+        }} />
+        
+        <div className="inner" style={{ 
+          position: 'relative', 
+          zIndex: 2,
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '32px',
+          padding: '4rem 2rem',
+          border: '1px solid rgba(255, 255, 255, 0.1)'
+        }}>
+          <header className="align-center" style={{ marginBottom: '4rem' }}>
+            <p className="special" style={{ 
+              color: 'rgba(255, 255, 255, 0.8)', 
+              fontSize: '1.1rem',
+              fontWeight: '300'
+            }}>
+              🏆 Empowering Every Athlete's Journey 🏆
+            </p>
+            <h2 style={{ 
+              color: '#ffffff', 
+              fontSize: '3rem',
+              fontWeight: '700',
+              textShadow: '0 4px 8px rgba(0,0,0,0.3)',
+              marginBottom: '1rem'
+            }}>
+              Our Vision & Mission
+            </h2>
+            <div style={{
+              width: '100px',
+              height: '4px',
+              background: 'linear-gradient(90deg, #ff6b35, #f7931e)',
+              margin: '0 auto',
+              borderRadius: '2px'
+            }} />
           </header>
           
           <div style={{
             display: 'grid', 
             gridTemplateColumns: '1fr 1fr', 
-            gap: '3rem', 
-            margin: '3rem 0',
-            padding: '2rem 0'
+            gap: '4rem', 
+            margin: '4rem 0',
+            padding: '0'
           }}>
             
-            {/* Vision Section */}
+            {/* Vision Card */}
             <div style={{
-              background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-              border: '2px solid rgba(76, 175, 80, 0.3)',
-              borderRadius: '20px',
-              padding: '2.5rem 2rem',
-              textAlign: 'center',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-              backdropFilter: 'blur(15px)'
+              position: 'relative',
+              background: 'rgba(255, 255, 255, 0.15)',
+              borderRadius: '24px',
+              padding: '0',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              overflow: 'hidden',
+              transform: 'perspective(1000px) rotateX(2deg)',
+              transition: 'all 0.4s ease',
+              border: '2px solid rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(20px)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(-10px)';
+              e.currentTarget.style.boxShadow = '0 30px 80px rgba(0, 0, 0, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'perspective(1000px) rotateX(2deg) translateY(0px)';
+              e.currentTarget.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.3)';
             }}>
-              <div style={{fontSize: '4rem', marginBottom: '1.5rem'}}>👁️</div>
               
-              <h2 style={{
-                color: '#4CAF50',
-                fontSize: '1.8rem',
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                letterSpacing: '3px',
-                marginBottom: '2rem',
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+              {/* Vision Image Header */}
+              <div style={{
+                height: '180px',
+                background: `linear-gradient(135deg, rgba(255, 107, 53, 0.9), rgba(247, 147, 30, 0.9)), url('/newlanding/images/Medal.jpg')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}>
-                OUR VISION
-              </h2>
+                <div style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: '50%',
+                  width: '80px',
+                  height: '80px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backdropFilter: 'blur(10px)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}>
+                  <span style={{ fontSize: '2.5rem' }}>🏅</span>
+                </div>
+              </div>
               
-              <h3 style={{
-                fontSize: '1.2rem',
-                lineHeight: '1.8',
-                fontWeight: '400',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                textAlign: 'center',
-                margin: '2rem 0 0 0',
-                padding: '1.5rem',
-                position: 'relative'
-              }}>
-                <span style={{
-                  color: '#2c3e50',
-                  fontSize: '1.2rem',
-                  fontWeight: '500',
-                  lineHeight: '1.8',
-                  letterSpacing: '0.5px',
-                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-                  display: 'inline-block'
+              {/* Vision Content */}
+              <div style={{ padding: '2.5rem 2rem' }}>
+                <h2 style={{
+                  color: '#ff6b35',
+                  fontSize: '1.8rem',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  letterSpacing: '2px',
+                  marginBottom: '1.5rem',
+                  textAlign: 'center',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}>
+                  OUR VISION
+                </h2>
+                
+                <p style={{
+                  fontSize: '1.1rem',
+                  lineHeight: '1.7',
+                  color: 'rgba(255, 255, 255, 0.95)',
+                  textAlign: 'center',
+                  fontWeight: '400',
+                  margin: '0',
+                  fontStyle: 'italic',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.3)'
                 }}>
                   "AmaPlayer envisions an India where every hidden talent gets a global stage, fueling the journey from playgrounds to podiums, and bringing home Olympic Gold and World Championship glory."
-                </span>
-              </h3>
-            </div>
-            
-            {/* Mission Section */}
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-              border: '2px solid rgba(76, 175, 80, 0.3)',
-              borderRadius: '20px',
-              padding: '2.5rem 2rem',
-              textAlign: 'center',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-              backdropFilter: 'blur(15px)'
-            }}>
-              <div style={{fontSize: '4rem', marginBottom: '1.5rem'}}>🎯</div>
-              
-              <h2 style={{
-                color: '#4CAF50',
-                fontSize: '1.8rem',
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                letterSpacing: '3px',
-                marginBottom: '2rem',
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-              }}>
-                OUR MISSION
-              </h2>
-              
-              <h3 style={{
-                fontSize: '1.2rem',
-                lineHeight: '1.8',
-                fontWeight: '400',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                textAlign: 'center',
-                margin: '2rem 0 0 0',
-                padding: '1.5rem',
-                position: 'relative'
-              }}>
-                <span style={{
-                  color: '#2c3e50',
-                  fontSize: '1.2rem',
-                  fontWeight: '500',
-                  lineHeight: '1.8',
-                  letterSpacing: '0.5px',
-                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-                  display: 'inline-block'
+                </p>
+
+                {/* Vision Stats */}
+                <div style={{
+                  marginTop: '2rem',
+                  display: 'flex',
+                  justifyContent: 'space-around',
+                  padding: '1rem 0',
+                  borderTop: '1px solid rgba(255, 107, 53, 0.2)'
                 }}>
-                  "Our mission is to build a trusted sports ecosystem where players, coaches, academies, brands, and fans come together to discover, nurture, and celebrate talent, fueling India's journey to Olympic Golds and World Championships."
-                </span>
-              </h3>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ff6b35' }}>🌟</div>
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)', marginTop: '0.25rem' }}>Global Stage</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ff6b35' }}>🏆</div>
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)', marginTop: '0.25rem' }}>Olympic Gold</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ff6b35' }}>🌍</div>
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)', marginTop: '0.25rem' }}>World Glory</div>
+                  </div>
+                </div>
+              </div>
             </div>
             
+            {/* Mission Card */}
+            <div style={{
+              position: 'relative',
+              background: 'rgba(255, 255, 255, 0.15)',
+              borderRadius: '24px',
+              padding: '0',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              overflow: 'hidden',
+              transform: 'perspective(1000px) rotateX(2deg)',
+              transition: 'all 0.4s ease',
+              border: '2px solid rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(20px)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(-10px)';
+              e.currentTarget.style.boxShadow = '0 30px 80px rgba(0, 0, 0, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'perspective(1000px) rotateX(2deg) translateY(0px)';
+              e.currentTarget.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.3)';
+            }}>
+              
+              {/* Mission Image Header */}
+              <div style={{
+                height: '180px',
+                background: `linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(56, 142, 60, 0.9)), url('/newlanding/images/people.jpg')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <div style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: '50%',
+                  width: '80px',
+                  height: '80px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backdropFilter: 'blur(10px)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}>
+                  <span style={{ fontSize: '2.5rem' }}>🤝</span>
+                </div>
+              </div>
+              
+              {/* Mission Content */}
+              <div style={{ padding: '2.5rem 2rem' }}>
+                <h2 style={{
+                  color: 'rgba(255, 255, 255, 0.95)',
+                  fontSize: '1.8rem',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  letterSpacing: '2px',
+                  marginBottom: '1.5rem',
+                  textAlign: 'center',
+                  textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)'
+                }}>
+                  OUR MISSION
+                </h2>
+                
+                <p style={{
+                  fontSize: '1.1rem',
+                  lineHeight: '1.7',
+                  color: 'rgba(255, 255, 255, 0.95)',
+                  textAlign: 'center',
+                  fontWeight: '400',
+                  margin: '0',
+                  fontStyle: 'italic',
+                  textShadow: '1px 1px 3px rgba(0, 0, 0, 0.8)'
+                }}>
+                  "Our mission is to build a trusted sports ecosystem where players, coaches, academies, brands, and fans come together to discover, nurture, and celebrate talent, fueling India's journey to Olympic Golds."
+                </p>
+
+                {/* Mission Stats */}
+                <div style={{
+                  marginTop: '2rem',
+                  display: 'flex',
+                  justifyContent: 'space-around',
+                  padding: '1rem 0',
+                  borderTop: '1px solid rgba(76, 175, 80, 0.2)'
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4CAF50' }}>🏃‍♂️</div>
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)', marginTop: '0.25rem', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.6)' }}>Athletes</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4CAF50' }}>👨‍🏫</div>
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)', marginTop: '0.25rem', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.6)' }}>Coaches</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4CAF50' }}>🏢</div>
+                    <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)', marginTop: '0.25rem', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.6)' }}>Organizations</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
-          
-          
-          <footer className="align-center">
-            <Link to="/search" className="button special">Find Athletes</Link>
-            <button onClick={() => scrollToSection('explore')} className="button alt">Learn More</button>
-          </footer>
         </div>
       </section>
       
@@ -303,14 +574,14 @@ const NewLanding = () => {
       <section id="three" className="wrapper style2">
         <div className="inner">
           <header className="align-center">
-            <p className="special">Nam vel ante sit amet libero scelerisque facilibus eleifend vitae urna</p>
+            
             <h2>How I Got Discovered With AmaPlayer</h2>
           </header>
           <div className="process-cards">
             <div className="process-card">
               <div className="card-image">
                 <div style={{
-                  backgroundImage: `url('/newlanding/images/pic01.jpg')`,
+                  backgroundImage: `url('/newlanding/images/upload.jpg')`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   width: '100%',
@@ -327,7 +598,7 @@ const NewLanding = () => {
             <div className="process-card">
               <div className="card-image">
                 <div style={{
-                  backgroundImage: `url('/newlanding/images/pic02.jpg')`,
+                  backgroundImage: `url('/newlanding/images/connect.jpg')`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   width: '100%',
@@ -344,7 +615,7 @@ const NewLanding = () => {
             <div className="process-card">
               <div className="card-image">
                 <div style={{
-                  backgroundImage: `url('/newlanding/images/pic03.jpg')`,
+                  backgroundImage: `url('/newlanding/images/medals.jpg')`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   width: '100%',
@@ -397,7 +668,7 @@ const NewLanding = () => {
                 <div className="card-overlay"></div>
               </div>
               <div className="card-content">
-                <h3>Organization 🏢</h3>
+                <h3>Organization </h3>
                 <p>Join as an organization to manage teams, host events, and discover talent. Connect with athletes and coaches to build your sports community.</p>
                 <Link to="/login?type=organization" className="button special">Join as Organization</Link>
               </div>
@@ -409,12 +680,243 @@ const NewLanding = () => {
       {/* Footer */}
       <footer id="footer">
         <div className="container">
-          <ul className="icons">
-            <li><button onClick={handleDisabledButton} className="icon fa-twitter"><span className="label">Twitter</span></button></li>
-            <li><button onClick={handleDisabledButton} className="icon fa-facebook"><span className="label">Facebook</span></button></li>
-            <li><button onClick={handleDisabledButton} className="icon fa-instagram"><span className="label">Instagram</span></button></li>
-            <li><button onClick={handleDisabledButton} className="icon fa-envelope-o"><span className="label">Email</span></button></li>
+          {/* Enhanced Social Media Section */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '2rem'
+          }}>
+            <h3 style={{
+              color: 'var(--text-primary)',
+              marginBottom: '1rem',
+              fontSize: '1.5rem'
+            }}>
+              Follow AmaPlayer
+            </h3>
+            <p style={{
+              color: 'var(--text-secondary)',
+              marginBottom: '2rem',
+              maxWidth: '400px',
+              margin: '0 auto 2rem auto'
+            }}>
+              Stay connected with the latest sports news, athlete stories, and platform updates
+            </p>
+          </div>
+
+          <ul className="icons" style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '1rem',
+            listStyle: 'none',
+            padding: 0,
+            flexWrap: 'wrap'
+          }}>
+            <li>
+              <a 
+                href="https://twitter.com/amaplayer" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="icon fa-twitter"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  backgroundColor: '#1DA1F2',
+                  color: 'white',
+                  fontSize: '20px',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(29, 161, 242, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-3px) scale(1.1)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(29, 161, 242, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0) scale(1)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(29, 161, 242, 0.3)';
+                }}
+              >
+                <span className="label" style={{ display: 'none' }}>Twitter</span>
+              </a>
+            </li>
+            <li>
+              <a 
+                href="https://instagram.com/amaplayer" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="icon fa-instagram"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(45deg, #F56040, #E1306C, #C13584, #833AB4)',
+                  color: 'white',
+                  fontSize: '20px',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(225, 48, 108, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-3px) scale(1.1)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(225, 48, 108, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0) scale(1)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(225, 48, 108, 0.3)';
+                }}
+              >
+                <span className="label" style={{ display: 'none' }}>Instagram</span>
+              </a>
+            </li>
+            <li>
+              <a 
+                href="https://facebook.com/amaplayer" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="icon fa-facebook"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  backgroundColor: '#1877F2',
+                  color: 'white',
+                  fontSize: '20px',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(24, 119, 242, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-3px) scale(1.1)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(24, 119, 242, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0) scale(1)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(24, 119, 242, 0.3)';
+                }}
+              >
+                <span className="label" style={{ display: 'none' }}>Facebook</span>
+              </a>
+            </li>
+            <li>
+              <a 
+                href="https://youtube.com/@amaplayer" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="icon fa-youtube"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  backgroundColor: '#FF0000',
+                  color: 'white',
+                  fontSize: '20px',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(255, 0, 0, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-3px) scale(1.1)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(255, 0, 0, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0) scale(1)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(255, 0, 0, 0.3)';
+                }}
+              >
+                <span className="label" style={{ display: 'none' }}>YouTube</span>
+              </a>
+            </li>
+            <li>
+              <a 
+                href="https://linkedin.com/company/amaplayer" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="icon fa-linkedin"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  backgroundColor: '#0077B5',
+                  color: 'white',
+                  fontSize: '20px',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(0, 119, 181, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-3px) scale(1.1)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(0, 119, 181, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0) scale(1)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(0, 119, 181, 0.3)';
+                }}
+              >
+                <span className="label" style={{ display: 'none' }}>LinkedIn</span>
+              </a>
+            </li>
+            <li>
+              <a 
+                href="mailto:contact@amaplayer.com" 
+                className="icon fa-envelope-o"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  backgroundColor: '#34495e',
+                  color: 'white',
+                  fontSize: '20px',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(52, 73, 94, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-3px) scale(1.1)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(52, 73, 94, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0) scale(1)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(52, 73, 94, 0.3)';
+                }}
+              >
+                <span className="label" style={{ display: 'none' }}>Email</span>
+              </a>
+            </li>
           </ul>
+
+          {/* Additional Footer Info */}
+          <div style={{
+            marginTop: '2rem',
+            padding: '1rem 0',
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            textAlign: 'center'
+          }}>
+            <p style={{
+              color: 'var(--text-secondary)',
+              fontSize: '0.9rem',
+              margin: 0
+            }}>
+              © 2024 AmaPlayer. Empowering Athletes. Building Champions.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
