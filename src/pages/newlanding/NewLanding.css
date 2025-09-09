@@ -1,0 +1,171 @@
+/* New Landing Page Container with isolated styles */
+.new-landing-container {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Import styles only within this container to prevent global conflicts */
+}
+
+/* Import the main CSS file and fonts only within the container */
+.new-landing-container {
+  /* Apply main.css styles only to this container */
+}
+@import './main.css';
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
+@import url('https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700');
+
+/* App Button Styling - Match original theme */
+.app-button {
+  /* Remove all custom styling - use default button styles from main.css */
+}
+
+/* Ensure images load correctly */
+.new-landing-container img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fix any z-index issues */
+.new-landing-container header#header {
+  z-index: 9999;
+}
+
+.new-landing-container nav#menu {
+  z-index: 9998;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .hero-buttons a {
+    margin: 5px !important;
+    display: inline-block !important;
+  }
+}
+
+/* Ensure banner works properly */
+.new-landing-container .banner > article {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Ensure the first banner article is visible by default */
+.new-landing-container .banner > article:first-child {
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 1 !important; /* Ensure it's above the overlay */
+}
+
+/* Vision & Mission Section Styles */
+.vision-mission-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin: 3rem 0;
+}
+
+.new-landing-container .vision-card, 
+.new-landing-container .mission-card {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 15px !important;
+  padding: 2.5rem 2rem !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  text-align: center !important;
+  min-height: 250px !important;
+}
+
+.vision-card:hover, .mission-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+}
+
+.vm-icon {
+  font-size: 3rem;
+  color: #4CAF50;
+  margin-bottom: 1.5rem;
+}
+
+.vm-content h3 {
+  color: #4CAF50;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.new-landing-container .vm-content p {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 1rem !important;
+  line-height: 1.7 !important;
+  margin: 0 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  text-align: left !important;
+  padding: 0 !important;
+}
+
+
+
+/* Responsive Design for Vision & Mission */
+@media screen and (max-width: 768px) {
+  .vision-mission-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .vision-card, .mission-card {
+    padding: 2rem 1.5rem;
+  }
+  
+  .vm-icon {
+    font-size: 2.5rem;
+  }
+  
+  .vm-content h3 {
+    font-size: 1.2rem;
+  }
+  
+  
+}
+
+/* Hide img tags in banner articles - they're used for JS initialization only */
+.new-landing-container .banner > article img {
+  display: none;
+}
+
+/* Style buttons to look like links where needed */
+.new-landing-container button.icon {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.new-landing-container button.icon:hover {
+  opacity: 0.8;
+}
+
+/* Ensure explore button works correctly */
+.new-landing-container .hero-buttons button {
+  cursor: pointer;
+}
+
+/* Loading state override - show first slide while loading */
+body.is-loading .new-landing-container .banner > article:first-child {
+  opacity: 1;
+  visibility: visible;
+  z-index: 1;
+}

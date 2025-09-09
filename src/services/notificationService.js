@@ -1,6 +1,6 @@
 // Push Notification Service for AmaPlayer
-import { messaging, getToken, onMessage } from '../firebase/firebase';
-import { db } from '../firebase/firebase';
+import { messaging, getToken, onMessage } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { doc, setDoc, addDoc, collection, serverTimestamp, getDoc } from 'firebase/firestore';
 
 class NotificationService {
@@ -65,6 +65,57 @@ class NotificationService {
     }
   }
 
+  // Wait for service worker to be ready
+  async waitForServiceWorker(timeout = 10000) {
+    return new Promise((resolve, reject) => {
+      // Check if service worker is already ready
+      if (window.serviceWorkerReady === true) {
+        console.log('🔔 Service worker already ready');
+        resolve();
+        return;
+      }
+
+      // Check if service worker support is available
+      if (!('serviceWorker' in navigator)) {
+        console.log('🔔 Service worker not supported, continuing without it');
+        resolve();
+        return;
+      }
+
+      // Set up timeout
+      const timeoutId = setTimeout(() => {
+        console.warn('🔔 Service worker ready timeout - continuing anyway');
+        resolve(); // Don't reject, just continue
+      }, timeout);
+
+      // Listen for service worker ready event
+      const handleReady = () => {
+        clearTimeout(timeoutId);
+        console.log('🔔 Service worker ready event received');
+        window.removeEventListener('serviceWorkerReady', handleReady);
+        resolve();
+      };
+
+      window.addEventListener('serviceWorkerReady', handleReady);
+
+      // Also check if navigator.serviceWorker.ready resolves
+      if (navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(() => {
+          clearTimeout(timeoutId);
+          window.removeEventListener('serviceWorkerReady', handleReady);
+          console.log('🔔 Service worker ready via navigator.serviceWorker.ready');
+          resolve();
+        }).catch((error) => {
+          console.warn('🔔 Service worker ready check failed:', error);
+          // Don't reject, just continue
+          clearTimeout(timeoutId);
+          window.removeEventListener('serviceWorkerReady', handleReady);
+          resolve();
+        });
+      }
+    });
+  }
+
   // Method to request permissions from user interaction
   async enableNotifications(userId) {
     try {
@@ -94,7 +145,7 @@ class NotificationService {
   async getAndSaveToken(userId = null) {
     try {
       if (!messaging) {
-        console.log('Messaging not available');
+        console.log('🔔 Messaging not available');
         return null;
       }
 
@@ -107,7 +158,12 @@ class NotificationService {
         return null;
       }
 
+      // Wait for service worker to be ready
+      console.log('🔔 Waiting for service worker to be ready...');
+      await this.waitForServiceWorker();
+      
       // Get FCM token
+      console.log('🔔 Service worker ready, requesting FCM token...');
       const token = await getToken(messaging, {
         vapidKey: vapidKey
       });

@@ -1,8 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
-import reportWebVitals, { trackPerformance, observePerformance, sendToAnalytics } from './reportWebVitals';
+
+// Main app imports
+const App = require('./App').default;
+const webVitals = require('./reportWebVitals');
+const reportWebVitals = webVitals.default;
 
 // Global error handler for React error #31 debugging
 window.addEventListener('error', (event) => {
@@ -65,56 +68,80 @@ root.render(
   </React.StrictMode>
 );
 
-// Register service worker for offline functionality
+// Initialize offline features if needed
+const initializeOfflineFeatures = async () => {
+  try {
+    // Offline features can be added here in the future
+    console.log('✅ Offline features initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize offline features:', error);
+  }
+};
+
+// Register Firebase messaging service worker for FCM support
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((registration) => {
-        console.log('SW: Service worker registered successfully:', registration.scope);
-        
-        // Listen for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New version available, show update notification
-                console.log('SW: New version available - please refresh');
-                if (window.confirm('New version available! Refresh to update?')) {
-                  window.location.reload();
-                }
-              }
-            });
+  window.addEventListener('load', async () => {
+    try {
+      // Initialize offline features
+      await initializeOfflineFeatures();
+      
+      // Register Firebase messaging service worker
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      console.log('🔔 Firebase messaging service worker registered successfully:', registration.scope);
+      
+      // Wait for service worker to be active
+      if (registration.active) {
+        console.log('🔔 Service worker is active and ready');
+        window.serviceWorkerReady = true;
+        window.dispatchEvent(new CustomEvent('serviceWorkerReady'));
+      } else {
+        // Wait for it to become active
+        registration.addEventListener('statechange', (event) => {
+          if (event.target.state === 'activated') {
+            console.log('🔔 Service worker activated');
+            window.serviceWorkerReady = true;
+            window.dispatchEvent(new CustomEvent('serviceWorkerReady'));
           }
         });
-      })
-      .catch((error) => {
-        console.log('SW: Service worker registration failed:', error);
+      }
+      
+      // Listen for updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('🔔 New service worker version available');
+              // Auto-refresh for service worker updates to prevent FCM issues
+              window.location.reload();
+            }
+          });
+        }
       });
+      
+    } catch (error) {
+      console.error('🔔 Firebase messaging service worker registration failed:', error);
+      window.serviceWorkerReady = false;
+    }
       
     // Listen for service worker messages
     navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data.type === 'BACKGROUND_SYNC') {
-        console.log('SW Message:', event.data.message);
-        // Handle background sync completion
+      if (event.data.type === 'NOTIFICATION_CLICK') {
+        console.log('🔔 Notification click message received:', event.data);
+        // Handle notification click
+        if (event.data.url) {
+          window.location.href = event.data.url;
+        }
       }
     });
   });
+} else {
+  console.warn('🔔 Service workers not supported in this browser');
+  window.serviceWorkerReady = false;
 }
 
-// Enhanced performance monitoring and Web Vitals tracking
-// Track performance metrics and send to analytics
-reportWebVitals(sendToAnalytics);
-
-// Start performance tracking after initial load
-window.addEventListener('load', () => {
-  // Track detailed performance metrics
-  trackPerformance();
-  
-  // Start observing performance issues
-  observePerformance();
-  
-  // Log that performance monitoring is active
-  // console.log('🚀 AmaPlayer Performance Monitoring Active');
-});
+// Basic performance monitoring (no analytics)
+if (reportWebVitals) {
+  // Simple web vitals without analytics
+  reportWebVitals();
+}

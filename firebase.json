@@ -1,4 +1,14 @@
 {
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs18"
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "hosting": {
     "public": "build",
     "ignore": [
@@ -7,6 +17,14 @@
       "**/node_modules/**"
     ],
     "rewrites": [
+      {
+        "source": "/admindashboard/**",
+        "destination": "/admindashboard/index.html"
+      },
+      {
+        "source": "/admindashboard",
+        "destination": "/admindashboard/index.html"
+      },
       {
         "source": "**",
         "destination": "/index.html"
@@ -61,14 +79,5 @@
         ]
       }
     ]
-  },
-  "functions": {
-    "source": "functions"
-  },
-  "firestore": {
-    "rules": "firebase.rules"
-  },
-  "storage": {
-    "rules": "storage.rules"
   }
 }

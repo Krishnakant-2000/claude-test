@@ -1,0 +1,1000 @@
+.event-page {
+    align-items: start;
+    background-color: #ffffff;
+    display: grid;
+    justify-items: center;
+    width: 100vw;
+    min-height: 100vh;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.event-page .div {
+    background-color: #ffffff;
+    height: 1106px;
+    overflow: hidden;
+    position: relative;
+    width: 440px;
+    margin-top: 80px; /* Account for header */
+    margin-bottom: 80px; /* Account for footer */
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.event-page .overlap {
+    height: 139px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 440px;
+}
+
+.event-page .rectangle {
+    height: 80px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 440px;
+}
+
+.event-page .rectangle-color {
+    background-color: #84988E;
+    border-radius: 10px 10px 0 0;
+}
+
+.event-page .text-wrapper {
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent;
+    background: linear-gradient(
+        90deg,
+        rgba(40, 62, 160, 1) 0%,
+        rgba(56, 14, 58, 1) 100%
+    );
+    background-clip: text;
+    color: transparent;
+    font-family: "Teachers-ExtraBold", Helvetica, Arial, sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    left: 5px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    text-fill-color: transparent;
+    top: 34px;
+    white-space: nowrap;
+}
+
+.event-page .rectangle-2 {
+    background-color: #d9d9d9;
+    height: 62px;
+    left: 0;
+    position: absolute;
+    top: 77px;
+    width: 440px;
+}
+
+.event-page .text-wrapper-2 {
+    color: #000000;
+    font-family: "Teachers-SemiBold", Helvetica, Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    left: 38px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 97px;
+    white-space: nowrap;
+}
+
+.event-page .frame {
+    align-items: center;
+    display: flex;
+    justify-content: space-evenly;
+    left: 180px;
+    position: absolute;
+    top: 95px;
+    width: 240px;
+}
+
+.event-page .text-wrapper-3 {
+    color: #000000;
+    font-family: "Teachers-Regular", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    position: relative;
+    white-space: nowrap;
+    text-align: center;
+    cursor: pointer;
+    flex: 1;
+}
+
+.event-page .noto-trophy {
+    aspect-ratio: 1;
+    height: 31px;
+    left: 5px;
+    position: absolute;
+    top: 90px;
+    width: 31px;
+}
+
+.event-page .overlap-group {
+    height: 29px;
+    left: 1px;
+    position: relative;
+    top: 1px;
+    width: 29px;
+}
+
+.event-page .vector {
+    height: 24px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 29px;
+}
+
+.event-page .img {
+    height: 21px;
+    left: 1px;
+    position: absolute;
+    top: 2px;
+    width: 27px;
+}
+
+.event-page .vector-2 {
+    height: 14px;
+    left: 11px;
+    position: absolute;
+    top: 2px;
+    width: 6px;
+}
+
+.event-page .vector-3 {
+    height: 13px;
+    left: 10px;
+    position: absolute;
+    top: 3px;
+    width: 4px;
+}
+
+.event-page .vector-4 {
+    height: 12px;
+    left: 9px;
+    position: absolute;
+    top: 3px;
+    width: 3px;
+}
+
+.event-page .vector-5 {
+    height: 5px;
+    left: 12px;
+    position: absolute;
+    top: 18px;
+    width: 2px;
+}
+
+.event-page .vector-6 {
+    height: 18px;
+    left: 7px;
+    position: absolute;
+    top: 1px;
+    width: 15px;
+}
+
+.event-page .vector-7 {
+    height: 6px;
+    left: 8px;
+    position: absolute;
+    top: 23px;
+    width: 14px;
+}
+
+.event-page .vector-8 {
+    height: 2px;
+    left: 12px;
+    position: absolute;
+    top: 25px;
+    width: 5px;
+}
+
+.event-page .rectangle-3 {
+    height: 250px;
+    left: 0;
+    object-fit: cover;
+    position: absolute;
+    top: 139px;
+    width: 440px;
+}
+
+.event-page .text-wrapper-4 {
+    color: #000000;
+    font-family: "Inter-SemiBold", Helvetica, Arial, sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    left: 30px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 397px;
+}
+
+.event-page .choose-your-sport {
+    color: #000000;
+    font-family: "Inter-Regular", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    left: 30px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 441px;
+    width: 424px;
+}
+
+.event-page .frame-2 {
+    align-items: flex-end;
+    display: inline-flex;
+    gap: 15px;
+    left: 37px;
+    position: absolute;
+    top: 492px;
+}
+
+.event-page .div-wrapper {
+    align-items: center;
+    background-color: #5dc36580;
+    border: 0.7px solid;
+    border-color: #395c31;
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+    height: 18px;
+    justify-content: center;
+    padding: 0px 12px;
+    position: relative;
+    width: 57px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-page .div-wrapper:hover {
+    background-color: #5dc365aa;
+}
+
+.event-page .text-wrapper-5 {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-top: -0.70px;
+    position: relative;
+    width: fit-content;
+}
+
+.event-page .frame-3 {
+    align-items: center;
+    background-color: #ffffff;
+    border: 0.7px solid;
+    border-color: #395c31;
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+    height: 18px;
+    justify-content: center;
+    padding: 0px 12px;
+    position: relative;
+    width: 57px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-page .frame-3:hover {
+    background-color: #f5f5f5;
+}
+
+.event-page .text-wrapper-6 {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-left: -5.00px;
+    margin-right: -5.00px;
+    margin-top: -0.70px;
+    position: relative;
+    width: fit-content;
+}
+
+.event-page .text-wrapper-7 {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-left: -8.00px;
+    margin-right: -8.00px;
+    margin-top: -0.70px;
+    position: relative;
+    width: fit-content;
+}
+
+.event-page .frame-4 {
+    align-items: center;
+    background-color: #ffffff;
+    border: 0.7px solid;
+    border-color: #395c31;
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+    height: 19px;
+    justify-content: center;
+    padding: 0px 12px;
+    position: relative;
+    width: 72px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-page .frame-4:hover {
+    background-color: #f5f5f5;
+}
+
+.event-page .text-wrapper-8 {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-left: -8.50px;
+    margin-right: -8.50px;
+    margin-top: -0.20px;
+    position: relative;
+    width: fit-content;
+}
+
+.event-page .frame-5 {
+    align-items: center;
+    background-color: #ffffff;
+    border: 0.7px solid;
+    border-color: #395c31;
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+    height: 19px;
+    justify-content: center;
+    padding: 0px 12px;
+    position: relative;
+    width: 47px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-page .frame-5:hover {
+    background-color: #f5f5f5;
+}
+
+.event-page .text-wrapper-9 {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-left: -4.50px;
+    margin-right: -4.50px;
+    margin-top: -0.20px;
+    position: relative;
+    width: fit-content;
+}
+
+.event-page .overlap-2 {
+    background-color: #ffffff;
+    border: 1px solid;
+    border-color: #000000;
+    border-radius: 10px;
+    height: 364px;
+    left: 34px;
+    position: absolute;
+    top: 531px;
+    width: 181px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.event-page .overlap-2:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.event-page .overlap-3 {
+    height: 32px;
+    left: 74px;
+    position: absolute;
+    top: 213px;
+    width: 32px;
+}
+
+.event-page .text-wrapper-10 {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    left: 0;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 19px;
+}
+
+.event-page .simple-icons-puma {
+    aspect-ratio: 1;
+    height: 24px;
+    left: 5px;
+    position: absolute;
+    top: 0;
+    width: 24px;
+}
+
+.event-page .vector-9 {
+    height: 19px;
+    left: 0;
+    position: absolute;
+    top: 3px;
+    width: 24px;
+}
+
+.event-page .september-sunday {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    left: 25px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 122px;
+}
+
+.event-page .MPL-cricket-ground {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    left: 25px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 155px;
+}
+
+.event-page .rectangle-4 {
+    height: 100px;
+    left: -1px;
+    object-fit: cover;
+    position: absolute;
+    top: -1px;
+    width: 181px;
+    border-radius: 10px 10px 0 0;
+}
+
+.event-page .frame-6 {
+    align-items: center;
+    background-color: #8da56e;
+    display: flex;
+    gap: 10px;
+    height: 24px;
+    justify-content: center;
+    left: 0;
+    padding: 4px 8px;
+    position: absolute;
+    top: 99px;
+    width: 179px;
+    box-sizing: border-box;
+}
+
+.event-page .text-wrapper-11 {
+    color: #ffffff;
+    font-family: "Ibarra Real Nova-SemiBold", Helvetica, Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-top: -1.00px;
+    position: relative;
+    width: fit-content;
+    white-space: nowrap;
+}
+
+.event-page .clarity-date-line {
+    aspect-ratio: 1;
+    height: 9px;
+    left: 7px;
+    position: absolute;
+    top: 125px;
+    width: 9px;
+}
+
+.event-page .mdi-location {
+    aspect-ratio: 1;
+    height: 9px;
+    left: 7px;
+    position: absolute;
+    top: 158px;
+    width: 9px;
+}
+
+.event-page .vector-10 {
+    height: 8px;
+    left: 2px;
+    position: absolute;
+    top: 1px;
+    width: 5px;
+}
+
+.event-page .overlap-4 {
+    background: linear-gradient(
+        90deg,
+        rgba(217, 217, 217, 1) 0%,
+        rgba(115, 115, 115, 1) 100%
+    );
+    height: 14px;
+    left: 1px;
+    position: absolute;
+    top: 197px;
+    width: 179px;
+}
+
+.event-page .text-wrapper-12 {
+    color: #0d284f;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    left: 65px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 0;
+}
+
+.event-page .frame-7 {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    left: 5px;
+    position: absolute;
+    top: 254px;
+    width: 170px;
+}
+
+.event-page .frame-8 {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 auto;
+    position: relative;
+}
+
+.event-page .game-icons-target {
+    aspect-ratio: 1;
+    height: 16px;
+    position: relative;
+    width: 16px;
+}
+
+.event-page .vector-11 {
+    height: 14px;
+    left: 3px;
+    position: absolute;
+    top: 1px;
+    width: 10px;
+}
+
+.event-page .text-wrapper-13 {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    position: relative;
+    width: fit-content;
+}
+
+.event-page .rectangle-5 {
+    height: 39px;
+    left: 68px;
+    object-fit: cover;
+    position: absolute;
+    top: 274px;
+    width: 40px;
+    border-radius: 5px;
+}
+
+.event-page .rectangle-6 {
+    height: 39px;
+    left: 10px;
+    object-fit: cover;
+    position: absolute;
+    top: 274px;
+    width: 40px;
+    border-radius: 5px;
+}
+
+.event-page .rectangle-7 {
+    height: 39px;
+    left: 125px;
+    object-fit: cover;
+    position: absolute;
+    top: 274px;
+    width: 40px;
+    border-radius: 5px;
+}
+
+.event-page .frame-9 {
+    align-items: center;
+    background-color: #7a832ca8;
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+    height: 28px;
+    justify-content: center;
+    left: 14px;
+    padding: 4px 24px;
+    position: absolute;
+    top: 326px;
+    width: 151px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-page .frame-9:hover {
+    background-color: #7a832ccc;
+    transform: translateY(-1px);
+}
+
+.event-page .text-wrapper-14 {
+    color: #000000;
+    font-family: "Ibarra Real Nova-SemiBold", Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-top: -0.50px;
+    position: relative;
+    width: fit-content;
+}
+
+.event-page .overlap-5 {
+    height: 367px;
+    left: 231px;
+    position: absolute;
+    top: 528px;
+    width: 181px;
+}
+
+.event-page .rectangle-8 {
+    background-color: #ffffff;
+    border: 1px solid;
+    border-color: #000000;
+    border-radius: 10px;
+    height: 364px;
+    left: 0;
+    position: absolute;
+    top: 3px;
+    width: 181px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.event-page .rectangle-8:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.event-page .text-wrapper-15 {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    left: 74px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 235px;
+}
+
+.event-page .p {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    left: 26px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 126px;
+}
+
+.event-page .bhagat-singh-ground {
+    color: #000000;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    left: 26px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 159px;
+}
+
+.event-page .rectangle-9 {
+    height: 100px;
+    left: 0;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    width: 181px;
+    border-radius: 10px 10px 0 0;
+}
+
+.event-page .frame-10 {
+    align-items: center;
+    background-color: #8da56e;
+    display: flex;
+    gap: 10px;
+    height: 24px;
+    justify-content: center;
+    left: 0;
+    padding: 4px 8px;
+    position: absolute;
+    top: 103px;
+    width: 179px;
+    box-sizing: border-box;
+}
+
+.event-page .clarity-date-line-2 {
+    aspect-ratio: 1;
+    height: 9px;
+    left: 8px;
+    position: absolute;
+    top: 129px;
+    width: 9px;
+}
+
+.event-page .vector-wrapper {
+    aspect-ratio: 1;
+    height: 9px;
+    left: 8px;
+    position: absolute;
+    top: 162px;
+    width: 9px;
+}
+
+.event-page .rectangle-10 {
+    background: linear-gradient(
+        90deg,
+        rgba(217, 217, 217, 1) 0%,
+        rgba(115, 115, 115, 1) 100%
+    );
+    height: 14px;
+    left: 1px;
+    position: absolute;
+    top: 200px;
+    width: 179px;
+}
+
+.event-page .text-wrapper-16 {
+    color: #0d284f;
+    font-family: "Ibarra Real Nova-Regular", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    left: 66px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 200px;
+}
+
+.event-page .frame-11 {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    left: 5px;
+    position: absolute;
+    top: 258px;
+    width: 170px;
+}
+
+.event-page .rectangle-11 {
+    height: 39px;
+    left: 68px;
+    object-fit: cover;
+    position: absolute;
+    top: 278px;
+    width: 40px;
+    border-radius: 5px;
+}
+
+.event-page .rectangle-12 {
+    height: 39px;
+    left: 10px;
+    object-fit: cover;
+    position: absolute;
+    top: 278px;
+    width: 40px;
+    border-radius: 5px;
+}
+
+.event-page .rectangle-13 {
+    height: 39px;
+    left: 125px;
+    object-fit: cover;
+    position: absolute;
+    top: 278px;
+    width: 40px;
+    border-radius: 5px;
+}
+
+.event-page .frame-12 {
+    align-items: center;
+    background-color: #7a832ca8;
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+    height: 28px;
+    justify-content: center;
+    left: 15px;
+    padding: 4px 24px;
+    position: absolute;
+    top: 330px;
+    width: 151px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.event-page .frame-12:hover {
+    background-color: #7a832ccc;
+    transform: translateY(-1px);
+}
+
+.event-page .hugeicons-nike {
+    aspect-ratio: 1;
+    height: 24px;
+    left: 77px;
+    position: absolute;
+    top: 216px;
+    width: 24px;
+}
+
+.event-page .vector-12 {
+    height: 12px;
+    left: 1px;
+    position: absolute;
+    top: 6px;
+    width: 22px;
+}
+
+.event-page .overlap-6 {
+    background-position: 50% 50%;
+    background-size: cover;
+    height: 193px;
+    left: 0;
+    position: absolute;
+    top: 913px;
+    width: 440px;
+    border-radius: 0 0 10px 10px;
+}
+
+.event-page .rectangle-14-container {
+    height: 193px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 440px;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+}
+
+.event-page .rectangle-14-flag {
+    height: 193px;
+    left: 0;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    width: 440px;
+    opacity: 0.55;
+    z-index: 1;
+}
+
+.event-page .rectangle-14 {
+    height: 193px;
+    left: 0;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    width: 440px;
+    z-index: 2;
+}
+
+.event-page .text-wrapper-17 {
+    color: #ffffff;
+    font-family: "Ibarra Real Nova-SemiBold", Helvetica, Arial, sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    left: 21px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 5px;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9);
+    z-index: 10;
+}
+
+.event-page .text-wrapper-18 {
+    color: #ffffff;
+    font-family: "Ibarra Real Nova-SemiBold", Helvetica, Arial, sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    left: 134px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 88px;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9);
+    z-index: 10;
+}
+
+.event-page .text-wrapper-19 {
+    color: #ffffff;
+    font-family: "Ibarra Real Nova-SemiBold", Helvetica, Arial, sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    left: 93px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 50px;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9);
+    z-index: 10;
+}
+
+.event-page .text-wrapper-20 {
+    color: #ffffff;
+    font-family: "Ibarra Real Nova-SemiBold", Helvetica, Arial, sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    left: 128px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 51px;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9);
+    z-index: 10;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 480px) {
+    .event-page .div {
+        width: 100%;
+        max-width: 440px;
+        margin: 70px auto 80px;
+    }
+    
+    .event-page .overlap,
+    .event-page .rectangle,
+    .event-page .rectangle-2,
+    .event-page .rectangle-3,
+    .event-page .overlap-6,
+    .event-page .rectangle-14 {
+        width: 100%;
+        max-width: 440px;
+    }
+}

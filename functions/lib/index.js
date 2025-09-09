@@ -36,4 +36,6 @@ __exportStar(require("./admin"), exports);
 __exportStar(require("./moderation"), exports);
 // Notification functions (for existing notification service)
 __exportStar(require("./notifications"), exports);
+// Redis Cache Management functions (Phase 2 implementation)
+__exportStar(require("./cache"), exports);
 //# sourceMappingURL=index.js.map

@@ -1,0 +1,568 @@
+.login-page-screen {
+    align-items: start;
+    background-color: transparent;
+    display: grid;
+    justify-items: center;
+    width: 100vw;
+    min-height: 100vh;
+}
+
+.login-page-screen .overlap-wrapper {
+    background-image: url('./landingbg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 3px solid;
+    border-color: #5ac231;
+    height: 956px;
+    width: 440px;
+    position: relative;
+}
+
+.login-page-screen .overlap-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.62) 0%,
+        rgba(0, 0, 0, 0.62) 100%
+    );
+    border-radius: inherit;
+}
+
+.login-page-screen .overlap {
+    height: 823px;
+    left: 66px;
+    position: relative;
+    top: 50px;
+    width: 308px;
+    z-index: 1;
+}
+
+.login-page-screen .rectangle {
+    background-color: #443131;
+    height: 791px;
+    left: 0;
+    opacity: 0.2;
+    position: absolute;
+    top: 32px;
+    width: 308px;
+}
+
+.login-page-screen .text-wrapper {
+    color: #ffffff;
+    font-family: "Public Sans-Bold", Helvetica;
+    font-size: 40px;
+    font-weight: 700;
+    left: 44px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 0;
+    white-space: nowrap;
+}
+
+.login-page-screen .email {
+    background-color: #2b202073;
+    border-radius: 12px;
+    height: 52px;
+    left: 34px;
+    position: absolute;
+    top: 150px;
+    width: 250px;
+    z-index: 2;
+}
+
+.login-page-screen .password {
+    background-color: #2d221f73;
+    border-radius: 12px;
+    height: 52px;
+    left: 34px;
+    position: absolute;
+    top: 225px;
+    width: 250px;
+    z-index: 2;
+}
+
+.login-page-screen .continue-as-a-guest {
+    align-items: center;
+    background-color: #2d221f73;
+    border-radius: 12px;
+    display: flex;
+    gap: 10px;
+    height: 50px;
+    justify-content: center;
+    left: 16px;
+    padding: 14px 35px;
+    position: absolute;
+    top: 545px;
+    width: 275px;
+}
+
+.login-page-screen .div {
+    color: #ffffff;
+    font-family: "Public Sans-Regular", Helvetica;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-top: -2.00px;
+    position: relative;
+    white-space: nowrap;
+    width: fit-content;
+}
+
+.login-page-screen .sign-up {
+    align-items: center;
+    background-color: #8163bf73;
+    border-radius: 12px;
+    display: flex;
+    gap: 10px;
+    height: 52px;
+    justify-content: center;
+    left: 29px;
+    padding: 14px 35px;
+    position: absolute;
+    top: 660px;
+    width: 250px;
+}
+
+.login-page-screen .text-wrapper-2 {
+    color: #ffffff;
+    font-family: "Public Sans-Regular", Helvetica;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-top: -1.00px;
+    position: relative;
+    white-space: nowrap;
+    width: fit-content;
+}
+
+.login-page-screen .register-as-a-coach {
+    align-items: center;
+    background-color: #463d8a;
+    border-radius: 12px;
+    display: flex;
+    gap: 10px;
+    height: 52px;
+    justify-content: center;
+    left: 28px;
+    padding: 14px 35px;
+    position: absolute;
+    top: 742px;
+    width: 250px;
+}
+
+.login-page-screen .text-wrapper-3 {
+    color: #ffffff;
+    font-family: "Public Sans-Regular", Helvetica;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-left: -2.00px;
+    margin-right: -2.00px;
+    margin-top: -1.00px;
+    position: relative;
+    white-space: nowrap;
+    width: fit-content;
+}
+
+.login-page-screen .login {
+    background: linear-gradient(
+        233deg,
+        rgba(48, 97, 39, 1) 0%,
+        rgba(97, 199, 79, 1) 100%
+    );
+    border-radius: 12px;
+    height: 41px;
+    left: 110px;
+    position: absolute;
+    top: 300px;
+    width: 110px;
+    z-index: 3;
+}
+
+.login-page-screen .text-wrapper-4 {
+    color: #ffffff;
+    font-family: "Public Sans-Regular", Helvetica;
+    font-size: 16px;
+    font-weight: 400;
+    left: 42px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 130px;
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.login-page-screen .text-wrapper-5 {
+    color: #ffffff;
+    font-family: "Public Sans-Regular", Helvetica;
+    font-size: 16px;
+    font-weight: 400;
+    left: 42px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 205px;
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.login-page-screen .text-wrapper-6 {
+    color: #ffffff;
+    font-family: "Public Sans-Regular", Helvetica;
+    font-size: 16px;
+    font-weight: 400;
+    left: 139px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 308px;
+    white-space: nowrap;
+    z-index: 4;
+}
+
+.login-page-screen .text-wrapper-7 {
+    color: #ffffff;
+    font-family: "Public Sans-Regular", Helvetica;
+    font-size: 15px;
+    font-weight: 400;
+    left: 145px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 524px;
+    white-space: nowrap;
+}
+
+.login-page-screen .text-wrapper-8 {
+    color: #ffffff;
+    font-family: "Public Sans-Regular", Helvetica;
+    font-size: 15px;
+    font-weight: 400;
+    left: 120px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 617px;
+    white-space: nowrap;
+}
+
+.login-page-screen .continue-with {
+    align-items: center;
+    background-color: #2d9ad9bf;
+    border-radius: 12px;
+    display: flex;
+    gap: 10px;
+    height: 50px;
+    justify-content: center;
+    left: 16px;
+    padding: 14px 35px;
+    position: absolute;
+    top: 339px;
+    width: 275px;
+}
+
+.login-page-screen .logos-facebook {
+    aspect-ratio: 1;
+    background-image: url(./vector-6.svg);
+    background-size: 100% 100%;
+    height: 15.9px;
+    margin-left: -22.50px;
+    overflow: hidden;
+    position: relative;
+    width: 16px;
+}
+
+.login-page-screen .vector {
+    height: 13px;
+    left: 5px;
+    position: absolute;
+    top: 3px;
+    width: 7px;
+}
+
+.login-page-screen .text-wrapper-9 {
+    color: #000000;
+    font-family: "Public Sans-Regular", Helvetica;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: normal;
+    margin-right: -22.50px;
+    margin-top: -2.00px;
+    position: relative;
+    white-space: nowrap;
+    width: fit-content;
+}
+
+.login-page-screen .continue-with-google {
+    background-color: #fff1ed73;
+    border-radius: 12px;
+    height: 50px;
+    left: 16px;
+    position: absolute;
+    top: 401px;
+    width: 275px;
+}
+
+.login-page-screen .devicon-google {
+    aspect-ratio: 1;
+    height: 16px;
+    left: 12px;
+    position: absolute;
+    top: 16px;
+    width: 16px;
+}
+
+.login-page-screen .overlap-group {
+    background-image: url(./vector.svg);
+    background-size: 100% 100%;
+    height: 16px;
+    position: relative;
+    width: 15px;
+}
+
+.login-page-screen .img {
+    height: 6px;
+    left: 1px;
+    position: absolute;
+    top: 0;
+    width: 12px;
+}
+
+.login-page-screen .vector-2 {
+    height: 7px;
+    left: 0;
+    position: absolute;
+    top: 4px;
+    width: 3px;
+}
+
+.login-page-screen .vector-3 {
+    height: 7px;
+    left: 8px;
+    position: absolute;
+    top: 6px;
+    width: 8px;
+}
+
+.login-page-screen .vector-4 {
+    height: 6px;
+    left: 1px;
+    position: absolute;
+    top: 9px;
+    width: 12px;
+}
+
+.login-page-screen .text-wrapper-10 {
+    color: #000000;
+    font-family: "Public Sans-Regular", Helvetica;
+    font-size: 20px;
+    font-weight: 400;
+    left: 38px;
+    letter-spacing: 0;
+    line-height: normal;
+    position: absolute;
+    top: 11px;
+    white-space: nowrap;
+}
+
+.login-page-screen .sign-in-with-apple {
+    align-items: center;
+    background-color: #2d221f;
+    border-radius: 12px;
+    display: inline-flex;
+    gap: 10px;
+    left: 16px;
+    padding: 13px 36px;
+    position: absolute;
+    top: 465px;
+}
+
+.login-page-screen .ri-apple-line {
+    aspect-ratio: 1;
+    height: 24px;
+    position: relative;
+    width: 24px;
+}
+
+.login-page-screen .vector-5 {
+    height: 22px;
+    left: 3px;
+    position: absolute;
+    top: 1px;
+    width: 18px;
+}
+
+/* Mobile Responsive Styles */
+@media screen and (max-width: 768px) {
+    .login-page-screen .overlap-wrapper {
+        width: 100vw;
+        max-width: 440px;
+        margin: 0 auto;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .login-page-screen .overlap {
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100vw - 40px);
+        max-width: 308px;
+    }
+
+    /* Center all form elements */
+    .login-page-screen .email,
+    .login-page-screen .password {
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 40px);
+        max-width: 250px;
+    }
+
+    .login-page-screen .login {
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 40px);
+        max-width: 250px;
+    }
+
+    .login-page-screen .text-wrapper {
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 100%;
+        top: 40px;
+    }
+
+    .login-page-screen .text-wrapper-4,
+    .login-page-screen .text-wrapper-5 {
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        width: calc(100% - 40px);
+        max-width: 250px;
+    }
+
+    .login-page-screen .text-wrapper-6 {
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+    }
+
+    /* Center buttons */
+    .login-page-screen .continue-as-a-guest,
+    .login-page-screen .continue-with,
+    .login-page-screen .continue-with-google,
+    .login-page-screen .sign-in-with-apple {
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 40px);
+        max-width: 275px;
+    }
+
+    .login-page-screen .sign-up,
+    .login-page-screen .register-as-a-coach {
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 40px);
+        max-width: 250px;
+    }
+
+    /* Center OR and New User text */
+    .login-page-screen .text-wrapper-7,
+    .login-page-screen .text-wrapper-8 {
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 100%;
+    }
+
+    /* Adjust Google button content */
+    .login-page-screen .text-wrapper-10 {
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 100%;
+    }
+
+    .login-page-screen .devicon-google {
+        left: 20px;
+    }
+
+    /* Responsive back button positioning */
+    .login-page-screen button[style*="position: absolute"]:first-of-type {
+        top: 3px !important;
+        left: 3px !important;
+        padding: 3px 6px !important;
+        fontSize: '11px' !important;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .login-page-screen .overlap-wrapper {
+        width: 100vw;
+        padding: 5px;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .login-page-screen .overlap {
+        width: calc(100vw - 20px);
+        max-width: 300px;
+    }
+
+    .login-page-screen .email,
+    .login-page-screen .password {
+        width: calc(100% - 20px);
+        max-width: 280px;
+    }
+
+    .login-page-screen .continue-as-a-guest,
+    .login-page-screen .continue-with,
+    .login-page-screen .continue-with-google,
+    .login-page-screen .sign-in-with-apple {
+        width: calc(100% - 20px);
+        max-width: 290px;
+    }
+
+    .login-page-screen .sign-up,
+    .login-page-screen .register-as-a-coach {
+        width: calc(100% - 20px);
+        max-width: 280px;
+    }
+
+    .login-page-screen .text-wrapper {
+        font-size: 32px;
+        top: 35px;
+    }
+
+    .login-page-screen .text-wrapper-2,
+    .login-page-screen .text-wrapper-3,
+    .login-page-screen .text-wrapper-9,
+    .login-page-screen .text-wrapper-10 {
+        font-size: 18px;
+    }
+
+    .login-page-screen .div {
+        font-size: 18px;
+    }
+
+    /* Extra responsive back button positioning for small screens */
+    .login-page-screen button[style*="position: absolute"]:first-of-type {
+        top: 2px !important;
+        left: 2px !important;
+        padding: 2px 5px !important;
+        fontSize: '10px' !important;
+    }
+}

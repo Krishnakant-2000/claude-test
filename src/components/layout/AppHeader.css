@@ -1,0 +1,155 @@
+/* App Header Styles */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  z-index: 100;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  width: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background: var(--bg-card);
+  border-color: var(--accent-primary);
+  transform: translateX(-2px);
+}
+
+.app-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #000;
+  margin: 0;
+  font-family: "Teachers", Helvetica;
+  transition: all 0.2s ease;
+}
+
+.app-title:hover {
+  transform: scale(1.05);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-links button {
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-links button:hover {
+  background: var(--bg-card);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.guest-indicator {
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 152, 0, 0.1));
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffc107;
+  white-space: nowrap;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .header-content {
+    padding: 10px 16px;
+  }
+  
+  .app-title {
+    font-size: 20px;
+  }
+  
+  .nav-links {
+    gap: 8px;
+  }
+  
+  .nav-links button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .guest-indicator {
+    display: none;
+  }
+  
+  .header-right {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 8px 12px;
+  }
+  
+  .app-title {
+    font-size: 18px;
+  }
+  
+  .nav-links {
+    gap: 6px;
+  }
+  
+  .nav-links button {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .back-button {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}

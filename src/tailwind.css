@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .all-\[unset\] {
+    all: unset;
+  }
+}
+
+:root {
+  --body-pargraph-bold-font-family: "Poppins", Helvetica;
+  --body-pargraph-bold-font-size: 16px;
+  --body-pargraph-bold-font-style: normal;
+  --body-pargraph-bold-font-weight: 700;
+  --body-pargraph-bold-letter-spacing: 0px;
+  --body-pargraph-bold-line-height: normal;
+  --follower-typography-font-family: "Teachers", Helvetica;
+  --follower-typography-font-size: 24px;
+  --follower-typography-font-style: normal;
+  --follower-typography-font-weight: 500;
+  --follower-typography-letter-spacing: 0px;
+  --follower-typography-line-height: normal;
+  --heading-new: rgba(0, 0, 0, 1);
+  --new-apply-font-family: "Puritan", Helvetica;
+  --new-apply-font-size: 24px;
+  --new-apply-font-style: normal;
+  --new-apply-font-weight: 400;
+  --new-apply-letter-spacing: 0px;
+  --new-apply-line-height: normal;
+  --new-bold-text: rgba(255, 254, 253, 1);
+  --new-style: rgba(255, 254, 253, 1);
+  --primary-color: rgba(27, 84, 218, 1);
+}
+
+:root {
+  --animate-spin: spin 1s linear infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s var(--animation-delay, 0s) ease forwards;
+}
+
+.animate-fade-up {
+  animation: fade-up 1s var(--animation-delay, 0s) ease forwards;
+}
+
+.animate-marquee {
+  animation: marquee var(--duration) infinite linear;
+}
+
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration) linear infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 8s infinite;
+}
+
+.animate-spin {
+  animation: var(--animate-spin);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes image-glow {
+  0% {
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.74, 0.25, 0.76, 1);
+  }
+
+  10% {
+    opacity: 0.7;
+    animation-timing-function: cubic-bezier(0.12, 0.01, 0.08, 0.99);
+  }
+
+  to {
+    opacity: 0.4;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  0%,
+  90%,
+  to {
+    background-position: calc(-100% - var(--shimmer-width)) 0;
+  }
+
+  30%,
+  60% {
+    background-position: calc(100% + var(--shimmer-width)) 0;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translate(0);
+  }
+
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  0% {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}

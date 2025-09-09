@@ -119,6 +119,14 @@ service firebase.storage {
         && validateMediaFile();
     }
     
+    // Events images (for admin dashboard event management)
+    match /events/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null 
+        && isAdminUser()
+        && validateImageFile();
+    }
+    
     // Temporary uploads (for processing)
     match /temp/{userId}/{fileName} {
       allow read, write: if request.auth != null 
@@ -167,6 +175,16 @@ service firebase.storage {
     
     function isGuestUser() {
       return request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+    
+    function isAdminUser() {
+      // Check if user has admin role in their custom claims or is in admin email list
+      return request.auth.token.admin == true ||
+             request.auth.token.email in [
+               'admin@amaplayer.com', 
+               'krishnakant.2000@gmail.com',
+               'your-admin-email@gmail.com'  // Add your admin email here
+             ];
     }
   }
 }

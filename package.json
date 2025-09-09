@@ -3,11 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@tanstack/react-query": "^5.84.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "dotenv": "^17.2.1",
     "firebase": "^11.10.0",
+    "firebase-admin": "^13.4.0",
     "lucide-react": "^0.525.0",
     "postprocessing": "^6.37.6",
     "react": "^19.1.0",
@@ -21,9 +24,19 @@
     "ws": "^8.18.3"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "cross-env PORT=3004 react-scripts start",
+    "dev": "cross-env PORT=3001 react-scripts start",
     "build": "react-scripts build",
+    "build:analyze": "npm run build && npx serve -s build",
     "test": "react-scripts test",
+    "test:coverage": "react-scripts test --coverage --watchAll=false",
+    "test:ci": "CI=true react-scripts test --coverage --watchAll=false",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint src --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write src/**/*.{js,jsx,ts,tsx,css,scss,json}",
+    "format:check": "prettier --check src/**/*.{js,jsx,ts,tsx,css,scss,json}",
+    "type-check": "tsc --noEmit",
+    "pre-commit": "npm run lint:fix && npm run format && npm run test:ci",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -43,5 +56,30 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx,ts,tsx}",
+      "!src/index.js",
+      "!src/reportWebVitals.js",
+      "!src/setupTests.js",
+      "!src/**/*.stories.{js,jsx,ts,tsx}",
+      "!src/utils/test/**",
+      "!src/**/*.test.{js,jsx,ts,tsx}"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 50,
+        "functions": 50,
+        "lines": 50,
+        "statements": 50
+      }
+    }
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "cross-env": "^10.0.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
   }
 }

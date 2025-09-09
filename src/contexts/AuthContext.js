@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '../firebase/firebase';
+import { auth } from '../lib/firebase';
 import notificationService from '../services/notificationService';
 import { 
   createUserWithEmailAndPassword, 
@@ -9,6 +9,7 @@ import {
   signInWithRedirect,
   getRedirectResult,
   GoogleAuthProvider,
+  FacebookAuthProvider,
   OAuthProvider,
   signOut, 
   onAuthStateChanged,
@@ -62,6 +63,29 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function facebookLogin() {
+    const provider = new FacebookAuthProvider();
+    provider.addScope('email');
+    
+    try {
+      // First try popup method
+      return await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.log('Facebook login error:', error.code, error.message);
+      
+      // If popup fails, fallback to redirect
+      if (error.code === 'auth/popup-blocked' || 
+          error.code === 'auth/popup-closed-by-user' ||
+          error.code === 'auth/cancelled-popup-request' ||
+          error.message?.includes('Cross-Origin-Opener-Policy') ||
+          error.message?.includes('popup')) {
+        console.log('Facebook popup failed, falling back to redirect method...');
+        return signInWithRedirect(auth, provider);
+      }
+      throw error;
+    }
+  }
+
   function appleLogin() {
     const provider = new OAuthProvider('apple.com');
     // Request additional scopes if needed
@@ -109,11 +133,18 @@ export function AuthProvider({ children }) {
       setCurrentUser(user);
       setLoading(false);
       
+      // Trigger theme refresh after auth state change to fix dark theme button visibility
+      if (user) {
+        setTimeout(() => {
+          window.dispatchEvent(new Event('themeRefresh'));
+        }, 100);
+      }
+      
       // Only initialize notifications if permission is already granted and user is on authenticated pages
       if (user && !user.isAnonymous && Notification.permission === 'granted') {
-        // Check if we're on an authenticated page (not landing/login/signup)
+        // Check if we're on an authenticated page (not login/signup)
         const currentPath = window.location.pathname;
-        const isAuthenticatedPage = !['/','', '/landing', '/login', '/signup'].includes(currentPath);
+        const isAuthenticatedPage = !['/','', '/login', '/signup'].includes(currentPath);
         
         if (isAuthenticatedPage) {
           try {
@@ -144,6 +175,7 @@ export function AuthProvider({ children }) {
     login,
     guestLogin,
     googleLogin,
+    facebookLogin,
     appleLogin,
     logout,
     updateUserProfile,
