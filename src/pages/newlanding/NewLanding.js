@@ -104,7 +104,7 @@ const NewLanding = () => {
               <h2>AmaPlayer</h2>
               <div className="hero-buttons">
                 <button onClick={() => scrollToSection('explore')} className="button special">Explore</button>
-                <Link to="/app" className="button alt">App</Link>
+                <Link to="/login" className="button alt">App</Link>
               </div>
             </header>
           </div>

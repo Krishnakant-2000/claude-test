@@ -43,6 +43,44 @@ body {
   min-height: 100vh;
   background: linear-gradient(180deg, rgba(15, 20, 25, 0.9) 0%, rgba(26, 35, 50, 0.8) 50%, rgba(45, 55, 72, 0.9) 100%);
   color: var(--text-primary);
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* Global container improvements for PC browsers */
+@media (min-width: 1200px) {
+  .container,
+  .responsive-container,
+  .main-container,
+  .app-container {
+    max-width: 1400px !important;
+    width: 95% !important;
+  }
+
+  /* Improve font sizes for larger screens */
+  body {
+    font-size: 16px;
+  }
+
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  h3 { font-size: 1.5rem; }
+  p { font-size: 1rem; line-height: 1.6; }
+}
+
+@media (min-width: 1600px) {
+  .container,
+  .responsive-container,
+  .main-container,
+  .app-container {
+    max-width: 1600px !important;
+    width: 90% !important;
+  }
+
+  h1 { font-size: 3rem; }
+  h2 { font-size: 2.5rem; }
+  h3 { font-size: 1.75rem; }
+  p { font-size: 1.1rem; }
 }
 
 /* Loading States */

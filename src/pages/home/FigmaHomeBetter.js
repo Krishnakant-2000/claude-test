@@ -2,13 +2,13 @@ import React, { useState, useEffect, Fragment } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../../lib/firebase';
-import { Heart, MessageCircle, Share2, MoreHorizontal, Search, Camera, Bell, LogOut } from 'lucide-react';
+import { db, storage } from '../../lib/firebase';
+import { Heart, MessageCircle, Share2, MoreHorizontal, Search, Camera, Bell, LogOut, X, Image, Video, Upload } from 'lucide-react';
 import CommentDrawer from '../../components/common/modals/CommentDrawer';
-import { 
-  collection, 
-  query, 
-  orderBy, 
+import {
+  collection,
+  query,
+  orderBy,
   limit,
   getDocs,
   doc,
@@ -21,6 +21,7 @@ import {
   where,
   onSnapshot
 } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import './FigmaHomeBetter.css';
 
 // User Avatar component that handles both real images and placeholders
@@ -135,6 +136,10 @@ export const AmaPlayerHomePage = () => {
     postId: null,
     postAuthor: null
   });
+  const [showAddPostModal, setShowAddPostModal] = useState(false);
+  const [newPost, setNewPost] = useState({ caption: '', image: null, mediaType: 'image' });
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
 
   // Load posts from Firebase (only images and text posts)
   const loadPosts = async () => {
@@ -565,6 +570,81 @@ export const AmaPlayerHomePage = () => {
     }
   };
 
+  // AddPost Modal Functions
+  const handleOpenAddPost = () => {
+    setShowAddPostModal(true);
+  };
+
+  const handleCloseAddPost = () => {
+    setShowAddPostModal(false);
+    setNewPost({ caption: '', image: null, mediaType: 'image' });
+    setImagePreview(null);
+    setUploading(false);
+  };
+
+  const handleImageChange = (e) => {
+    if (e.target.files[0]) {
+      const file = e.target.files[0];
+      setNewPost({ ...newPost, image: file, mediaType: 'image' });
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    }
+  };
+
+  const handleImageRemove = () => {
+    setNewPost({ ...newPost, image: null });
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(null);
+  };
+
+  const handlePostSubmit = async () => {
+    if (!currentUser || (!newPost.caption.trim() && !newPost.image)) {
+      alert('Please add some content to your post');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      let imageUrl = null;
+
+      // Upload image if present
+      if (newPost.image) {
+        const imageRef = ref(storage, `posts/images/${Date.now()}_${newPost.image.name}`);
+        await uploadBytes(imageRef, newPost.image);
+        imageUrl = await getDownloadURL(imageRef);
+      }
+
+      // Create post document
+      const postData = {
+        userId: currentUser.uid,
+        userDisplayName: currentUser.displayName || 'Anonymous User',
+        userPhotoURL: currentUser.photoURL || null,
+        caption: newPost.caption.trim(),
+        imageUrl: imageUrl,
+        likes: [],
+        comments: [],
+        timestamp: serverTimestamp(),
+        mediaType: newPost.mediaType
+      };
+
+      await addDoc(collection(db, 'posts'), postData);
+
+      // Refresh posts
+      loadPosts();
+
+      // Close modal and reset
+      handleCloseAddPost();
+
+    } catch (error) {
+      console.error('Error creating post:', error);
+      alert('Failed to create post. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="figma-home-container">
       {/* Header */}
@@ -586,10 +666,10 @@ export const AmaPlayerHomePage = () => {
             userName={currentUser?.displayName || 'You'} 
           />
         </div>
-        <div className="composer-input" onClick={() => navigate('/add-post')}>
+        <div className="composer-input" onClick={handleOpenAddPost}>
           <p>What's on your mind?</p>
         </div>
-        <div className="composer-camera" onClick={() => navigate('/add-post')}>
+        <div className="composer-camera" onClick={handleOpenAddPost}>
           <Camera size={30} />
         </div>
       </div>
@@ -663,59 +743,63 @@ export const AmaPlayerHomePage = () => {
               {/* Post Image - Only show if there's actually media */}
               {post.imageUrl && (
                 <div className="post-media">
-                  <img 
-                    src={post.imageUrl} 
-                    alt="Post" 
+                  <img
+                    src={post.imageUrl}
+                    alt="Post"
                     className="post-image"
                   />
+                  {/* Caption - Overlaid on Image */}
+                  {post.caption && (
+                    <div className="post-caption">
+                      <p>{post.caption}</p>
+                    </div>
+                  )}
+                  {/* Post Stats - Overlaid on right side */}
+                  <div className="post-stats">
+                    <div className="stat-item">
+                      <span className="stat-label">Likes</span>
+                      <span className="stat-count">{post.likes?.length || 0}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Comments</span>
+                      <span className="stat-count">{post.comments?.length || 0}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Shares</span>
+                      <span className="stat-count">1.2k</span>
+                    </div>
+                  </div>
+                  {/* Action Buttons - Left side */}
+                  <div className="post-actions">
+                    <button
+                      className="action-btn"
+                      onClick={() => handleLike(post.id, post.likes)}
+                    >
+                      <Heart
+                        size={18}
+                        fill={post.likes?.includes(currentUser?.uid) ? '#ef4444' : 'none'}
+                      />
+                    </button>
+                    <button
+                      className="action-btn"
+                      onClick={() => handleOpenComments(post.id, {
+                        userId: post.userId,
+                        displayName: post.userDisplayName,
+                        photoURL: post.userPhotoURL
+                      })}
+                    >
+                      <MessageCircle size={18} />
+                    </button>
+                    <button
+                      className="action-btn"
+                      onClick={() => handleShare(post, false)}
+                    >
+                      <Share2 size={18} />
+                    </button>
+                  </div>
                 </div>
               )}
 
-              {/* Post Caption */}
-              {post.caption && (
-                <div className="post-caption">
-                  <p>{post.caption}</p>
-                </div>
-              )}
-
-              {/* Post Stats */}
-              <div className="post-stats">
-                <span>{post.likes?.length || 0} likes</span>
-                <span>{post.comments?.length || 0} comments</span>
-                <span>1.2k shares</span>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="post-actions">
-                <button 
-                  className="action-btn"
-                  onClick={() => handleLike(post.id, post.likes)}
-                >
-                  <Heart 
-                    size={24} 
-                    fill={post.likes?.includes(currentUser?.uid) ? '#ef4444' : 'none'}
-                  />
-                  Like
-                </button>
-                <button 
-                  className="action-btn"
-                  onClick={() => handleOpenComments(post.id, {
-                    userId: post.userId,
-                    displayName: post.userDisplayName,
-                    photoURL: post.userPhotoURL
-                  })}
-                >
-                  <MessageCircle size={24} />
-                  Comment
-                </button>
-                <button 
-                  className="action-btn"
-                  onClick={() => handleShare(post, false)}
-                >
-                  <Share2 size={24} />
-                  Share
-                </button>
-              </div>
             </div>
             
             {/* Show Star Moments after every 5 posts */}
@@ -823,6 +907,83 @@ export const AmaPlayerHomePage = () => {
           onClose={closeStoryViewer}
           currentUser={currentUser}
         />
+      )}
+
+      {/* Add Post Modal */}
+      {showAddPostModal && (
+        <div className="add-post-modal-overlay">
+          <div className="add-post-modal">
+            <div className="add-post-header">
+              <h2>Create Post</h2>
+              <button className="close-btn" onClick={handleCloseAddPost}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="add-post-content">
+              <div className="user-info">
+                <UserAvatar
+                  src={currentUser?.photoURL}
+                  size={40}
+                  userName={currentUser?.displayName || 'You'}
+                />
+                <div className="user-details">
+                  <span className="username">{currentUser?.displayName || 'You'}</span>
+                  <span className="post-visibility">Public</span>
+                </div>
+              </div>
+
+              <textarea
+                className="post-caption-input"
+                placeholder="What's on your mind?"
+                value={newPost.caption}
+                onChange={(e) => {
+                  const textarea = e.target;
+                  setNewPost({ ...newPost, caption: e.target.value });
+
+                  // Auto-resize textarea
+                  textarea.style.height = 'auto';
+                  const newHeight = Math.min(Math.max(textarea.scrollHeight, 60), 200);
+                  textarea.style.height = newHeight + 'px';
+                }}
+                rows="2"
+              />
+
+              {/* Image Preview */}
+              {imagePreview && (
+                <div className="image-preview-container">
+                  <img src={imagePreview} alt="Preview" className="image-preview" />
+                  <button className="remove-image-btn" onClick={handleImageRemove}>
+                    <X size={20} />
+                  </button>
+                </div>
+              )}
+
+              {/* Media Upload Options */}
+              <div className="media-options">
+                <label className="media-option">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    style={{ display: 'none' }}
+                  />
+                  <Image size={24} />
+                  <span>Photo</span>
+                </label>
+              </div>
+
+              {/* Post Button */}
+              <button
+                className="post-submit-btn"
+                onClick={handlePostSubmit}
+                disabled={uploading || (!newPost.caption.trim() && !newPost.image)}
+              >
+                {uploading ? 'Posting...' : 'Post'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Comment Drawer */}

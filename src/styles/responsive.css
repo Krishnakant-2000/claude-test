@@ -10,6 +10,7 @@
   --breakpoint-lg: 992px;
   --breakpoint-xl: 1200px;
   --breakpoint-xxl: 1400px;
+  --breakpoint-ultra: 1800px;
   
   /* Responsive spacing scale */
   --spacing-xs: 4px;
@@ -27,13 +28,13 @@
   --font-xl: 18px;
   --font-xxl: 20px;
   
-  /* Container max-widths */
+  /* Container max-widths - Updated for modern screens */
   --container-xs: 100%;
   --container-sm: 540px;
   --container-md: 720px;
   --container-lg: 960px;
-  --container-xl: 1140px;
-  --container-xxl: 1320px;
+  --container-xl: 1400px;
+  --container-xxl: 1600px;
 }
 
 /* Base container class for consistent responsive behavior */
@@ -71,6 +72,12 @@
 @media (min-width: 1400px) {
   .responsive-container {
     max-width: var(--container-xxl);
+  }
+}
+
+@media (min-width: 1800px) {
+  .responsive-container {
+    max-width: 90%;
   }
 }
 
